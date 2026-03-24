@@ -1,0 +1,532 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Geometry & spacing ──────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0pt}
+
+% ── Encoding & language ─────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Swap the two lines below to switch language:
+% \usepackage[english]{babel}       
+\usepackage[indonesian]{babel}     % Bahasa Indonesia
+
+% ── Font ────────────────────────────────────────────────────
+\usepackage{lmodern}
+
+% ── Math ────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% ── Graphics & figures ──────────────────────────────────────
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% ── Tables ──────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+
+% ── Lists ───────────────────────────────────────────────────
+\usepackage{enumitem}
+
+% ── Code listings ───────────────────────────────────────────
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codeframe}{RGB}{200,200,200}
+\definecolor{codekw}{RGB}{0,0,180}
+\definecolor{codecomment}{RGB}{60,128,49}
+\definecolor{codestring}{RGB}{163,21,21}
+
+\lstdefinestyle{default}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  tabsize=2,
+  showstringspaces=false,
+  frame=single,
+  rulecolor=\color{codeframe},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  xleftmargin=2.5em,
+  framexleftmargin=2em,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+}
+% Language-specific styles — add more as needed
+\lstdefinestyle{go}{style=default, language=Python}    % closest builtin
+\lstdefinestyle{python}{style=default, language=Python}
+\lstdefinestyle{java}{style=default, language=Java}
+\lstdefinestyle{cpp}{style=default, language=C++}
+\lstdefinestyle{bash}{style=default, language=bash}
+
+\lstset{style=default}   % global default
+
+% ── Boxes (for tips / callouts) ──────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{listings, skins, breakable}
+
+\newtcolorbox{infobox}[1][Note]{
+  colback=blue!5!white, colframe=blue!50!black,
+  fonttitle=\bfseries, title=#1,
+  breakable
+}
+\newtcolorbox{warnbox}[1][Warning]{
+  colback=orange!10!white, colframe=orange!80!black,
+  fonttitle=\bfseries, title=#1,
+  breakable
+}
+
+% ── Hyperlinks ──────────────────────────────────────────────
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+% ── SI units ────────────────────────────────────────────────
+\usepackage{siunitx}
+
+% ── Header / Footer ─────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\CourseCode{} -- \CourseName}
+\rhead{\thepage}
+
+% ── First-line indent on all sections ───────────────────────
+\usepackage{indentfirst}
+
+\newcommand{\CourseCode}{IF2224}
+\newcommand{\CourseName}{Teori Bahasa Formal dan Otomata}
+\newcommand{\AssignmentTitle}{Laporan Tugas Besar}
+\newcommand{\AssignmentSubtitle}{Milestone 1}
+\newcommand{\Semester}{Semester II / 2025--2026}
+
+% Team / group
+\newcommand{\GroupName}{GTFOTBFO (HBB)}
+\newcommand{\MemberA}{Nathanael Imandatua Manurung - 13524021}
+\newcommand{\MemberB}{Nicholas Wise Saragih Sumbayak - 13524037}
+\newcommand{\MemberC}{Kurt Mikhael Purba - 13524065}
+\newcommand{\MemberD}{Rava Khoman Tuah Saragih - 13524107}
+
+
+% Institution
+\newcommand{\Lab}{Laboratorium Ilmu dan Rekayasa Komputasi}
+\newcommand{\Program}{Teknik Informatika}
+\newcommand{\Faculty}{Sekolah Teknik Elektro dan Informatika}
+\newcommand{\University}{Institut Teknologi Bandung}
+
+% Repository / deployment links (used in Appendix)
+\newcommand{\RepoURL}{https://github.com/your-org/your-repo}
+\newcommand{\DeployURL}{https://your-deployment-url.example.com}
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \vspace*{1cm}
+    {\Huge \textbf{\AssignmentTitle}}\\[0.4cm]
+    {\Large \textsc{\CourseCode{} \CourseName}}\\[0.2cm]
+    {\large \textsc{\AssignmentSubtitle}}\\[0.2cm]
+    {\large \textsc{\Semester}}\\[2cm]
+
+    \includegraphics[height=6cm]{logo-itb.png}\\[2cm]
+
+    {\large \textbf{Disusun oleh:}}\\[0.3cm]
+    {\large
+      \textbf{\GroupName}\\[0.25cm]
+      \MemberA\\
+      \MemberB\\
+      \MemberC\\
+      \MemberD\\
+    }
+
+    \vfill
+
+    {\large \textsc{\Lab}}\\[0.15cm]
+    {\large \textsc{Program Studi \Program}}\\[0.15cm]
+    {\large \textsc{\Faculty}}\\[0.15cm]
+    {\large \textsc{\University}}\\
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Background}
+% Briefly explain the problem context and why this assignment/project exists.
+Replace this paragraph with the motivation and context for your project. Describe the real-world
+or academic problem that the system aims to solve.
+
+\subsection{Problem Statement}
+% What specific problem are you solving?
+State the core problem clearly. Mention the input, desired output, and any key constraints.
+
+\subsection{System Overview}
+% High-level description of the system / application you built.
+\textbf{\AssignmentSubtitle} is a \ldots{} system that \ldots{}
+
+\subsection{General Specifications}
+% Enumerate the features / requirements from the spec sheet.
+\begin{enumerate}[label=\arabic*.]
+  \item Feature / requirement one.
+  \item Feature / requirement two.
+  \item \textbf{Bonus:} Optional bonus feature.
+\end{enumerate}
+
+% ============================================================
+%   SECTION 3 — THEORETICAL BACKGROUND
+% ============================================================
+
+\section{Theoretical Background}
+
+\subsection{Core Algorithm / Concept A}
+% E.g. Singular Value Decomposition, Dijkstra's, Transformer architecture …
+Describe the mathematical or algorithmic foundation. Use equations where appropriate.
+
+\begin{equation}
+  A = U \Sigma V^\top
+\end{equation}
+
+\subsection{Core Algorithm / Concept B}
+\ldots
+
+\subsection{Tech Stack Overview}
+Briefly justify the choice of technologies.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Layer} & \textbf{Technology} & \textbf{Rationale} \\
+    \midrule
+    Frontend   & React + TypeScript & Component-based UI, type safety \\
+    Backend    & Go (Golang)        & High-performance, built-in concurrency \\
+    Build tool & Docker             & Reproducible containerised deployment \\
+    \bottomrule
+  \end{tabular}
+  \caption{Tech stack summary}
+\end{table}
+
+% ============================================================
+%   SECTION 4 — IMPLEMENTATION
+% ============================================================
+
+\section{Implementation}
+
+\subsection{System Architecture}
+% Describe the overall architecture (client-server, microservices, monolith, …)
+The application follows a \textbf{client-server} architecture with a clear separation between the
+presentation layer (frontend) and the application/data layer (backend).
+
+% Optional: insert an architecture diagram
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{architecture.png}
+%   \caption{High-level system architecture}
+% \end{figure}
+
+\subsection{Directory Structure}
+\begin{lstlisting}[style=bash, caption={Project directory layout}]
+project-root/
+    src/
+        backend/         # Server-side code
+            main.go
+            algeo/       # Core algorithm package
+            preprocess/  # Data preprocessing
+            caching/     # Model persistence
+        frontend/        # Client-side code
+            src/
+                components/
+                pages/
+                hooks/
+    data/
+        covers/          # Image assets
+        txt/             # Text corpus
+        mapper.json      # Metadata index
+    be.Dockerfile
+    fe.Dockerfile
+\end{lstlisting}
+
+% ── 4.3 Backend ─────────────────────────────────────────────
+\subsection{Backend}
+
+\subsubsection{Entry Point}
+% Describe main.go / app.py / Main.java etc.
+
+\subsubsection{Core Algorithm Package}
+
+\paragraph{Algorithm A}
+% E.g. SVD, BFS, …
+\begin{lstlisting}[style=go, caption={Core algorithm — pseudocode / excerpt}]
+func ComputeSomething(input Matrix, k int) (*Result, error) {
+    // Step 1: preprocess
+    // Step 2: core computation
+    // Step 3: return result
+}
+\end{lstlisting}
+
+\textbf{Algorithm steps:}
+\begin{enumerate}[label=\arabic*.]
+  \item Step one description.
+  \item Step two description.
+  \item Step three description.
+\end{enumerate}
+
+\paragraph{Algorithm B}
+\ldots
+
+\subsubsection{API Endpoints}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lllp{5cm}}
+    \toprule
+    \textbf{Method} & \textbf{Endpoint} & \textbf{Input} & \textbf{Description} \\
+    \midrule
+    GET  & \texttt{/items}        & query params  & List items with pagination \\
+    GET  & \texttt{/items/:id}    & path param    & Item detail + recommendations \\
+    POST & \texttt{/search/image} & multipart     & Visual similarity search \\
+    POST & \texttt{/search/text}  & JSON body     & Semantic text search \\
+    \bottomrule
+  \end{tabular}
+  \caption{REST API endpoints}
+\end{table}
+
+% ── 4.4 Frontend ────────────────────────────────────────────
+\subsection{Frontend}
+
+\subsubsection{Component Architecture}
+The frontend is a Single Page Application (SPA) built with React + TypeScript. Key design choices:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{React Router} — client-side routing with no full page reloads.
+  \item \textbf{Context API} — global state management without external libraries.
+  \item \textbf{Tailwind CSS} — utility-first styling for responsive layouts.
+\end{itemize}
+
+\subsubsection{State Management}
+% Describe what lives in global state vs. local component state.
+
+\subsubsection{UI/UX Principles Applied}
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item \textbf{Visual Hierarchy} — consistent typographic scale across all views.
+  \item \textbf{Responsive Design} — mobile-first breakpoints (\texttt{sm}, \texttt{md}, \texttt{lg}).
+  \item \textbf{Micro-interactions} — subtle animations via Framer Motion for tactile feedback.
+  \item \textbf{Error \& Empty States} — informative messages when searches return no results.
+\end{enumerate}
+
+% ── 4.5 Data Layer ──────────────────────────────────────────
+\subsection{Data Layer}
+% How is data stored, loaded, preprocessed?
+
+\subsubsection{Dataset}
+% Describe the dataset: size, format, source.
+The dataset consists of \textbf{N} items stored as file-based records:
+
+\begin{verbatim}
+data/
+    mapper.json          # ID -> metadata mapping
+    covers/              # Image files (.jpg)
+    txt/                 # Text content (.txt)
+\end{verbatim}
+
+\subsubsection{Preprocessing Pipeline}
+\begin{enumerate}[label=\arabic*.]
+  \item \textbf{Load} raw files from disk.
+  \item \textbf{Normalise} (grayscale conversion, lowercasing, tokenisation, etc.).
+  \item \textbf{Index} into an efficient in-memory structure.
+  \item \textbf{Cache} computed representations to disk via \texttt{encoding/gob} (or pickle, etc.).
+\end{enumerate}
+
+% ── 4.6 Deployment ──────────────────────────────────────────
+\subsection{Containerisation with Docker}
+
+\subsubsection{Multi-stage Build Strategy}
+Both backend and frontend use multi-stage Dockerfiles to minimise final image size.
+
+\begin{lstlisting}[style=bash, caption={Backend Dockerfile (abbreviated)}]
+# Stage 1 — compile
+FROM golang:1.22 AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN GOOS=linux go build -o server ./main.go
+
+# Stage 2 — minimal runtime
+FROM ubuntu:22.04
+WORKDIR /app
+COPY --from=builder /app/server .
+VOLUME ["/app/data"]
+EXPOSE 8080
+ENTRYPOINT ["./server"]
+\end{lstlisting}
+
+\subsubsection{Running Locally}
+\begin{lstlisting}[style=bash]
+# Backend
+docker build -t myapp-backend -f be.Dockerfile .
+docker run --rm -p 8080:8080 \
+  -e FRONTEND_URL=http://localhost:3000 \
+  -v "$(pwd)/data:/app/data:ro" \
+  myapp-backend
+
+# Frontend
+docker build -t myapp-frontend \
+  --build-arg VITE_API_URL=http://localhost:8080 \
+  -f fe.Dockerfile .
+docker run --rm -p 3000:80 myapp-frontend
+\end{lstlisting}
+
+% ── 4.7 Performance ─────────────────────────────────────────
+\subsection{Performance Metrics}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lr}
+    \toprule
+    \textbf{Operation} & \textbf{Time} \\
+    \midrule
+    Document preprocessing  & \SI{7.67}{\second} \\
+    Vocabulary build        & \SI{1.24}{\second} \\
+    Term-document matrix    & \SI{477}{\milli\second} \\
+    SVD (50 components)     & \SI{6.06}{\second} \\
+    Model training (total)  & \SI{23.0}{\second} \\
+    \midrule
+    Query response (P50)    & $< \SI{50}{\milli\second}$ \\
+    Query response (P99)    & $< \SI{100}{\milli\second}$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Training and inference performance (N = 523 documents)}
+\end{table}
+
+% ============================================================
+%   SECTION 5 — EXPERIMENTS & RESULTS
+% ============================================================
+
+\section{Experiments and Results}
+
+\subsection{Test Case Category A}
+
+\subsubsection{Test Case 1: \textit{[Description]}}
+\textbf{Input:} Describe the input used.
+
+\textbf{Expected output:} What the correct result should be.
+
+\begin{figure}[H]
+  \centering
+  % \includegraphics[width=0.75\textwidth]{screenshot_1.png}
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{2cm}[Screenshot placeholder]\vspace{2cm}}}
+  \caption{Test case 1 — result screenshot}
+\end{figure}
+
+\textbf{Analysis:} Explain whether the result is correct and why.
+
+\subsubsection{Test Case 2: \textit{[Description]}}
+\ldots
+
+\subsection{Test Case Category B}
+\ldots
+
+\subsection{Overall Analysis}
+
+\subsubsection{Algorithm A — Strengths and Limitations}
+\textbf{Strengths:}
+\begin{itemize}[leftmargin=1.5em]
+  \item Strength one.
+  \item Strength two.
+\end{itemize}
+
+\textbf{Limitations:}
+\begin{itemize}[leftmargin=1.5em]
+  \item Limitation one.
+  \item Limitation two.
+\end{itemize}
+
+\subsubsection{Algorithm B — Strengths and Limitations}
+\ldots
+
+% ============================================================
+%   SECTION 6 — CONCLUSION
+% ============================================================
+
+\section{Conclusion}
+
+\subsection{Summary}
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item \textbf{Finding 1} --- description.
+  \item \textbf{Finding 2} --- description.
+  \item \textbf{Finding 3} --- description.
+\end{enumerate}
+
+\subsection{Suggestions for Future Work}
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item Idea for improvement or extension one.
+  \item Idea for improvement or extension two.
+\end{enumerate}
+
+\subsection{Individual Reflections}
+
+\subsubsection{\MemberA}
+\textbf{Role:} \\
+\textbf{Reflection:} Write your personal reflection here.
+
+\subsubsection{\MemberB}
+\textbf{Role:} \\
+\textbf{Reflection:} \ldots
+
+\subsubsection{\MemberC}
+\textbf{Role:} \\
+\textbf{Reflection:} \ldots
+
+% ============================================================
+%   REFERENCES
+% ============================================================
+
+\newpage
+\addcontentsline{toc}{section}{References}
+\section*{References}
+
+\begin{enumerate}[label={[\arabic*]}, leftmargin=2.5em, itemsep=0.3em]
+
+\item A. Author, \textit{Book Title}, Edition. City: Publisher, Year.
+
+\item A. Author and B. Author, ``Article title,'' \textit{Journal Name}, vol.~X, no.~Y,
+      pp.~1--10, Month Year. \url{https://doi.org/10.xxxx/xxxxx}.
+
+\item Organisation, ``Web resource title,'' Year. [Online]. Available: \url{https://example.com}.
+
+\end{enumerate}
+
+% ============================================================
+%   APPENDIX
+% ============================================================
+
+\newpage
+\addcontentsline{toc}{section}{Appendix}
+\section*{Appendix}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Resource} & \textbf{Link} \\
+    \midrule
+    GitHub Repository & \url{\RepoURL} \\
+    Live Deployment   & \url{\DeployURL} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Repository and deployment links}
+\end{table}
+
+\end{document}
