@@ -237,38 +237,130 @@ yang serupa dengan \textit{compiler}.
 
 \subsection{Teori Kompilator (\textit{Compiler Theory})}
 
-Kompilator (\textit{compiler}) bekerja melalui beberapa tahapan yang berurutan. Tahapan paling awal dan krusial yang berhubungan langsung dengan pembacaan kode sumber adalah Analisis Leksikal.
+Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja secara berurutan. Setiap fase mengambil input dari tahap sebelumnya, memprosesnya, dan memberikan output yang akan digunakan sebagai input untuk fase berikutnya. Secara umum, arsitektur sebuah kompilator terdiri dari fase-fase berikut:
+
+\begin{enumerate}
+    \item \textbf{\textit{Lexical Analysis}}: Fase pertama yang bekerja sebagai
+        pemindai teks (\textit{text scanner}) pada kode sumber. Penjelasan lebih detail mengenai fase ini dibahas pada sub-bab tersendiri di bawah.
+    \item \textbf{\textit{Syntax Analysis} (\textit{Parsing})}: Mengambil
+        \textit{token} yang dihasilkan oleh \textit{lexical analysis} dan
+        membangun pohon sintaksis (\textit{parse tree}). Fase ini memeriksa
+        kebenaran susunan \textit{token} berdasarkan aturan tata bahasa
+        (\textit{grammar}) kode sumber.
+    \item \textbf{\textit{Semantic Analysis}}: Memeriksa apakah pohon sintaksis
+        yang dibangun mengikuti aturan semantik bahasa, seperti kecocokan
+        operasi tipe data dan memastikan \textit{identifier} telah
+        dideklarasikan sebelum digunakan. Fase ini menghasilkan keluaran berupa
+        pohon sintaksis yang dianotasi.
+    \item \textbf{\textit{Intermediate Code Generation}}: Menghasilkan
+        representasi kode perantara untuk mesin abstrak, yang posisinya
+        menjembatani antara bahasa tingkat tinggi dan bahasa mesin.
+    \item \textbf{\textit{Code Optimization}}: Mengoptimalkan kode perantara
+        dengan menghapus baris kode yang tidak perlu dan mengatur ulang urutan
+        instruksi. Tujuannya adalah untuk mempercepat eksekusi program tanpa
+        membuang sumber daya (\textit{CPU}, memori).
+    \item \textbf{\textit{Target Code Generation}}: Merupakan fase sintesis
+    akhir (\textit{back-end}) yang menggunakan representasi kode perantara dan
+    tabel simbol untuk menghasilkan program target atau bahasa mesin.
+\end{enumerate}
 
 \subsubsection{Analisis Leksikal (\textit{Lexical Analysis})}
-Analisis leksikal adalah fase pertama dalam proses kompilasi. Komponen yang melakukan tugas ini disebut \textit{lexical analyzer} atau \textit{scanner}. Tugas utamanya adalah membaca barisan karakter dalam kode sumber (\textit{source code}) dari kiri ke kanan dan mengelompokkannya ke dalam unit-unit logis yang bermakna, yang disebut \textit{token}. Selain menghasilkan \textit{token}, tahap ini juga memiliki beberapa peran pendukung:
-\begin{itemize}
-    \item \textbf{Menghapus karakter yang tidak bermakna}: \textit{Lexer} akan mengabaikan spasi kosong (\textit{whitespace}), \textit{tab}, dan baris baru (\textit{newline}) yang tidak mempengaruhi logika program.
-    \item \textbf{Membuang komentar}: Teks yang ditulis sebagai komentar untuk dokumentasi juga akan dihapus agar tidak ikut diproses oleh tahap selanjutnya (\textit{parser}).
-    \item \textbf{Penanganan Kesalahan (\textit{Error Handling})}: Melacak nomor baris kode sumber untuk memberikan laporan lokasi kesalahan (seperti \textit{lexical error}) apabila ditemukan urutan karakter yang tidak mengikuti aturan bahasa pemrograman.
-\end{itemize}
+Sebagai fokus utama pada \textit{milestone} ini, Analisis Leksikal adalah fase
+pertama dari sebuah kompilator. Fase ini memproses kode sumber yang ditulis
+dalam bentuk kalimat sintaksis dan memecahnya menjadi serangkaian unit bermakna
+yang disebut \textit{token}. 
 
-\subsubsection{Elemen Bahasa: \textit{Token}, \textit{Lexeme}, dan \textit{Pattern}}
-Dalam melakukan analisis leksikal, terdapat tiga elemen bahasa utama yang harus dipahami secara independen:
+Berdasarkan prinsip desain kompilator, mekanisme kerja dan tugas utama dari
+\textit{lexical analyzer} meliputi:
 \begin{itemize}
-    \item \textbf{\textit{Token}}: Merupakan entitas logis yang merepresentasikan nama dari sebuah kategori, seperti \textit{identifier}, \textit{keyword}, operator (\textit{plus}, \textit{minus}), atau angka (\textit{intcon}). Ini adalah format akhir yang akan diberikan oleh \textit{lexer} kepada \textit{parser}.
-    \item \textbf{\textit{Lexeme}}: Urutan karakter nyata (aktual) yang terdapat di dalam kode sumber yang berhasil dicocokkan dengan suatu pola pembentuk \textit{token}. Contohnya, jika program membaca kata \texttt{Mylnt}, maka \texttt{Mylnt} adalah \textit{lexeme}-nya, sedangkan tipe \textit{token}-nya adalah \textit{ident}.
-    \item \textbf{\textit{Pattern} (Pola)}: Aturan atau deskripsi formal yang mendefinisikan himpunan karakter apa saja yang diizinkan untuk membentuk sebuah \textit{token} tertentu.
+    \item \textbf{Penyaringan Karakter}: \textit{Lexical analyzer} membaca kode
+        sumber sebagai aliran karakter (\textit{character stream}) dan secara
+        otomatis menghapus seluruh spasi kosong (\textit{whitespace}) maupun
+        komentar (\textit{comments}) di dalam kode sumber.
+    \item \textbf{Tokenisasi dan Pengenalan \textit{Lexeme}}: Barisan karakter
+        (\textit{alphanumeric}) yang memiliki makna diidentifikasi sebagai
+        \textit{lexeme}. \textit{Lexeme} ini kemudian dicocokkan dengan aturan
+        baku atau pola (\textit{pattern})—yang umumnya didefinisikan melalui
+        \textit{regular expression}—untuk divalidasi sebagai sebuah
+        \textit{token} (seperti kata kunci, konstanta, \textit{identifier}, atau
+        operator).
+    \item \textbf{Kerja Sama dengan \textit{Syntax Analyzer} (\textit{Parser})}:
+        \textit{Lexical analyzer} bekerja sangat erat dengan \textit{syntax
+        analyzer}. Ia memeriksa keberadaan \textit{token} yang legal dan
+        meneruskan data \textit{token} tersebut kepada \textit{syntax analyzer}
+        hanya pada saat dibutuhkan atau diminta (\textit{when it demands}).
+    \item \textbf{Penanganan Kesalahan (\textit{Error Handling})}: Apabila
+        \textit{lexical analyzer} memindai urutan karakter yang tidak valid atau
+        tidak dapat diklasifikasikan ke dalam pola \textit{token} apa pun, maka
+        ia akan langsung menghasilkan pesan kesalahan (\textit{error}).
 \end{itemize}
 
 \subsection{Teori Bahasa Formal dan Otomata}
 
 \subsubsection{\textit{Regular Expression}}
-\textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang digunakan untuk mendeskripsikan suatu bahasa reguler. Dalam kompilator, RE digunakan secara luas untuk mendefinisikan \textit{pattern} (pola) dari \textit{token} secara akurat. Dengan menggunakan operasi dasar seperti \textit{Concatenation} (penyambungan), \textit{Union} (penggabungan alternatif), dan \textit{Kleene Closure} (perulangan nol kali atau lebih), pembuat bahasa dapat mendefinisikan aturan rumit, misalnya: "Sebuah identifier harus diawali dengan huruf, diikuti oleh kombinasi huruf atau angka dengan jumlah berapa pun."
+\textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang
+digunakan untuk mendeskripsikan suatu bahasa reguler. Dalam kompilator, RE
+digunakan secara luas untuk mendefinisikan \textit{pattern} (pola) dari
+\textit{token} secara akurat. Dengan menggunakan operasi dasar seperti
+\textit{Concatenation} (penyambungan), \textit{Union} (penggabungan alternatif),
+dan \textit{Kleene Closure} (perulangan nol kali atau lebih), pembuat bahasa
+dapat mendefinisikan aturan rumit, misalnya: "Sebuah identifier harus diawali
+dengan huruf, diikuti oleh kombinasi huruf atau angka dengan jumlah berapa pun."
 
-\subsubsection{\textit{Finite Automata}}
-\textit{Finite State Machines} (FSM) atau \textit{Finite Automata} (FA) adalah model mesin komputasi abstrak yang digunakan untuk mengenali \textit{regular expression}. Jika \textit{regular expression} mendefinisikan aturannya, maka \textit{finite automata} adalah mesin eksekutor yang memvalidasi apakah sebuah \textit{lexeme} cocok dengan aturan tersebut. 
+\subsubsection{\textit{Finite Automata} (FA)}
 
-Sebuah FA direpresentasikan melalui lima elemen utama (\textit{tuple}): himpunan \textit{state} yang terbatas, himpunan simbol \textit{input} (alfabet), aturan/fungsi transisi, satu \textit{state} awal (\textit{initial state}), dan himpunan \textit{state} akhir/penerima (\textit{accepting states}). Berdasarkan sifat determinasinya, \textit{Finite Automata} dibagi menjadi dua jenis:
+\textit{Finite Automata} (FA) atau \textit{Finite State Machine} (FSM) adalah
+model komputasi matematika abstrak yang digunakan untuk mengenali
+\textit{Regular Expression}. Dalam konteks kompilator, FA berfungsi sebagai
+mesin pemeriksa yang menelusuri karakter masukan untuk memvalidasi apakah urutan
+karakter tersebut (\textit{lexeme}) membentuk \textit{token} yang sah sesuai
+aturan bahasa.
+
+Secara formal, sebuah \textit{Finite Automata} didefinisikan secara matematis
+sebagai \textit{5-tuple} $(Q, \Sigma, \delta, q_0, F)$, yang terdiri dari:
+\begin{itemize}
+    \item $Q$ : Himpunan hingga dari kedudukan atau \textit{state}.
+    \item $\Sigma$ : Himpunan hingga dari simbol \textit{input} atau alfabet
+        (contoh: himpunan huruf, angka, dan simbol baca).
+    \item $\delta$ : Fungsi transisi yang memetakan $Q \times \Sigma \rightarrow
+        Q$ (menentukan \textit{state} tujuan berdasarkan \textit{state} saat ini dan simbol yang dibaca).
+    \item $q_0$ : \textit{State} awal (\textit{initial state}), di mana $q_0 \in
+        Q$. Mesin selalu memulai komputasi dari \textit{state} ini.
+    \item $F$ : Himpunan \textit{state} akhir atau penerima
+        (\textit{final/accepting state}), di mana $F \subseteq Q$.
+\end{itemize}
+
+Mesin FA membaca masukan berupa \textit{string} karakter demi karakter secara
+sekuensial dari kiri ke kanan. Setiap kali membaca satu simbol,
+mesin akan berpindah dari \textit{state} saat ini ke \textit{state} berikutnya
+sesuai dengan aturan pada fungsi transisi ($\delta$). Jika setelah seluruh
+karakter pada masukan selesai dibaca mesin berhenti pada salah satu
+\textit{state} yang termasuk dalam himpunan $F$, maka masukan tersebut diterima
+(\textit{accepted}) sebagai \textit{token} yang valid. Sebaliknya, jika berhenti
+di luar $F$ atau menemukan transisi yang tidak terdefinisi, maka terjadi
+\textit{lexical error}.
+
+Berdasarkan sifat penentuan fungsi transisinya, \textit{Finite Automata} dibedakan menjadi dua jenis:
 \begin{enumerate}
-    \item \textbf{\textit{Nondeterministic Finite Automata} (NFA)}: Suatu mesin di mana sebuah \textit{state} dapat memiliki nol, satu, atau lebih transisi untuk satu simbol \textit{input} yang sama, termasuk transisi hampa (\textit{epsilon transition}).
-    \item \textbf{\textit{Deterministic Finite Automata} (DFA)}: Suatu mesin di mana setiap \textit{state} hanya memiliki tepat satu transisi untuk setiap simbol \textit{input}. 
+    \item \textbf{\textit{Nondeterministic Finite Automata} (NFA)}: Suatu mesin
+        di mana sebuah \textit{state} dapat memiliki nol, satu, atau lebih jalur
+        transisi untuk satu simbol \textit{input} yang sama. NFA juga
+        mengizinkan perpindahan \textit{state} tanpa perlu membaca karakter
+        \textit{input} (disebut transisi epsilon atau $\epsilon$-transition).
+    \item \textbf{\textit{Deterministic Finite Automata} (DFA)}: Suatu mesin di
+        mana setiap \textit{state} memiliki tepat satu jalur transisi secara
+        mutlak untuk setiap simbol \textit{input} di dalam $\Sigma$. Tidak ada
+        ambiguitas jalur dan tidak ada transisi epsilon.
 \end{enumerate}
-Dalam pembuatan \textit{lexical analyzer}, model DFA jauh lebih sering digunakan atau diimplementasikan secara terprogram ke dalam kode komputer (seperti C/C++) karena sifat penentuan jalurnya yang deterministik, mutlak, dan tidak ambigu untuk setiap karakter yang dibaca.\section{Implementation}
+
+Dalam implementasi program \textit{Lexical Analyzer} yang sebenarnya, model
+\textbf{DFA} adalah spesifikasi yang wajib digunakan. Hal ini karena sifat
+deterministiknya yang tidak ambigu memungkinkan aturan transisi dikonversi
+secara langsung menjadi algoritma terprogram menggunakan pendekatan
+\textit{modular} dan penyeleksian kondisi, membaca satu demi satu karakter
+hingga menghasilkan klasifikasi \textit{token} yang tepat.
+
+\section{Implementation}
 
 \subsection{System Architecture}
 % Describe the overall architecture (client-server, microservices, monolith, …)
