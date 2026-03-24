@@ -63,7 +63,6 @@
   commentstyle=\color{codecomment}\itshape,
   stringstyle=\color{codestring},
 }
-% Language-specific styles — add more as needed
 \lstdefinestyle{go}{style=default, language=Python}    % closest builtin
 \lstdefinestyle{python}{style=default, language=Python}
 \lstdefinestyle{java}{style=default, language=Java}
@@ -138,7 +137,7 @@
     {\large \textsc{\AssignmentSubtitle}}\\[0.2cm]
     {\large \textsc{\Semester}}\\[2cm]
 
-    \includegraphics[height=6cm]{logo-itb.png}\\[2cm]
+    \includegraphics[height=7cm]{logo-itb.png}\\[2cm]
 
     {\large \textbf{Disusun oleh:}}\\[0.3cm]
     {\large
@@ -161,68 +160,115 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
+\section{Pendahuluan}
 
-\subsection{Background}
-% Briefly explain the problem context and why this assignment/project exists.
-Replace this paragraph with the motivation and context for your project. Describe the real-world
-or academic problem that the system aims to solve.
+Bahasa Pemrograman diciptakan sebagai perantara komunikasi antara manusia yang
+mengerti logika dan bahasa tingkat tinggi dengan komputer yang hanya dapat
+mengerti bahasa mesin (\textit{machine code}). Tanpa adanya bahasa pemrograman,
+manusia harus menuliskan instruksi komputer secara tingkat rendah kepada
+komputer yang hanya mengerti 0 dan 1. Dalam hierarkinya, bahasa tingkat tinggi
+(\textit{high-level}) dirancang agar lebih mendekati bahasa manusia, namun hal ini
+menuntut proses transformasi yang berlapis agar dapat dipahami oleh CPU.
 
-\subsection{Problem Statement}
-% What specific problem are you solving?
-State the core problem clearly. Mention the input, desired output, and any key constraints.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{tipe-bahasa.png}
+\caption{Tipe-tipe bahasa pemrograman}
+\caption*{Sumber: Asisten IF2224}
+\end{figure}
 
-\subsection{System Overview}
-% High-level description of the system / application you built.
-\textbf{\AssignmentSubtitle} is a \ldots{} system that \ldots{}
+Proses transformasi ini dilakukan melalui mekanisme \textit{compiler} atau
+\textit{interpreter}. Tahap awal dan fundamental dalam mekanisme tersebut adalah
+Analisis Leksikal (\textit{Lexical Analysis}). Pada tahap ini, kode sumber yang berupa
+rangkaian karakter mentah dibaca dan dikelompokkan menjadi satuan makna terkecil
+yang disebut token, seperti kata kunci (\textit{keyword}), pengenal
+(\textit{identifier}), operator, dan konstanta. Analisis leksikal berperan
+krusial dalam menyederhanakan tugas tahap berikutnya, yaitu parsing, dengan
+membuang elemen yang tidak relevan seperti spasi dan komentar, serta mendeteksi
+simbol invalid sejak awal.
 
-\subsection{General Specifications}
-% Enumerate the features / requirements from the spec sheet.
-\begin{enumerate}[label=\arabic*.]
-  \item Feature / requirement one.
-  \item Feature / requirement two.
-  \item \textbf{Bonus:} Optional bonus feature.
+
+\section{Dasar Teori}
+
+\subsection{Pendefinisian Bahasa Pemrograman}
+Bahasa Pemrograman adalah cara manusia untuk dapat memberikan perintah
+(\textit{instruction}) kepada sebuah komputer. Setiap bahasa pemrograman
+memiliki kata kunci dan aturannya masing-masing serta makna dari kata-kata itu
+yang disebut sintaks(\textit{syntax}) dan semantik (\textit{semantics}).
+Input yang terdapat kesalahan pada tingkat sintaks berarti input tersebut tidak
+valid untuk bahasa pemrograman tersebut, sedangkan kesalahan pada tingkat
+semantik umumnya berbentuk kesalahan logika.
+
+\subsubsection{Hierarki Bahasa Pemrograman}
+Berdasarkan tingkat abstraksinya, bahasa pemrograman diklasifikasikan menjadi dua kategori utama:
+\begin{itemize}
+\item \textbf{\textit{Low-Level Language} (Bahasa Tingkat Rendah)}: Bahasa yang instruksinya mendekati arsitektur perangkat keras dan bahasa mesin (biner 0 dan 1). Contohnya adalah \textit{Assembly}, yang memerlukan \textit{Assembler} untuk menerjemahkan kode menjadi instruksi yang dapat dipahami CPU.
+\item \textbf{\textit{High-Level Language} (Bahasa Tingkat Tinggi)}: Bahasa yang dirancang agar lebih mudah dibaca dan dipahami oleh manusia karena menggunakan kosakata yang menyerupai bahasa natural. Semakin tinggi tingkat bahasa tersebut, semakin banyak tahapan pemrosesan yang diperlukan untuk mengubahnya menjadi kode mesin. Contoh bahasa tingkat tinggi antara lain Pascal, C++, Python, dan Java.
+\end{itemize}
+
+\subsubsection{\textit{Compiler} dan \textit{Interpreter} }
+Untuk menjalankan kode sumber yang ditulis dalam bahasa tingkat tinggi,
+diperlukan sebuah perangkat lunak penerjemah yang mengubah kode tersebut menjadi
+format yang dapat dieksekusi oleh mesin. Secara umum, terdapat dua mekanisme
+utama untuk mengubah bahasa tingkat tinggi ke bahasa mesin:
+
+\begin{enumerate}
+\item \textbf{\textit{Compiler} (Kompilator)}:
+\textit{Compiler} adalah program yang menerjemahkan seluruh \textit{source code}
+secara utuh menjadi kode mesin (biasanya dalam bentuk \textit{Object File})
+sebelum program dijalankan. Proses kompilasi pada \textit{compiler} umumnya
+terdiri dari empat tahapan utama: \textit{Lexical Analysis}, \textit{Syntax
+Analysis}, \textit{Semantic Analysis}, dan \textit{Intermediate Code
+Generation}. Karakteristik utama \textit{compiler} adalah jika terdeteksi adanya
+kesalahan (\textit{error}) di dalam \textit{source code}, maka seluruh proses
+kompilasi akan gagal dan program tidak dapat dijalankan.
+
+\item \textbf{\textit{Interpreter}}: 
+Berbeda dengan \textit{compiler}, \textit{interpreter} memproses kode sumber
+baris demi baris secara langsung. \textit{Interpreter} membaca,
+menerjemahkan, dan langsung mengeksekusi kode mesin tersebut baris demi baris.
+Hal ini memungkinkan program tetap berjalan normal hingga baris sebelum
+ditemukannya kesalahan; misalnya, jika terdapat \textit{error} pada baris ke-10,
+baris 1 sampai 9 akan tetap berhasil dieksekusi. Meskipun mekanisme eksekusinya
+berbeda, \textit{interpreter} sebenarnya memiliki tahapan pemrosesan internal
+yang serupa dengan \textit{compiler}.
+
 \end{enumerate}
 
-% ============================================================
-%   SECTION 3 — THEORETICAL BACKGROUND
-% ============================================================
+\subsection{Teori Kompilator (\textit{Compiler Theory})}
 
-\section{Theoretical Background}
+Kompilator (\textit{compiler}) bekerja melalui beberapa tahapan yang berurutan. Tahapan paling awal dan krusial yang berhubungan langsung dengan pembacaan kode sumber adalah Analisis Leksikal.
 
-\subsection{Core Algorithm / Concept A}
-% E.g. Singular Value Decomposition, Dijkstra's, Transformer architecture …
-Describe the mathematical or algorithmic foundation. Use equations where appropriate.
+\subsubsection{Analisis Leksikal (\textit{Lexical Analysis})}
+Analisis leksikal adalah fase pertama dalam proses kompilasi. Komponen yang melakukan tugas ini disebut \textit{lexical analyzer} atau \textit{scanner}. Tugas utamanya adalah membaca barisan karakter dalam kode sumber (\textit{source code}) dari kiri ke kanan dan mengelompokkannya ke dalam unit-unit logis yang bermakna, yang disebut \textit{token}. Selain menghasilkan \textit{token}, tahap ini juga memiliki beberapa peran pendukung:
+\begin{itemize}
+    \item \textbf{Menghapus karakter yang tidak bermakna}: \textit{Lexer} akan mengabaikan spasi kosong (\textit{whitespace}), \textit{tab}, dan baris baru (\textit{newline}) yang tidak mempengaruhi logika program.
+    \item \textbf{Membuang komentar}: Teks yang ditulis sebagai komentar untuk dokumentasi juga akan dihapus agar tidak ikut diproses oleh tahap selanjutnya (\textit{parser}).
+    \item \textbf{Penanganan Kesalahan (\textit{Error Handling})}: Melacak nomor baris kode sumber untuk memberikan laporan lokasi kesalahan (seperti \textit{lexical error}) apabila ditemukan urutan karakter yang tidak mengikuti aturan bahasa pemrograman.
+\end{itemize}
 
-\begin{equation}
-  A = U \Sigma V^\top
-\end{equation}
+\subsubsection{Elemen Bahasa: \textit{Token}, \textit{Lexeme}, dan \textit{Pattern}}
+Dalam melakukan analisis leksikal, terdapat tiga elemen bahasa utama yang harus dipahami secara independen:
+\begin{itemize}
+    \item \textbf{\textit{Token}}: Merupakan entitas logis yang merepresentasikan nama dari sebuah kategori, seperti \textit{identifier}, \textit{keyword}, operator (\textit{plus}, \textit{minus}), atau angka (\textit{intcon}). Ini adalah format akhir yang akan diberikan oleh \textit{lexer} kepada \textit{parser}.
+    \item \textbf{\textit{Lexeme}}: Urutan karakter nyata (aktual) yang terdapat di dalam kode sumber yang berhasil dicocokkan dengan suatu pola pembentuk \textit{token}. Contohnya, jika program membaca kata \texttt{Mylnt}, maka \texttt{Mylnt} adalah \textit{lexeme}-nya, sedangkan tipe \textit{token}-nya adalah \textit{ident}.
+    \item \textbf{\textit{Pattern} (Pola)}: Aturan atau deskripsi formal yang mendefinisikan himpunan karakter apa saja yang diizinkan untuk membentuk sebuah \textit{token} tertentu.
+\end{itemize}
 
-\subsection{Core Algorithm / Concept B}
-\ldots
+\subsection{Teori Bahasa Formal dan Otomata}
 
-\subsection{Tech Stack Overview}
-Briefly justify the choice of technologies.
+\subsubsection{\textit{Regular Expression}}
+\textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang digunakan untuk mendeskripsikan suatu bahasa reguler. Dalam kompilator, RE digunakan secara luas untuk mendefinisikan \textit{pattern} (pola) dari \textit{token} secara akurat. Dengan menggunakan operasi dasar seperti \textit{Concatenation} (penyambungan), \textit{Union} (penggabungan alternatif), dan \textit{Kleene Closure} (perulangan nol kali atau lebih), pembuat bahasa dapat mendefinisikan aturan rumit, misalnya: "Sebuah identifier harus diawali dengan huruf, diikuti oleh kombinasi huruf atau angka dengan jumlah berapa pun."
 
-\begin{table}[H]
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    \textbf{Layer} & \textbf{Technology} & \textbf{Rationale} \\
-    \midrule
-    Frontend   & React + TypeScript & Component-based UI, type safety \\
-    Backend    & Go (Golang)        & High-performance, built-in concurrency \\
-    Build tool & Docker             & Reproducible containerised deployment \\
-    \bottomrule
-  \end{tabular}
-  \caption{Tech stack summary}
-\end{table}
+\subsubsection{\textit{Finite Automata}}
+\textit{Finite State Machines} (FSM) atau \textit{Finite Automata} (FA) adalah model mesin komputasi abstrak yang digunakan untuk mengenali \textit{regular expression}. Jika \textit{regular expression} mendefinisikan aturannya, maka \textit{finite automata} adalah mesin eksekutor yang memvalidasi apakah sebuah \textit{lexeme} cocok dengan aturan tersebut. 
 
-% ============================================================
-%   SECTION 4 — IMPLEMENTATION
-% ============================================================
-
-\section{Implementation}
+Sebuah FA direpresentasikan melalui lima elemen utama (\textit{tuple}): himpunan \textit{state} yang terbatas, himpunan simbol \textit{input} (alfabet), aturan/fungsi transisi, satu \textit{state} awal (\textit{initial state}), dan himpunan \textit{state} akhir/penerima (\textit{accepting states}). Berdasarkan sifat determinasinya, \textit{Finite Automata} dibagi menjadi dua jenis:
+\begin{enumerate}
+    \item \textbf{\textit{Nondeterministic Finite Automata} (NFA)}: Suatu mesin di mana sebuah \textit{state} dapat memiliki nol, satu, atau lebih transisi untuk satu simbol \textit{input} yang sama, termasuk transisi hampa (\textit{epsilon transition}).
+    \item \textbf{\textit{Deterministic Finite Automata} (DFA)}: Suatu mesin di mana setiap \textit{state} hanya memiliki tepat satu transisi untuk setiap simbol \textit{input}. 
+\end{enumerate}
+Dalam pembuatan \textit{lexical analyzer}, model DFA jauh lebih sering digunakan atau diimplementasikan secara terprogram ke dalam kode komputer (seperti C/C++) karena sifat penentuan jalurnya yang deterministik, mutlak, dan tidak ambigu untuk setiap karakter yang dibaca.\section{Implementation}
 
 \subsection{System Architecture}
 % Describe the overall architecture (client-server, microservices, monolith, …)
