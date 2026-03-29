@@ -18,3 +18,5 @@ struct Token {
     Token(TokenType type, string lexeme, Literal literal, int line)
         : type(type), lexeme(lexeme), literal(literal), line(line) {}
 };
+
+void printToken(const Token &token);

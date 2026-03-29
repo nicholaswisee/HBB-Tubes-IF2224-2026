@@ -1,25 +1,12 @@
-#include "lexical/SourceBuffer.hpp"
+#include "lexical/Scanner.hpp"
 
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <variant>
+#include <vector>
 
 namespace fs = std::filesystem;
-
-static std::string printableChar(char c) {
-    switch (c) {
-    case '\n':
-        return "\\n";
-    case '\t':
-        return "\\t";
-    case '\r':
-        return "\\r";
-    case '\0':
-        return "\\0";
-    default:
-        return std::string(1, c);
-    }
-}
 
 int main(int argc, char *argv[]) {
     const fs::path inputDir = "test/input";
@@ -47,24 +34,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::cout << "Testing SourceBuffer with " << filePath << "\n\n";
+    Scanner scanner(filePath.string());
+    std::vector<Token> tokens = scanner.scanTokens();
 
-    SourceBuffer source(filePath.string());
-
-    std::cout << filePath.filename().string() << endl;
-    std::cout << "length(): " << source.length() << endl;
-
-    for (size_t i = 0; i < source.length(); ++i) {
-        std::cout << "at(" << i << "): '" << printableChar(source.at(i))
-                  << "'\n";
+    for (const Token &token : tokens) {
+        printToken(token);
     }
-
-    std::cout << "at(length()): '" << printableChar(source.at(source.length()))
-              << "' (out-of-range sentinel)\n";
-
-    const size_t sampleLen = source.length() < 20 ? source.length() : 20;
-    std::cout << "substring(0, " << sampleLen << "): \""
-              << source.substring(0, sampleLen) << "\"\n\n";
 
     return 0;
 }

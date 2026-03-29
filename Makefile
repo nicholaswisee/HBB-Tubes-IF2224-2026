@@ -44,7 +44,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 # Run the program
 run: all
-	./$(TARGET)
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make run FILE=<filename-in-test-input>"; \
+		exit 1; \
+	fi
+	./$(TARGET) $(FILE)
 
 # Clean build artifacts
 clean:
