@@ -22,6 +22,13 @@ vector<Token> Scanner::scanTokens() {
     return tokens;
 }
 
+void Scanner::printAllTokens() {
+    const vector<Token> scannedTokens = scanTokens();
+    for (const Token &token : scannedTokens) {
+        printToken(token);
+    }
+}
+
 void Scanner::scanToken() {
     char c = advance();
     switch (c) {

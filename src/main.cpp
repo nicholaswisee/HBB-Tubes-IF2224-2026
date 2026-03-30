@@ -3,8 +3,6 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
-#include <variant>
-#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -35,11 +33,7 @@ int main(int argc, char *argv[]) {
     }
 
     Scanner scanner(filePath.string());
-    std::vector<Token> tokens = scanner.scanTokens();
-
-    for (const Token &token : tokens) {
-        printToken(token);
-    }
+    scanner.printAllTokens();
 
     return 0;
 }
