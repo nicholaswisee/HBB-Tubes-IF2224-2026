@@ -63,7 +63,6 @@
   commentstyle=\color{codecomment}\itshape,
   stringstyle=\color{codestring},
 }
-% Language-specific styles — add more as needed
 \lstdefinestyle{go}{style=default, language=Python}    % closest builtin
 \lstdefinestyle{python}{style=default, language=Python}
 \lstdefinestyle{java}{style=default, language=Java}
@@ -138,7 +137,7 @@
     {\large \textsc{\AssignmentSubtitle}}\\[0.2cm]
     {\large \textsc{\Semester}}\\[2cm]
 
-    \includegraphics[height=6cm]{logo-itb.png}\\[2cm]
+    \includegraphics[height=7cm]{logo-itb.png}\\[2cm]
 
     {\large \textbf{Disusun oleh:}}\\[0.3cm]
     {\large
@@ -161,254 +160,271 @@
 \tableofcontents
 \newpage
 
-\section{Introduction}
+\section{Pendahuluan}
 
-\subsection{Background}
-% Briefly explain the problem context and why this assignment/project exists.
-Replace this paragraph with the motivation and context for your project. Describe the real-world
-or academic problem that the system aims to solve.
+Bahasa Pemrograman diciptakan sebagai perantara komunikasi antara manusia yang
+mengerti logika dan bahasa tingkat tinggi dengan komputer yang hanya dapat
+mengerti bahasa mesin (\textit{machine code}). Tanpa adanya bahasa pemrograman,
+manusia harus menuliskan instruksi komputer secara tingkat rendah kepada
+komputer yang hanya mengerti 0 dan 1. Dalam hierarkinya, bahasa tingkat tinggi
+(\textit{high-level}) dirancang agar lebih mendekati bahasa manusia, namun hal ini
+menuntut proses transformasi yang berlapis agar dapat dipahami oleh CPU.
 
-\subsection{Problem Statement}
-% What specific problem are you solving?
-State the core problem clearly. Mention the input, desired output, and any key constraints.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{tipe-bahasa.png}
+\caption{Tipe-tipe bahasa pemrograman}
+\caption*{Sumber: Asisten IF2224}
+\end{figure}
 
-\subsection{System Overview}
-% High-level description of the system / application you built.
-\textbf{\AssignmentSubtitle} is a \ldots{} system that \ldots{}
+Proses transformasi ini dilakukan melalui mekanisme \textit{compiler} atau
+\textit{interpreter}. Tahap awal dan fundamental dalam mekanisme tersebut adalah
+Analisis Leksikal (\textit{Lexical Analysis}). Pada tahap ini, kode sumber yang berupa
+rangkaian karakter mentah dibaca dan dikelompokkan menjadi satuan makna terkecil
+yang disebut token, seperti kata kunci (\textit{keyword}), pengenal
+(\textit{identifier}), operator, dan konstanta. Analisis leksikal berperan
+krusial dalam menyederhanakan tugas tahap berikutnya, yaitu parsing, dengan
+membuang elemen yang tidak relevan seperti spasi dan komentar, serta mendeteksi
+simbol invalid sejak awal.
 
-\subsection{General Specifications}
-% Enumerate the features / requirements from the spec sheet.
-\begin{enumerate}[label=\arabic*.]
-  \item Feature / requirement one.
-  \item Feature / requirement two.
-  \item \textbf{Bonus:} Optional bonus feature.
-\end{enumerate}
 
-% ============================================================
-%   SECTION 3 — THEORETICAL BACKGROUND
-% ============================================================
+\section{Dasar Teori}
 
-\section{Theoretical Background}
+\subsection{Pendefinisian Bahasa Pemrograman}
+Bahasa Pemrograman adalah cara manusia untuk dapat memberikan perintah
+(\textit{instruction}) kepada sebuah komputer. Setiap bahasa pemrograman
+memiliki kata kunci dan aturannya masing-masing serta makna dari kata-kata itu
+yang disebut sintaks(\textit{syntax}) dan semantik (\textit{semantics}).
+Input yang terdapat kesalahan pada tingkat sintaks berarti input tersebut tidak
+valid untuk bahasa pemrograman tersebut, sedangkan kesalahan pada tingkat
+semantik umumnya berbentuk kesalahan logika.
 
-\subsection{Core Algorithm / Concept A}
-% E.g. Singular Value Decomposition, Dijkstra's, Transformer architecture …
-Describe the mathematical or algorithmic foundation. Use equations where appropriate.
-
-\begin{equation}
-  A = U \Sigma V^\top
-\end{equation}
-
-\subsection{Core Algorithm / Concept B}
-\ldots
-
-\subsection{Tech Stack Overview}
-Briefly justify the choice of technologies.
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    \textbf{Layer} & \textbf{Technology} & \textbf{Rationale} \\
-    \midrule
-    Frontend   & React + TypeScript & Component-based UI, type safety \\
-    Backend    & Go (Golang)        & High-performance, built-in concurrency \\
-    Build tool & Docker             & Reproducible containerised deployment \\
-    \bottomrule
-  \end{tabular}
-  \caption{Tech stack summary}
-\end{table}
-
-% ============================================================
-%   SECTION 4 — IMPLEMENTATION
-% ============================================================
-
-\section{Implementation}
-
-\subsection{System Architecture}
-% Describe the overall architecture (client-server, microservices, monolith, …)
-The application follows a \textbf{client-server} architecture with a clear separation between the
-presentation layer (frontend) and the application/data layer (backend).
-
-% Optional: insert an architecture diagram
-% \begin{figure}[H]
-%   \centering
-%   \includegraphics[width=0.8\textwidth]{architecture.png}
-%   \caption{High-level system architecture}
-% \end{figure}
-
-\subsection{Directory Structure}
-\begin{lstlisting}[style=bash, caption={Project directory layout}]
-project-root/
-    src/
-        backend/         # Server-side code
-            main.go
-            algeo/       # Core algorithm package
-            preprocess/  # Data preprocessing
-            caching/     # Model persistence
-        frontend/        # Client-side code
-            src/
-                components/
-                pages/
-                hooks/
-    data/
-        covers/          # Image assets
-        txt/             # Text corpus
-        mapper.json      # Metadata index
-    be.Dockerfile
-    fe.Dockerfile
-\end{lstlisting}
-
-% ── 4.3 Backend ─────────────────────────────────────────────
-\subsection{Backend}
-
-\subsubsection{Entry Point}
-% Describe main.go / app.py / Main.java etc.
-
-\subsubsection{Core Algorithm Package}
-
-\paragraph{Algorithm A}
-% E.g. SVD, BFS, …
-\begin{lstlisting}[style=go, caption={Core algorithm — pseudocode / excerpt}]
-func ComputeSomething(input Matrix, k int) (*Result, error) {
-    // Step 1: preprocess
-    // Step 2: core computation
-    // Step 3: return result
-}
-\end{lstlisting}
-
-\textbf{Algorithm steps:}
-\begin{enumerate}[label=\arabic*.]
-  \item Step one description.
-  \item Step two description.
-  \item Step three description.
-\end{enumerate}
-
-\paragraph{Algorithm B}
-\ldots
-
-\subsubsection{API Endpoints}
-\begin{table}[H]
-  \centering
-  \begin{tabular}{lllp{5cm}}
-    \toprule
-    \textbf{Method} & \textbf{Endpoint} & \textbf{Input} & \textbf{Description} \\
-    \midrule
-    GET  & \texttt{/items}        & query params  & List items with pagination \\
-    GET  & \texttt{/items/:id}    & path param    & Item detail + recommendations \\
-    POST & \texttt{/search/image} & multipart     & Visual similarity search \\
-    POST & \texttt{/search/text}  & JSON body     & Semantic text search \\
-    \bottomrule
-  \end{tabular}
-  \caption{REST API endpoints}
-\end{table}
-
-% ── 4.4 Frontend ────────────────────────────────────────────
-\subsection{Frontend}
-
-\subsubsection{Component Architecture}
-The frontend is a Single Page Application (SPA) built with React + TypeScript. Key design choices:
-
-\begin{itemize}[leftmargin=1.5em]
-  \item \textbf{React Router} — client-side routing with no full page reloads.
-  \item \textbf{Context API} — global state management without external libraries.
-  \item \textbf{Tailwind CSS} — utility-first styling for responsive layouts.
+\subsubsection{Hierarki Bahasa Pemrograman}
+Berdasarkan tingkat abstraksinya, bahasa pemrograman diklasifikasikan menjadi dua kategori utama:
+\begin{itemize}
+\item \textbf{\textit{Low-Level Language} (Bahasa Tingkat Rendah)}: Bahasa yang instruksinya mendekati arsitektur perangkat keras dan bahasa mesin (biner 0 dan 1). Contohnya adalah \textit{Assembly}, yang memerlukan \textit{Assembler} untuk menerjemahkan kode menjadi instruksi yang dapat dipahami CPU.
+\item \textbf{\textit{High-Level Language} (Bahasa Tingkat Tinggi)}: Bahasa yang dirancang agar lebih mudah dibaca dan dipahami oleh manusia karena menggunakan kosakata yang menyerupai bahasa natural. Semakin tinggi tingkat bahasa tersebut, semakin banyak tahapan pemrosesan yang diperlukan untuk mengubahnya menjadi kode mesin. Contoh bahasa tingkat tinggi antara lain Pascal, C++, Python, dan Java.
 \end{itemize}
 
-\subsubsection{State Management}
-% Describe what lives in global state vs. local component state.
+\subsubsection{\textit{Compiler} dan \textit{Interpreter} }
+Untuk menjalankan kode sumber yang ditulis dalam bahasa tingkat tinggi,
+diperlukan sebuah perangkat lunak penerjemah yang mengubah kode tersebut menjadi
+format yang dapat dieksekusi oleh mesin. Secara umum, terdapat dua mekanisme
+utama untuk mengubah bahasa tingkat tinggi ke bahasa mesin:
 
-\subsubsection{UI/UX Principles Applied}
-\begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item \textbf{Visual Hierarchy} — consistent typographic scale across all views.
-  \item \textbf{Responsive Design} — mobile-first breakpoints (\texttt{sm}, \texttt{md}, \texttt{lg}).
-  \item \textbf{Micro-interactions} — subtle animations via Framer Motion for tactile feedback.
-  \item \textbf{Error \& Empty States} — informative messages when searches return no results.
+\begin{enumerate}
+\item \textbf{\textit{Compiler} (Kompilator)}:
+\textit{Compiler} adalah program yang menerjemahkan seluruh \textit{source code}
+secara utuh menjadi kode mesin (biasanya dalam bentuk \textit{Object File})
+sebelum program dijalankan. Proses kompilasi pada \textit{compiler} umumnya
+terdiri dari empat tahapan utama: \textit{Lexical Analysis}, \textit{Syntax
+Analysis}, \textit{Semantic Analysis}, dan \textit{Intermediate Code
+Generation}. Karakteristik utama \textit{compiler} adalah jika terdeteksi adanya
+kesalahan (\textit{error}) di dalam \textit{source code}, maka seluruh proses
+kompilasi akan gagal dan program tidak dapat dijalankan.
+
+\item \textbf{\textit{Interpreter}}: 
+Berbeda dengan \textit{compiler}, \textit{interpreter} memproses kode sumber
+baris demi baris secara langsung. \textit{Interpreter} membaca,
+menerjemahkan, dan langsung mengeksekusi kode mesin tersebut baris demi baris.
+Hal ini memungkinkan program tetap berjalan normal hingga baris sebelum
+ditemukannya kesalahan; misalnya, jika terdapat \textit{error} pada baris ke-10,
+baris 1 sampai 9 akan tetap berhasil dieksekusi. Meskipun mekanisme eksekusinya
+berbeda, \textit{interpreter} sebenarnya memiliki tahapan pemrosesan internal
+yang serupa dengan \textit{compiler}.
+
 \end{enumerate}
 
-% ── 4.5 Data Layer ──────────────────────────────────────────
-\subsection{Data Layer}
-% How is data stored, loaded, preprocessed?
+\subsection{Teori Kompilator (\textit{Compiler Theory})}
 
-\subsubsection{Dataset}
-% Describe the dataset: size, format, source.
-The dataset consists of \textbf{N} items stored as file-based records:
+Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja secara berurutan. Setiap fase mengambil input dari tahap sebelumnya, memprosesnya, dan memberikan output yang akan digunakan sebagai input untuk fase berikutnya. Secara umum, arsitektur sebuah kompilator terdiri dari fase-fase berikut:
 
-\begin{verbatim}
-data/
-    mapper.json          # ID -> metadata mapping
-    covers/              # Image files (.jpg)
-    txt/                 # Text content (.txt)
-\end{verbatim}
-
-\subsubsection{Preprocessing Pipeline}
-\begin{enumerate}[label=\arabic*.]
-  \item \textbf{Load} raw files from disk.
-  \item \textbf{Normalise} (grayscale conversion, lowercasing, tokenisation, etc.).
-  \item \textbf{Index} into an efficient in-memory structure.
-  \item \textbf{Cache} computed representations to disk via \texttt{encoding/gob} (or pickle, etc.).
+\begin{enumerate}
+    \item \textbf{\textit{Lexical Analysis}}: Fase pertama yang bekerja sebagai
+        pemindai teks (\textit{text scanner}) pada kode sumber. Penjelasan lebih detail mengenai fase ini dibahas pada sub-bab tersendiri di bawah.
+    \item \textbf{\textit{Syntax Analysis} (\textit{Parsing})}: Mengambil
+        \textit{token} yang dihasilkan oleh \textit{lexical analysis} dan
+        membangun pohon sintaksis (\textit{parse tree}). Fase ini memeriksa
+        kebenaran susunan \textit{token} berdasarkan aturan tata bahasa
+        (\textit{grammar}) kode sumber.
+    \item \textbf{\textit{Semantic Analysis}}: Memeriksa apakah pohon sintaksis
+        yang dibangun mengikuti aturan semantik bahasa, seperti kecocokan
+        operasi tipe data dan memastikan \textit{identifier} telah
+        dideklarasikan sebelum digunakan. Fase ini menghasilkan keluaran berupa
+        pohon sintaksis yang dianotasi.
+    \item \textbf{\textit{Intermediate Code Generation}}: Menghasilkan
+        representasi kode perantara untuk mesin abstrak, yang posisinya
+        menjembatani antara bahasa tingkat tinggi dan bahasa mesin.
+    \item \textbf{\textit{Code Optimization}}: Mengoptimalkan kode perantara
+        dengan menghapus baris kode yang tidak perlu dan mengatur ulang urutan
+        instruksi. Tujuannya adalah untuk mempercepat eksekusi program tanpa
+        membuang sumber daya (\textit{CPU}, memori).
+    \item \textbf{\textit{Target Code Generation}}: Merupakan fase sintesis
+    akhir (\textit{back-end}) yang menggunakan representasi kode perantara dan
+    tabel simbol untuk menghasilkan program target atau bahasa mesin.
 \end{enumerate}
 
-% ── 4.6 Deployment ──────────────────────────────────────────
-\subsection{Containerisation with Docker}
+\subsubsection{Analisis Leksikal (\textit{Lexical Analysis})}
+Sebagai fokus utama pada \textit{milestone} ini, Analisis Leksikal adalah fase
+pertama dari sebuah kompilator. Fase ini memproses kode sumber yang ditulis
+dalam bentuk kalimat sintaksis dan memecahnya menjadi serangkaian unit bermakna
+yang disebut \textit{token}. 
 
-\subsubsection{Multi-stage Build Strategy}
-Both backend and frontend use multi-stage Dockerfiles to minimise final image size.
+Berdasarkan prinsip desain kompilator, mekanisme kerja dan tugas utama dari
+\textit{lexical analyzer} meliputi:
+\begin{itemize}
+    \item \textbf{Penyaringan Karakter}: \textit{Lexical analyzer} membaca kode
+        sumber sebagai aliran karakter (\textit{character stream}) dan secara
+        otomatis menghapus seluruh spasi kosong (\textit{whitespace}) maupun
+        komentar (\textit{comments}) di dalam kode sumber.
+    \item \textbf{Tokenisasi dan Pengenalan \textit{Lexeme}}: Barisan karakter
+        (\textit{alphanumeric}) yang memiliki makna diidentifikasi sebagai
+        \textit{lexeme}. \textit{Lexeme} ini kemudian dicocokkan dengan aturan
+        baku atau pola (\textit{pattern})—yang umumnya didefinisikan melalui
+        \textit{regular expression}—untuk divalidasi sebagai sebuah
+        \textit{token} (seperti kata kunci, konstanta, \textit{identifier}, atau
+        operator).
+    \item \textbf{Kerja Sama dengan \textit{Syntax Analyzer} (\textit{Parser})}:
+        \textit{Lexical analyzer} bekerja sangat erat dengan \textit{syntax
+        analyzer}. Ia memeriksa keberadaan \textit{token} yang legal dan
+        meneruskan data \textit{token} tersebut kepada \textit{syntax analyzer}
+        hanya pada saat dibutuhkan atau diminta (\textit{when it demands}).
+    \item \textbf{Penanganan Kesalahan (\textit{Error Handling})}: Apabila
+        \textit{lexical analyzer} memindai urutan karakter yang tidak valid atau
+        tidak dapat diklasifikasikan ke dalam pola \textit{token} apa pun, maka
+        ia akan langsung menghasilkan pesan kesalahan (\textit{error}).
+\end{itemize}
 
-\begin{lstlisting}[style=bash, caption={Backend Dockerfile (abbreviated)}]
-# Stage 1 — compile
-FROM golang:1.22 AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN GOOS=linux go build -o server ./main.go
+\subsection{Teori Bahasa Formal dan Otomata}
 
-# Stage 2 — minimal runtime
-FROM ubuntu:22.04
-WORKDIR /app
-COPY --from=builder /app/server .
-VOLUME ["/app/data"]
-EXPOSE 8080
-ENTRYPOINT ["./server"]
-\end{lstlisting}
+\subsubsection{\textit{Regular Expression}}
+\textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang
+digunakan untuk mendeskripsikan suatu bahasa reguler. Dalam kompilator, RE
+digunakan secara luas untuk mendefinisikan \textit{pattern} (pola) dari
+\textit{token} secara akurat. Dengan menggunakan operasi dasar seperti
+\textit{Concatenation} (penyambungan), \textit{Union} (penggabungan alternatif),
+dan \textit{Kleene Closure} (perulangan nol kali atau lebih), pembuat bahasa
+dapat mendefinisikan aturan rumit, misalnya: "Sebuah identifier harus diawali
+dengan huruf, diikuti oleh kombinasi huruf atau angka dengan jumlah berapa pun."
 
-\subsubsection{Running Locally}
-\begin{lstlisting}[style=bash]
-# Backend
-docker build -t myapp-backend -f be.Dockerfile .
-docker run --rm -p 8080:8080 \
-  -e FRONTEND_URL=http://localhost:3000 \
-  -v "$(pwd)/data:/app/data:ro" \
-  myapp-backend
+\subsubsection{\textit{Finite Automata} (FA)}
 
-# Frontend
-docker build -t myapp-frontend \
-  --build-arg VITE_API_URL=http://localhost:8080 \
-  -f fe.Dockerfile .
-docker run --rm -p 3000:80 myapp-frontend
-\end{lstlisting}
+\textit{Finite Automata} (FA) atau \textit{Finite State Machine} (FSM) adalah
+model komputasi matematika abstrak yang digunakan untuk mengenali
+\textit{Regular Expression}. Dalam konteks kompilator, FA berfungsi sebagai
+mesin pemeriksa yang menelusuri karakter masukan untuk memvalidasi apakah urutan
+karakter tersebut (\textit{lexeme}) membentuk \textit{token} yang sah sesuai
+aturan bahasa.
 
-% ── 4.7 Performance ─────────────────────────────────────────
-\subsection{Performance Metrics}
+Secara formal, sebuah \textit{Finite Automata} didefinisikan secara matematis
+sebagai \textit{5-tuple} $(Q, \Sigma, \delta, q_0, F)$, yang terdiri dari:
+\begin{itemize}
+    \item $Q$ : Himpunan hingga dari kedudukan atau \textit{state}.
+    \item $\Sigma$ : Himpunan hingga dari simbol \textit{input} atau alfabet
+        (contoh: himpunan huruf, angka, dan simbol baca).
+    \item $\delta$ : Fungsi transisi yang memetakan $Q \times \Sigma \rightarrow
+        Q$ (menentukan \textit{state} tujuan berdasarkan \textit{state} saat ini dan simbol yang dibaca).
+    \item $q_0$ : \textit{State} awal (\textit{initial state}), di mana $q_0 \in
+        Q$. Mesin selalu memulai komputasi dari \textit{state} ini.
+    \item $F$ : Himpunan \textit{state} akhir atau penerima
+        (\textit{final/accepting state}), di mana $F \subseteq Q$.
+\end{itemize}
 
-\begin{table}[H]
-  \centering
-  \begin{tabular}{lr}
-    \toprule
-    \textbf{Operation} & \textbf{Time} \\
-    \midrule
-    Document preprocessing  & \SI{7.67}{\second} \\
-    Vocabulary build        & \SI{1.24}{\second} \\
-    Term-document matrix    & \SI{477}{\milli\second} \\
-    SVD (50 components)     & \SI{6.06}{\second} \\
-    Model training (total)  & \SI{23.0}{\second} \\
-    \midrule
-    Query response (P50)    & $< \SI{50}{\milli\second}$ \\
-    Query response (P99)    & $< \SI{100}{\milli\second}$ \\
-    \bottomrule
-  \end{tabular}
-  \caption{Training and inference performance (N = 523 documents)}
-\end{table}
+Mesin FA membaca masukan berupa \textit{string} karakter demi karakter secara
+sekuensial dari kiri ke kanan. Setiap kali membaca satu simbol,
+mesin akan berpindah dari \textit{state} saat ini ke \textit{state} berikutnya
+sesuai dengan aturan pada fungsi transisi ($\delta$). Jika setelah seluruh
+karakter pada masukan selesai dibaca mesin berhenti pada salah satu
+\textit{state} yang termasuk dalam himpunan $F$, maka masukan tersebut diterima
+(\textit{accepted}) sebagai \textit{token} yang valid. Sebaliknya, jika berhenti
+di luar $F$ atau menemukan transisi yang tidak terdefinisi, maka terjadi
+\textit{lexical error}.
+
+Berdasarkan sifat penentuan fungsi transisinya, \textit{Finite Automata} dibedakan menjadi dua jenis:
+\begin{enumerate}
+    \item \textbf{\textit{Nondeterministic Finite Automata} (NFA)}: Suatu mesin
+        di mana sebuah \textit{state} dapat memiliki nol, satu, atau lebih jalur
+        transisi untuk satu simbol \textit{input} yang sama. NFA juga
+        mengizinkan perpindahan \textit{state} tanpa perlu membaca karakter
+        \textit{input} (disebut transisi epsilon atau $\epsilon$-transition).
+    \item \textbf{\textit{Deterministic Finite Automata} (DFA)}: Suatu mesin di
+        mana setiap \textit{state} memiliki tepat satu jalur transisi secara
+        mutlak untuk setiap simbol \textit{input} di dalam $\Sigma$. Tidak ada
+        ambiguitas jalur dan tidak ada transisi epsilon.
+\end{enumerate}
+
+Dalam implementasi program \textit{Lexical Analyzer} yang sebenarnya, model
+\textbf{DFA} adalah spesifikasi yang wajib digunakan. Hal ini karena sifat
+deterministiknya yang tidak ambigu memungkinkan aturan transisi dikonversi
+secara langsung menjadi algoritma terprogram menggunakan pendekatan
+\textit{modular} dan penyeleksian kondisi, membaca satu demi satu karakter
+hingga menghasilkan klasifikasi \textit{token} yang tepat.
+
+\section{Perancangan \& Implementasi}
+
+\subsection{Diagram Transisi DFA}
+
+% Placeholder untuk gambar diagram transisi DFA. 
+% Sesuai instruksi, pada bagian ini tidak ada tambahan paragraf penjelasan lebih lanjut.
+
+\subsection{Implementasi Program (Lexical Analyzer)}
+
+Tahapan pertama dalam \textit{compiler} ini adalah \textit{Lexical Analyzer} (Scanner) yang bertugas membaca \textit{source code} karakter demi karakter dari \texttt{SourceBuffer} dan mengelompokkannya menjadi \textit{Token} (seperti \textit{identifier}, \textit{keyword}, bilangan, dan operator). Implementasi pada \texttt{Scanner.cpp} dan \texttt{Scanner.hpp} dibangun dengan mereplikasi cara kerja \textit{Deterministic Finite Automaton} (DFA) yang dirangkum pada diagram transisi DFA.
+
+\subsubsection{Struktur Proyek}
+
+Struktur implementasi untuk \textit{lexical analyzer} pada proyek ini berfokus pada folder \texttt{src/lexical} dengan pembagian berkas sebagai berikut:
+\begin{itemize}
+  \item \texttt{SourceBuffer.hpp} dan \texttt{SourceBuffer.cpp}: modul pembaca berkas sumber yang menyediakan akses karakter per karakter, termasuk utilitas \textit{look-ahead}.
+  \item \texttt{Scanner.hpp}: deklarasi kelas \texttt{Scanner} dan antarmuka fungsi pemindaian token.
+  \item \texttt{Token.hpp}: representasi objek token beserta atributnya (jenis token, \textit{lexeme}, dan metadata posisi jika ada).
+  \item \texttt{TokenType.hpp}: definisi enumerasi semua terminal/token yang dikenali scanner.
+  \item \texttt{Logger.hpp}: utilitas pelaporan pesan kesalahan/peringatan selama proses analisis leksikal.
+\end{itemize}
+
+\subsubsection{Penjelasan Modul/Kelas yang Dibentuk}
+
+Implementasi bersifat modular agar setiap tanggung jawab terpisah dengan jelas.
+\begin{itemize}
+  \item \textbf{Kelas \texttt{SourceBuffer}}: bertanggung jawab terhadap manajemen aliran karakter dari \textit{source file}. Operasi inti seperti \texttt{peek()}, \texttt{advance()}, dan \textit{matching} karakter digunakan scanner untuk merealisasikan transisi DFA.
+  \item \textbf{Kelas \texttt{Scanner}}: inti mesin \textit{lexical analyzer}. Kelas ini menjalankan simulasi DFA secara \textit{ad-hoc} menggunakan struktur kontrol \texttt{switch-case}, \texttt{while}, dan \texttt{if-else}, lalu menghasilkan objek \texttt{Token} melalui fungsi pemindaian seperti \texttt{scanToken()}, \texttt{identifier()}, \texttt{number()}, dan \texttt{stringLiteral()}.
+  \item \textbf{Kelas/Struktur \texttt{Token}}: wadah hasil klasifikasi \textit{lexeme}. Setiap token merekam tipe terminal (dari \texttt{TokenType}) dan nilai \textit{lexeme} yang sudah diekstrak dari aliran karakter.
+  \item \textbf{\texttt{TokenType}}: kamus tipe token berbasis enumerasi untuk memastikan setiap hasil pemindaian memiliki kategori yang konsisten (misalnya \texttt{ident}, \texttt{intcon}, \texttt{realcon}, operator, delimiter, dan sebagainya).
+  \item \textbf{\texttt{Logger}}: komponen pendukung untuk menampilkan \textit{diagnostic message}, khususnya ketika scanner menemukan karakter ilegal atau komentar/string yang tidak tertutup.
+\end{itemize}
+
+\subsubsection{Klasifikasi Token pada Implementasi Scanner}
+
+Ketika perulangan \texttt{scanToken()} dipanggil, program mensimulasikan dimulainya pemrosesan dari \textit{Start State} ($q_0$). Bergantung pada karakter yang dibaca oleh \texttt{advance()}, cabang implementasi dibagi berdasarkan tipe token sebagai berikut:
+
+\begin{itemize}
+    \item \textbf{Modul 1: Identifier \& Keywords ($q_1, q_2\_ident$)}\\
+    Jika karakter awal adalah huruf atau \textit{underscore} (diperiksa dengan \texttt{isAlpha()}), program akan memanggil fungsi \texttt{Scanner::identifier()}. Di sini, \textit{state} membaca karakter selanjutnya selama karakter tersebut berupa alfanumerik (fungsi \texttt{isAlphaNumeric(peek())}), yang mensimulasikan perulangan (\textit{looping}) pada \textit{state} $q_2\_ident$. Jika bertemu karakter non-alfanumerik, pointer diretract dan teks yang tersimpan dicocokkan dengan tabel \textit{keyword} (\texttt{unordered\_map}). Jika cocok, akan diubah menjadi \textit{Token Keyword} (contoh: \texttt{programsy}, \texttt{beginsy}, \texttt{forsy}). Jika tidak, akan menjadi \textit{Token} \texttt{ident}.
+
+    \item \textbf{Modul 2: Numbers - intcon \& realcon ($q_4$ hingga $q_7$)}\\
+    Ketika menjumpai digit angka, program mendelegasikan pemrosesan ke \texttt{Scanner::number()}. Perulangan mewakilkan \textit{state} $q_4$ dan $q_5$ yang murni membaca sekumpulan angka (\texttt{isdigit()}). Program kemudian melakukan \textit{look-ahead} memeriksa apakah ada karakter titik `\texttt{.}' ($q_6$) yang segera diikuti oleh angka tambahan. Jika kondisi \textit{match}, program mengakumulasi string menjadi tipe \texttt{double} untuk \textit{Token} \texttt{realcon} ($q_7$). Jika hanya terdiri atas rentetan angka murni tanpa titik, pointer membaca mundur dan menjadi \textit{Token} \texttt{intcon}.
+
+    \item \textbf{Modul 3: Strings \& Chars ($q_8, q_9\_strchar$)}\\
+    Kutip tunggal `\texttt{'}' memicu transisi pemanggilan ke \texttt{Scanner::stringLiteral()}. Program merepresentasikan \textit{state} $q_8$ untuk mengevaluasi karakter apa pun di dalamnya secara beruntun. Saat divalidasi dan dicapai penutup `\texttt{'}', memori melacak panjang karakter yang terekam. Panjang berisi $1$ menghasilkan terminal \texttt{charcon}, sisanya merujuk pada blok memori berupa \texttt{string}. Terdapat penanganan pada transisi \textit{error} ($q\_error_3$) jika deretan karakter mati dan tidak kunjung ditutup.
+
+    \item \textbf{Modul 4: Operators \& Delimiters}\\
+    Karakter satuan seperti \texttt{+}, \texttt{-}, \texttt{*}, \texttt{[}, \texttt{]}, \texttt{,}, dan \texttt{;} secara ekuivalen diregisterkan menjadi simbol terminal mutlak karena merupakan terminal akhir / \textit{accepting state}.
+    Untuk tipe multi-operator seperti \texttt{>=}, \texttt{<=}, \texttt{:=}, kode menyebar jalur transisi lewat verifikasi \texttt{match()}:
+    \begin{itemize}
+        \item Karakter \texttt{:} ($q_{12}$) akan mengecek \texttt{match('=')}. Jika ada, menjadi terminal operator \texttt{becomes} (\texttt{:=}). Jika tidak, terminal mengembalikan \texttt{colon} (\texttt{:}).
+        \item Karakter \texttt{<} ($q_{10}$) akan disiasati apakah mengevaluasi \texttt{=}, \texttt{>}, atau memicu \textit{fallback} (merupakan \texttt{leq}, \texttt{neq}, atau \texttt{lss}).
+        \item Karakter \texttt{>} ($q_{11}$) memiliki fungsi serupa yang menunjuk preseden \texttt{>=} atau melakukuan pembacaan mundur sebagai \texttt{>}.
+        \item Karakter \texttt{=} ($q_{55}$) langsung menuju ke komputasi pembentukan leksik \texttt{eql} (konformitas yang ekuivalen dengan referensi diagram aslinya).
+    \end{itemize}
+
+    \item \textbf{Modul 5: Comments ($q_{14}$ hingga $q_{17}$)}\\
+    Saat sistem menemukan karakter \texttt{\{} ($q_{14}$), iterasi berjalan membuang isi \textit{buffer} karakter hingga bersentuhan langsung dengan simbol \texttt{\}} yang merujuk logis pada transisi \textit{state} $q_{15} \rightarrow \text{comment1}$. Mekanisme setara terpakai untuk start \texttt{(} yang di-\textit{lookahead} ke \texttt{*}, ia membiarkan perulangan maju hingga \textit{encounter} elemen \texttt{*)} seperti pemblokiran rute transisi di $q_{16} \rightarrow q_{17} \rightarrow \text{comment2}$. Jika instruksi berulang \textit{End of File} tecapai, sistem menyuntikkan \textit{alert error} yang relevan layaknya \textit{termination pointer} pada $q\_error_1$ atau $q\_error_2$.
+
+    \item \textbf{Modul 6: Whitespace}\\
+    Peranan spasi seperti karakter utama \textit{whitespace}, \texttt{\char`\\r}, serta \texttt{\char`\\t} lolos diabaikan karena memicu lompatan balik siklik kembali bereaksi identik dengan siklus statik \textit{empty return} pada DFA, kecuali ganti baris (\texttt{\char`\\n}) yang dipakai menyimpan \textit{tracking}.
+\end{itemize}
+
+Mesin secara natural membaca \textit{source file} via \texttt{SourceBuffer} yang disalurkan melalui utilitas \texttt{peek()}, \texttt{advance()}, dan \texttt{match()} dan secara berkelanjutan menggunakan pergeseran pointer tersebut untuk merepresentasikan alur grafik DFA yang padu. Hasil kompilasi pergeseran \textit{state operator} tersebut kemudian diangkut pada sub-rutin ekstraksi menggunakan penempatan variabel konstruktor kelas \texttt{Token}.
 
 % ============================================================
 %   SECTION 5 — EXPERIMENTS & RESULTS
