@@ -123,11 +123,10 @@
 \newcommand{\Faculty}{Sekolah Teknik Elektro dan Informatika}
 \newcommand{\University}{Institut Teknologi Bandung}
 
-% Repository / deployment links (used in Appendix)
+% Repository link (used in Appendix)
 \newcommand{\RepoURL}{https://github.com/your-org/your-repo}
 \newcommand{\DeployURL}{https://your-deployment-url.example.com}
 \newcommand{\DFAURL}{https://drive.google.com/file/d/1XT-esS_K76ImoWZUwJKy43QvJW_NdP0a/view}
-
 
 \begin{document}
 
@@ -188,6 +187,31 @@ yang disebut token, seperti kata kunci (\textit{keyword}), pengenal
 krusial dalam menyederhanakan tugas tahap berikutnya, yaitu parsing, dengan
 membuang elemen yang tidak relevan seperti spasi dan komentar, serta mendeteksi
 simbol invalid sejak awal.
+
+\subsection{Latar Belakang}
+Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}), analisis sintaktik, analisis semantik, hingga pembangkitan kode (\textit{code generation}). Tahap pertama --- analisis leksikal --- bertanggung jawab untuk membaca kode sumber karakter demi karakter dan mengelompokkannya menjadi satuan-satuan bermakna yang disebut \textit{token}. Keberhasilan tahap ini menjadi fondasi bagi seluruh tahap kompilasi berikutnya.
+
+Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone pertama berfokus pada pembangunan \textit{lexical analyzer} (lexer) yang mampu mengenali seluruh jenis token yang didefinisikan dalam spesifikasi bahasa Arion.
+
+\subsection{Rumusan Masalah}
+Bagaimana merancang dan mengimplementasikan sebuah \textit{lexical analyzer} berbasis \textit{Deterministic Finite Automaton} (DFA) yang mampu:
+\begin{enumerate}[label=\arabic*.]
+  \item Membaca kode sumber bahasa Arion dari berkas masukan.
+  \item Mengenali dan mengklasifikasikan setiap leksem ke dalam tipe token yang sesuai (kata kunci, identifier, konstanta, operator, dan komentar).
+  \item Menangani kasus-kasus ambigu seperti pembedaan \texttt{charcon} dan \texttt{string}, bilangan bulat dan bilangan riil, serta operator satu dan dua karakter.
+  \item Melaporkan kesalahan leksikal dengan informasi nomor baris yang akurat.
+\end{enumerate}
+
+\subsection{Gambaran Umum Sistem}
+Sistem yang dibangun merupakan sebuah \textit{lexical analyzer} untuk bahasa Arion yang diimplementasikan dalam bahasa C++20. Lexer ini membaca berkas kode sumber, memproses setiap karakter menggunakan logika DFA berbasis \textit{switch-case}, dan menghasilkan daftar token sebagai keluaran. Sistem terdiri atas lima komponen utama: \texttt{SourceBuffer} (pembacaan berkas), \texttt{TokenType} (definisi tipe token), \texttt{Token} (struktur data token), \texttt{Scanner} (mesin DFA), dan \texttt{Logger} (pelaporan kesalahan).
+
+\subsection{Spesifikasi Umum}
+\begin{enumerate}[label=\arabic*.]
+  \item Mengenali 52 jenis token: 5 tipe literal/nilai (\texttt{intcon}, \texttt{realcon}, \texttt{charcon}, \texttt{string}, \texttt{ident}), 25 kata kunci, 20 operator dan tanda baca, serta \texttt{comment} dan \texttt{eof\_token}.
+  \item Kata kunci bersifat \textit{case-insensitive} (\texttt{BEGIN}, \texttt{Begin}, dan \texttt{begin} dikenali sebagai token yang sama).
+  \item Mendukung dua gaya komentar: \texttt{\{ \ldots\ \}} dan \texttt{(* \ldots\ *)}.
+  \item Melaporkan kesalahan leksikal tanpa menghentikan proses scanning (\textit{error recovery}).
+\end{enumerate}
 
 
 \section{Dasar Teori}
@@ -442,86 +466,394 @@ Siklus mesin direpresentasikan oleh perulangan \texttt{scanToken()}. Saat fungsi
     Di ranah *comments*, insiden identifikasi pembuka blok (spt \texttt{\{} atau \texttt{(*} ) mengaktivasikan pengurasan karakter \textit{dummy loop} (*trap state*) ke dalam *buffer* kosong hingga mendeteksi entitas kutub pasangannya masing-masing.
 \end{itemize}
 
-Seluruh mekanisme program berpedoman pada manuver pergeseran *pointer* alami yang mencerminkan topologi transisi diagram. Kompilasi unit valid tersebut akan diteruskan secara konsisten menuju inisialisasi pada *constructor* statis dari kelas \texttt{Token}.
+Seluruh mekanisme program berpedoman pada manuver pergeseran \textit{pointer} alami yang mencerminkan topologi transisi diagram. Kompilasi unit valid tersebut akan diteruskan secara konsisten menuju inisialisasi pada \textit{constructor} statis dari kelas \texttt{Token}.
+
+\subsection{Token: Tipe dan Nilai}
+Sebuah \textit{token} terdiri atas dua komponen utama: \textbf{tipe token} (\textit{token type}) yang menunjukkan kategori leksikal, dan \textbf{nilai} (\textit{value/lexeme}) yang menyimpan representasi teks aslinya. Sebagai contoh dalam bahasa Arion:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{llp{6cm}}
+    \toprule
+    \textbf{Leksem} & \textbf{Tipe Token} & \textbf{Keterangan} \\
+    \midrule
+    \texttt{program}  & \texttt{programsy} & Kata kunci deklarasi program \\
+    \texttt{myVar}    & \texttt{ident}     & Identifier yang didefinisikan pengguna \\
+    \texttt{42}       & \texttt{intcon}    & Konstanta bilangan bulat \\
+    \texttt{3.14}     & \texttt{realcon}   & Konstanta bilangan riil \\
+    \texttt{'a'}      & \texttt{charcon}   & Konstanta karakter tunggal \\
+    \texttt{'hello'}  & \texttt{string}    & Literal string (lebih dari satu karakter) \\
+    \texttt{:=}       & \texttt{becomes}   & Operator penugasan \\
+    \texttt{==}       & \texttt{eql}       & Operator persamaan \\
+    \bottomrule
+  \end{tabular}
+  \caption{Contoh token dalam bahasa Arion}
+\end{table}
+
+Bahasa Arion mendefinisikan total 52 jenis token yang mencakup literal, kata kunci, operator aritmetika, operator logika, operator perbandingan, tanda baca, serta token khusus untuk komentar dan akhir berkas.
+
+\subsection{Hubungan Bahasa Reguler dan Pola Token}
+Setiap jenis token dalam suatu bahasa pemrograman dapat dideskripsikan oleh sebuah ekspresi reguler (\textit{regular expression}). Sebagai contoh:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{Identifier:} \verb|[a-zA-Z_][a-zA-Z0-9_]*| --- dimulai oleh huruf atau \textit{underscore}, diikuti oleh nol atau lebih karakter alfanumerik.
+  \item \textbf{Integer:} \verb|[0-9]+| --- satu atau lebih digit.
+  \item \textbf{Real:} \verb|[0-9]+\.[0-9]+| --- digit, titik, lalu digit lagi.
+  \item \textbf{Operator dua karakter:} \verb|:=|, \verb|==|, \verb|<=|, \verb|>=|, \verb|<>| --- urutan dua karakter tetap.
+\end{itemize}
+
+Berdasarkan teorema Kleene, setiap bahasa yang dapat dideskripsikan oleh ekspresi reguler merupakan bahasa reguler dan dapat dikenali oleh DFA. Oleh karena itu, pendekatan berbasis DFA memberikan jaminan teoritis bahwa semua pola token dapat dikenali secara efisien dan deterministik.
 
 % ============================================================
-%   SECTION 5 — EXPERIMENTS & RESULTS
+%   SECTION 3 — PERANCANGAN DAN IMPLEMENTASI
 % ============================================================
 
-\section{Experiments and Results}
+\section{Perancangan dan Implementasi}
 
-\subsection{Test Case Category A}
-
-\subsubsection{Test Case 1: \textit{[Description]}}
-\textbf{Input:} Describe the input used.
-
-\textbf{Expected output:} What the correct result should be.
+\subsection{Diagram DFA}
+Diagram DFA yang dirancang untuk lexer bahasa Arion ditunjukkan pada Gambar~\ref{fig:dfa}.
 
 \begin{figure}[H]
   \centering
-  % \includegraphics[width=0.75\textwidth]{screenshot_1.png}
-  \fbox{\parbox{0.7\textwidth}{\centering\vspace{2cm}[Screenshot placeholder]\vspace{2cm}}}
-  \caption{Test case 1 — result screenshot}
+  \includegraphics[width=\textwidth]{dfa_diagram.png}
+  \caption{Diagram DFA lexer bahasa Arion}
+  \label{fig:dfa}
 \end{figure}
 
-\textbf{Analysis:} Explain whether the result is correct and why.
-
-\subsubsection{Test Case 2: \textit{[Description]}}
-\ldots
-
-\subsection{Test Case Category B}
-\ldots
-
-\subsection{Overall Analysis}
-
-\subsubsection{Algorithm A — Strengths and Limitations}
-\textbf{Strengths:}
-\begin{itemize}[leftmargin=1.5em]
-  \item Strength one.
-  \item Strength two.
-\end{itemize}
-
-\textbf{Limitations:}
-\begin{itemize}[leftmargin=1.5em]
-  \item Limitation one.
-  \item Limitation two.
-\end{itemize}
-
-\subsubsection{Algorithm B — Strengths and Limitations}
-\ldots
-
-% ============================================================
-%   SECTION 6 — CONCLUSION
-% ============================================================
-
-\section{Conclusion}
-
-\subsection{Summary}
-\begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item \textbf{Finding 1} --- description.
-  \item \textbf{Finding 2} --- description.
-  \item \textbf{Finding 3} --- description.
+\subsection{Pendekatan Modular pada DFA}
+DFA lexer Arion dirancang dengan pendekatan \textit{modular}: state awal $q_0$ berfungsi sebagai \textit{dispatcher} yang memeriksa karakter pertama dan mendelegasikan pemrosesan ke modul-modul khusus. Pendekatan ini dipilih karena:
+\begin{enumerate}[label=\arabic*.]
+  \item Setiap modul menangani satu kategori token sehingga kompleksitas logika terisolasi.
+  \item Penambahan pola token baru cukup dilakukan pada modul yang relevan tanpa mengubah modul lain.
+  \item Memudahkan pengujian dan \textit{debugging} per modul secara independen.
 \end{enumerate}
 
-\subsection{Suggestions for Future Work}
+Berikut adalah modul-modul utama dalam DFA:
+
+\subsubsection{Modul Identifier dan Kata Kunci (\textit{q\_identifyModule})}
+Modul ini dimasuki ketika karakter pertama adalah huruf atau \textit{underscore}. Scanner terus membaca karakter alfanumerik hingga menemukan karakter non-alfanumerik, lalu melakukan \textit{retract} (tidak mengonsumsi karakter terakhir). Leksem yang terkumpul dikonversi ke huruf kecil dan dicari dalam tabel kata kunci. Jika ditemukan, token kata kunci yang sesuai dihasilkan; jika tidak, token \texttt{ident} dihasilkan dengan leksem asli (mempertahankan huruf besar/kecil asli).
+
+\begin{lstlisting}[style=cpp, caption={Penanganan identifier dan kata kunci}]
+void Scanner::identifier() {
+    while (isAlphaNumeric(peek()))
+        advance();
+    string text = source.substring(start, current - start);
+    string lower = toLower(text);
+    auto it = keywords.find(lower);
+    if (it != keywords.end())
+        addToken(it->second);
+    else
+        addToken(TokenType::ident, Literal{text});
+}
+\end{lstlisting}
+
+\subsubsection{Modul Bilangan (\textit{q\_number\_module})}
+Modul ini dimasuki ketika karakter pertama adalah digit. Scanner membaca digit berturut-turut. Jika setelah titik (\texttt{.}) terdapat digit lagi, maka bilangan diklasifikasikan sebagai \texttt{realcon}; jika tidak, bilangan menjadi \texttt{intcon} dan titik diperlakukan sebagai token \texttt{period} terpisah.
+
+\begin{lstlisting}[style=cpp, caption={Penanganan bilangan bulat dan riil}]
+void Scanner::number() {
+    while (isdigit(static_cast<unsigned char>(peek())))
+        advance();
+    if (peek() == '.' &&
+        isdigit(static_cast<unsigned char>(peekNext()))) {
+        advance(); // konsumsi '.'
+        while (isdigit(static_cast<unsigned char>(peek())))
+            advance();
+        addToken(TokenType::realcon, /* nilai double */);
+    } else {
+        addToken(TokenType::intcon, /* nilai integer */);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Modul String dan Charcon}
+Modul ini dimasuki ketika karakter \texttt{'} (kutip tunggal) ditemukan. Scanner membaca karakter hingga menemukan kutip penutup. Setelah isi literal diekstrak, panjangnya diperiksa: jika tepat satu karakter, token \texttt{charcon} dihasilkan; jika lebih (atau nol), token \texttt{string} dihasilkan. Jika kutip penutup tidak ditemukan hingga akhir berkas, kesalahan dilaporkan.
+
+\subsubsection{Modul Komentar}
+Dua gaya komentar didukung: komentar kurung kurawal \texttt{\{ \ldots\ \}} dan komentar parenthesis-bintang \texttt{(* \ldots\ *)}. Pada kedua kasus, seluruh isi komentar dikonsumsi tanpa menghasilkan token apa pun. Komentar \textbf{tidak bersarang}: pada gaya \texttt{\{ \}}, karakter \texttt{\{} di dalam komentar diabaikan dan komentar ditutup oleh \texttt{\}} pertama yang ditemui.
+
+\subsubsection{Modul Operator Dua Karakter}
+Untuk operator yang terdiri atas dua karakter (\texttt{:=}, \texttt{==}, \texttt{<=}, \texttt{>=}, \texttt{<>}), scanner menggunakan metode \texttt{match()} sebagai \textit{lookahead}. Setelah membaca karakter pertama, \texttt{match()} memeriksa apakah karakter berikutnya melengkapi operator dua karakter. Jika ya, kedua karakter dikonsumsi; jika tidak, hanya karakter pertama yang menjadi token.
+
+\begin{lstlisting}[style=cpp, caption={Contoh lookahead untuk operator :=}]
+case ':':
+    if (match('='))
+        addToken(TokenType::becomes);  // :=
+    else
+        addToken(TokenType::colon);    // :
+    return;
+\end{lstlisting}
+
+\subsection{Mekanisme \textit{Retract} dan \textit{Lookahead}}
+Scanner menggunakan dua pointer: \texttt{start} (awal leksem saat ini) dan \texttt{current} (posisi baca saat ini). Metode \texttt{advance()} mengonsumsi satu karakter dan memajukan \texttt{current}, sedangkan \texttt{peek()} dan \texttt{peekNext()} membaca karakter berikutnya \textbf{tanpa} memajukan pointer. Pola ini memungkinkan scanner melakukan keputusan secara deterministik tanpa perlu \textit{backtracking} yang mahal.
+
+\subsection{Penanganan \textit{Case-Insensitivity}}
+Kata kunci dalam bahasa Arion bersifat \textit{case-insensitive}. Implementasinya dilakukan dengan mengonversi leksem ke huruf kecil menggunakan \texttt{toLower()} sebelum pencarian di tabel kata kunci (\texttt{unordered\_map}). Leksem asli tetap disimpan untuk keperluan pelaporan dan modul-modul berikutnya.
+
+\subsection{Struktur Kelas dan Tanggung Jawab}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{lp{9cm}}
+    \toprule
+    \textbf{Kelas/Berkas} & \textbf{Tanggung Jawab} \\
+    \midrule
+    \texttt{SourceBuffer} & Membaca berkas kode sumber ke dalam buffer string. Menyediakan akses karakter per posisi (\texttt{at()}) dan ekstraksi substring (\texttt{substring()}). Mengisolasi operasi I/O dari logika DFA. \\
+    \texttt{TokenType} & Mendefinisikan \texttt{enum class TokenType} dengan 52 anggota dan fungsi \texttt{tokenTypeName()} untuk konversi ke string. \\
+    \texttt{Token} & Struktur data yang menyimpan tipe token, leksem, literal (berupa \texttt{variant<monostate, string, double>}), dan nomor baris. Menyediakan fungsi \texttt{printToken()} untuk keluaran format standar. \\
+    \texttt{Scanner} & Mesin utama DFA. Mengelola pointer \texttt{start}/\texttt{current}, mengimplementasikan \texttt{scanToken()} dengan \textit{switch-case}, serta mendelegasikan ke metode-metode modul. \\
+    \texttt{Logger} & Melaporkan kesalahan leksikal ke \texttt{stderr} dengan format \texttt{[line N] Error: pesan}. \\
+    \texttt{main.cpp} & Titik masuk program. Membaca nama berkas dari argumen, membuat objek \texttt{Scanner}, dan memanggil \texttt{printAllTokens()}. \\
+    \bottomrule
+  \end{tabular}
+  \caption{Pembagian tanggung jawab kelas}
+\end{table}
+
+\subsection{Struktur Direktori Proyek}
+\begin{lstlisting}[style=bash, caption={Tata letak direktori proyek}]
+HBB-Tubes-IF2224-2026/
+    src/
+        main.cpp                # Titik masuk program
+        lexical/
+            SourceBuffer.hpp/cpp  # Pembacaan berkas
+            TokenType.hpp         # Definisi tipe token
+            Token.hpp/cpp         # Struktur dan pencetakan token
+            Scanner.hpp/cpp       # Mesin DFA utama
+            Logger.hpp            # Pelaporan kesalahan
+    test/
+        input/                  # Berkas-berkas uji masukan
+    doc/                        # Laporan dan dokumentasi
+    Makefile                    # Skrip kompilasi
+\end{lstlisting}
+
+\subsection{Keuntungan Struktur Modular untuk Milestone Selanjutnya}
+Arsitektur modular yang digunakan pada lexer dirancang untuk memudahkan pengembangan pada milestone berikutnya. Daftar token yang dihasilkan oleh \texttt{Scanner} dapat langsung dikonsumsi oleh \textit{parser} (analisis sintaktik) tanpa modifikasi antarmuka. Struktur \texttt{Token} yang menyimpan informasi nomor baris memungkinkan pelaporan kesalahan yang akurat pada tahap analisis semantik. Selain itu, pemisahan \texttt{SourceBuffer} dari \texttt{Scanner} memungkinkan penggantian sumber masukan (misalnya dari string langsung untuk pengujian unit) tanpa mengubah logika DFA.
+
+% ============================================================
+%   SECTION 4 — PENGUJIAN
+% ============================================================
+
+\section{Pengujian}
+
+Pengujian dilakukan terhadap berbagai kasus masukan untuk memverifikasi kebenaran lexer. Setiap kasus uji dijalankan dengan perintah \texttt{make run FILE=<nama\_berkas>}. Keluaran pada \texttt{stdout} (daftar token) dan \texttt{stderr} (pesan kesalahan) dibandingkan dengan hasil yang diharapkan.
+
+\subsection{Kasus Uji 1: Kata Kunci dalam Berbagai Huruf Besar/Kecil}
+\textbf{Berkas:} \texttt{edge\_keywords\_case.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+BEGIN While PROGRAM
+End If THEN
+REPEAT downto NOT
+DIV Mod Or
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:} \texttt{beginsy}, \texttt{whilesy}, \texttt{programsy}, \texttt{endsy}, \texttt{ifsy}, \texttt{thensy}, \texttt{repeatsy}, \texttt{downtosy}, \texttt{notsy}, \texttt{idiv}, \texttt{imod}, \texttt{orsy} --- total 12 token kata kunci.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 1]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 1}
+\end{figure}
+
+\textbf{Analisis:} Seluruh kata kunci dikenali dengan benar meskipun ditulis dengan variasi huruf besar/kecil, membuktikan bahwa mekanisme \texttt{toLower()} bekerja sesuai spesifikasi.
+
+\subsection{Kasus Uji 2: Ambiguitas Bilangan Riil vs Titik}
+\textbf{Berkas:} \texttt{edge\_real\_vs\_period.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+end.
+3.14
+42.
+100.0
+5 .3
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:} \texttt{endsy}, \texttt{period}, \texttt{realcon (3.14)}, \texttt{intcon (42)}, \texttt{period}, \texttt{realcon (100)}, \texttt{intcon (5)}, \texttt{period}, \texttt{intcon (3)} --- total 9 token.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 2]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 2}
+\end{figure}
+
+\textbf{Analisis:} Scanner membedakan \texttt{realcon} dan \texttt{period} berdasarkan \textit{lookahead}: titik hanya menjadi bagian bilangan riil jika diikuti digit. Kasus \texttt{42.} menghasilkan \texttt{intcon} + \texttt{period} karena tidak ada digit setelah titik.
+
+\subsection{Kasus Uji 3: Charcon vs String}
+\textbf{Berkas:} \texttt{edge\_charcon\_vs\_string.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+'a'
+'ab'
+'hello world'
+'x'
+''
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:} \texttt{charcon (a)}, \texttt{string (ab)}, \texttt{string (hello world)}, \texttt{charcon (x)}, \texttt{string ()} --- total 5 token.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 3]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 3}
+\end{figure}
+
+\textbf{Analisis:} Literal dengan tepat satu karakter menjadi \texttt{charcon}; selainnya (termasuk literal kosong \texttt{''}) menjadi \texttt{string}. Perilaku ini sesuai dengan logika \texttt{val.length() == 1} pada \texttt{stringLiteral()}.
+
+\subsection{Kasus Uji 4: Komentar Bersarang dan Berkas Hanya Komentar}
+\textbf{Berkas:} \texttt{edge\_nested\_comment.txt} dan \texttt{edge\_only\_comments.txt}
+
+\textbf{Masukan (komentar bersarang):}
+\begin{lstlisting}[style=default]
+{ comment with { nested brace }
+x
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:} \texttt{ident (x)} --- komentar dikonsumsi seluruhnya, hanya \texttt{x} yang tersisa.
+
+\textbf{Masukan (hanya komentar):} Berkas yang hanya berisi komentar \texttt{\{\}} dan \texttt{(* *)}.
+
+\textbf{Keluaran yang diharapkan:} Tidak ada token yang dicetak.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 4]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 4}
+\end{figure}
+
+\textbf{Analisis:} Komentar tidak bersarang; kurung kurawal \texttt{\{} di dalam komentar diabaikan. Berkas yang hanya mengandung komentar menghasilkan keluaran kosong, membuktikan bahwa komentar tidak menghasilkan token.
+
+\subsection{Kasus Uji 5: Konstruksi yang Tidak Ditutup}
+\textbf{Berkas:} \texttt{edge\_unterminated.txt} dan \texttt{edge\_unterminated\_comment.txt}
+
+\textbf{Masukan:} String literal tanpa kutip penutup (\texttt{'hello}) dan komentar tanpa kurung penutup (\texttt{\{ never ends}).
+
+\textbf{Keluaran yang diharapkan (stderr):}
+\begin{lstlisting}[style=default]
+[line 2] Error: Unterminated string or character literal.
+[line 2] Error: Unterminated comment.
+\end{lstlisting}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 5]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 5}
+\end{figure}
+
+\textbf{Analisis:} Lexer melaporkan kesalahan dengan nomor baris yang akurat dan tidak mengalami \textit{crash}. Scanner meneruskan pemrosesan setelah menemukan kesalahan (\textit{error recovery}).
+
+\subsection{Kasus Uji 6: Operator \texttt{==} vs Karakter \texttt{=} Tunggal}
+\textbf{Berkas:} \texttt{edge\_eql\_vs\_single\_eq.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+x == 5
+y = 3
+== ==
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan (stdout):} \texttt{ident (x)}, \texttt{eql}, \texttt{intcon (5)}, \texttt{ident (y)}, \texttt{intcon (3)}, \texttt{eql}, \texttt{eql}.
+
+\textbf{Keluaran yang diharapkan (stderr):} \texttt{[line 2] Error: Unexpected character: =}
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 6]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 6}
+\end{figure}
+
+\textbf{Analisis:} Operator \texttt{==} dikenali sebagai \texttt{eql}, sedangkan karakter \texttt{=} tunggal (tanpa diikuti \texttt{=}) menghasilkan kesalahan karena bukan operator valid dalam Arion.
+
+\subsection{Kasus Uji 7: Operator \texttt{:=} vs \texttt{:} Diikuti Karakter Lain}
+\textbf{Berkas:} \texttt{edge\_becomes\_vs\_colon.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+x := 10
+y : integer
+a :=b
+c: d
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:} \texttt{ident (x)}, \texttt{becomes}, \texttt{intcon (10)}, \texttt{ident (y)}, \texttt{colon}, \texttt{ident (integer)}, \texttt{ident (a)}, \texttt{becomes}, \texttt{ident (b)}, \texttt{ident (c)}, \texttt{colon}, \texttt{ident (d)} --- total 12 token.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}[SCREENSHOT PLACEHOLDER --- Kasus Uji 7]\vspace{1.5cm}}}
+  \caption{Hasil pengujian kasus uji 7}
+\end{figure}
+
+\textbf{Analisis:} Mekanisme \texttt{match('=')} berhasil membedakan \texttt{:=} (becomes) dari \texttt{:} (colon). Perhatikan bahwa \texttt{integer} bukan kata kunci dalam Arion sehingga dikenali sebagai \texttt{ident}.
+
+\subsection{Ringkasan Hasil Pengujian}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{clcc}
+    \toprule
+    \textbf{No.} & \textbf{Deskripsi Kasus Uji} & \textbf{Status} & \textbf{Kesalahan} \\
+    \midrule
+    1 & Kata kunci berbagai \textit{case}  & Lulus & Tidak ada \\
+    2 & Bilangan riil vs titik             & Lulus & Tidak ada \\
+    3 & Charcon vs string                  & Lulus & Tidak ada \\
+    4 & Komentar bersarang \& hanya komentar & Lulus & Tidak ada \\
+    5 & Konstruksi tidak ditutup            & Lulus & 2 kesalahan (sesuai harapan) \\
+    6 & \texttt{==} vs \texttt{=} tunggal   & Lulus & 1 kesalahan (sesuai harapan) \\
+    7 & \texttt{:=} vs \texttt{:}           & Lulus & Tidak ada \\
+    \bottomrule
+  \end{tabular}
+  \caption{Ringkasan hasil pengujian}
+\end{table}
+
+Seluruh kasus uji menghasilkan keluaran yang sesuai dengan ekspektasi. Pesan kesalahan pada kasus uji 5 dan 6 muncul pada \texttt{stderr} dengan nomor baris yang tepat.
+
+% ============================================================
+%   SECTION 5 — KESIMPULAN
+% ============================================================
+
+\section{Kesimpulan}
+
+\subsection{Ringkasan}
+Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan \textit{lexical analyzer} untuk bahasa Arion dengan hasil sebagai berikut:
 \begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item Idea for improvement or extension one.
-  \item Idea for improvement or extension two.
+  \item \textbf{DFA berbasis modul} --- Lexer berhasil mengimplementasikan DFA dengan pendekatan modular yang memisahkan pengenalan identifier, bilangan, string, komentar, dan operator ke dalam modul-modul independen. Seluruh 52 jenis token dapat dikenali dengan benar.
+  \item \textbf{Penanganan ambiguitas} --- Kasus-kasus ambigu seperti pembedaan \texttt{charcon} vs \texttt{string} (berdasarkan panjang), \texttt{intcon} vs \texttt{realcon} (berdasarkan \textit{lookahead} setelah titik), dan operator satu vs dua karakter (menggunakan \texttt{match()}) berhasil ditangani secara deterministik.
+  \item \textbf{Error recovery} --- Lexer mampu melaporkan kesalahan leksikal (karakter tidak valid, literal/komentar tidak ditutup) tanpa menghentikan proses scanning, sehingga seluruh kesalahan dalam satu berkas dapat dilaporkan sekaligus.
 \end{enumerate}
 
-\subsection{Individual Reflections}
+\subsection{Tantangan yang Dihadapi}
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item \textbf{DFA vs \textit{switch-case}} --- Terdapat \textit{tradeoff} antara implementasi DFA eksplisit (tabel transisi) dan pendekatan \textit{switch-case} yang lebih prosedural. Pendekatan \textit{switch-case} dipilih karena lebih mudah dibaca dan di-\textit{debug}, meskipun kurang fleksibel untuk modifikasi pola secara otomatis.
+  \item \textbf{Ambiguitas \texttt{charcon} vs \texttt{string}} --- Kedua tipe menggunakan pembatas yang sama (\texttt{'}), sehingga klasifikasi baru dapat dilakukan setelah seluruh isi literal terkumpul. Solusinya adalah memeriksa panjang setelah penutupan kutip.
+  \item \textbf{Komentar tidak menghasilkan token} --- Keputusan desain untuk tidak menghasilkan token \texttt{comment} menyederhanakan antarmuka dengan parser, namun memerlukan perhatian khusus agar komentar yang tidak ditutup terdeteksi sebagai kesalahan.
+\end{enumerate}
+
+\subsection{Saran Pengembangan}
+\begin{enumerate}[label=\arabic*., leftmargin=2em]
+  \item Menambahkan dukungan untuk \textit{escape character} dalam literal string (misalnya \texttt{\textbackslash n}, \texttt{\textbackslash t}).
+  \item Mengimplementasikan \textit{error recovery} yang lebih canggih, misalnya dengan \textit{panic mode} yang mencoba menyinkronisasi kembali pada titik koma atau kata kunci berikutnya.
+  \item Menambahkan informasi kolom (selain baris) pada struktur \texttt{Token} untuk pelaporan kesalahan yang lebih presisi.
+  \item Mempertimbangkan penggunaan tabel transisi DFA yang dibangkitkan secara otomatis dari spesifikasi ekspresi reguler untuk meningkatkan maintainabilitas.
+\end{enumerate}
+
+\subsection{Refleksi Individu}
 
 \subsubsection{\MemberA}
-\textbf{Role:} \\
-\textbf{Reflection:} Write your personal reflection here.
+\textbf{Peran:} \\
+\textbf{Refleksi:} [Diisi oleh anggota]
 
 \subsubsection{\MemberB}
-\textbf{Role:} \\
-\textbf{Reflection:} \ldots
+\textbf{Peran:} \\
+\textbf{Refleksi:} [Diisi oleh anggota]
 
 \subsubsection{\MemberC}
-\textbf{Role:} \\
-\textbf{Reflection:} \ldots
+\textbf{Peran:} \\
+\textbf{Refleksi:} [Diisi oleh anggota]
+
+\subsubsection{\MemberD}
+\textbf{Peran:} \\
+\textbf{Refleksi:} [Diisi oleh anggota]
 
 % ============================================================
 %   REFERENCES
@@ -533,12 +865,11 @@ Seluruh mekanisme program berpedoman pada manuver pergeseran *pointer* alami yan
 
 \begin{enumerate}[label={[\arabic*]}, leftmargin=2.5em, itemsep=0.3em]
 
-\item A. Author, \textit{Book Title}, Edition. City: Publisher, Year.
+\item A.~V. Aho, M.~S. Lam, R.~Sethi, dan J.~D. Ullman, \textit{Compilers: Principles, Techniques, and Tools}, 2nd ed. Boston: Pearson, 2007.
 
-\item A. Author and B. Author, ``Article title,'' \textit{Journal Name}, vol.~X, no.~Y,
-      pp.~1--10, Month Year. \url{https://doi.org/10.xxxx/xxxxx}.
+\item J.~E. Hopcroft, R.~Motwani, dan J.~D. Ullman, \textit{Introduction to Automata Theory, Languages, and Computation}, 3rd ed. Boston: Pearson, 2006.
 
-\item Organisation, ``Web resource title,'' Year. [Online]. Available: \url{https://example.com}.
+\item R.~W. Sebesta, \textit{Concepts of Programming Languages}, 12th ed. Boston: Pearson, 2019.
 
 \end{enumerate}
 
@@ -554,14 +885,14 @@ Seluruh mekanisme program berpedoman pada manuver pergeseran *pointer* alami yan
   \centering
   \begin{tabular}{ll}
     \toprule
-    \textbf{Resource} & \textbf{Link} \\
+    \textbf{Sumber Daya} & \textbf{Tautan} \\
     \midrule
-    GitHub Repository & \url{\RepoURL} \\
+    Repository GitHub & \url{\RepoURL} \\
     Live Deployment   & \url{\DeployURL} \\
     DFA Diagram       & \url{\DFAURL} \\
     \bottomrule
   \end{tabular}
-  \caption{Repository, deployment, and diagram links}
+  \caption{Tautan repository, deployment, dan diagram}
 \end{table}
 
 \end{document}
