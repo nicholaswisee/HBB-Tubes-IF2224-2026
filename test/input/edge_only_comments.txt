@@ -1,0 +1,6 @@
+{ This is a brace comment }
+(* This is a paren-star comment *)
+{ line 3 }
+(* line
+   4
+   multiline *)
