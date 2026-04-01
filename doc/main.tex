@@ -369,11 +369,33 @@ hingga menghasilkan klasifikasi \textit{token} yang tepat.
 
 \subsection{Implementasi Program (Lexical Analyzer)}
 
-Tahapan pertama dalam \textit{compiler} ini adalah \textit{Lexical Analyzer} (Scanner) yang bertugas membaca \textit{source code} karakter demi karakter dari \texttt{SourceBuffer} dan mengelompokkannya menjadi \textit{Token} (seperti \textit{identifier}, \textit{keyword}, bilangan, dan operator). 
+Tahapan pertama dalam \textit{compiler} ini adalah \textit{Lexical Analyzer} (Scanner) yang bertugas membaca \textit{source code} karakter demi karakter dari \texttt{SourceBuffer} dan mengelompokkannya menjadi \textit{Token} (seperti \textit{identifier}, \textit{keyword}, bilangan, dan operator). Implementasi pada \texttt{Scanner.cpp} dan \texttt{Scanner.hpp} dibangun dengan mereplikasi cara kerja \textit{Deterministic Finite Automaton} (DFA) yang dirangkum pada diagram transisi DFA.
 
-Implementasi pada \texttt{Scanner.cpp} dan \texttt{Scanner.hpp} dibangun dengan mereplikasi cara kerja \textit{Deterministic Finite Automaton} (DFA) yang dirangkum pada diagram transisi DFA. Alih-alih menggunakan matriks dua dimensi untuk mengatur status \textit{state}, implementasi DFA ini bersifat "\textit{Ad-Hoc}". \textit{State machine} dijalankan secara sekuensial melalui struktur kontrol (seperti \texttt{switch-case}, \texttt{while}, dan \texttt{if-else}).
+\subsubsection{Struktur Proyek}
 
-Ketika perulangan \texttt{scanToken()} dipanggil, program mensimulasikan dimulainya pemrosesan dari \textit{Start State} ($q_0$). Bergantung pada karakter yang dibaca oleh \texttt{advance()}, cabang implementasi dijalankan sebagai berikut:
+Struktur implementasi untuk \textit{lexical analyzer} pada proyek ini berfokus pada folder \texttt{src/lexical} dengan pembagian berkas sebagai berikut:
+\begin{itemize}
+  \item \texttt{SourceBuffer.hpp} dan \texttt{SourceBuffer.cpp}: modul pembaca berkas sumber yang menyediakan akses karakter per karakter, termasuk utilitas \textit{look-ahead}.
+  \item \texttt{Scanner.hpp}: deklarasi kelas \texttt{Scanner} dan antarmuka fungsi pemindaian token.
+  \item \texttt{Token.hpp}: representasi objek token beserta atributnya (jenis token, \textit{lexeme}, dan metadata posisi jika ada).
+  \item \texttt{TokenType.hpp}: definisi enumerasi semua terminal/token yang dikenali scanner.
+  \item \texttt{Logger.hpp}: utilitas pelaporan pesan kesalahan/peringatan selama proses analisis leksikal.
+\end{itemize}
+
+\subsubsection{Penjelasan Modul/Kelas yang Dibentuk}
+
+Implementasi bersifat modular agar setiap tanggung jawab terpisah dengan jelas.
+\begin{itemize}
+  \item \textbf{Kelas \texttt{SourceBuffer}}: bertanggung jawab terhadap manajemen aliran karakter dari \textit{source file}. Operasi inti seperti \texttt{peek()}, \texttt{advance()}, dan \textit{matching} karakter digunakan scanner untuk merealisasikan transisi DFA.
+  \item \textbf{Kelas \texttt{Scanner}}: inti mesin \textit{lexical analyzer}. Kelas ini menjalankan simulasi DFA secara \textit{ad-hoc} menggunakan struktur kontrol \texttt{switch-case}, \texttt{while}, dan \texttt{if-else}, lalu menghasilkan objek \texttt{Token} melalui fungsi pemindaian seperti \texttt{scanToken()}, \texttt{identifier()}, \texttt{number()}, dan \texttt{stringLiteral()}.
+  \item \textbf{Kelas/Struktur \texttt{Token}}: wadah hasil klasifikasi \textit{lexeme}. Setiap token merekam tipe terminal (dari \texttt{TokenType}) dan nilai \textit{lexeme} yang sudah diekstrak dari aliran karakter.
+  \item \textbf{\texttt{TokenType}}: kamus tipe token berbasis enumerasi untuk memastikan setiap hasil pemindaian memiliki kategori yang konsisten (misalnya \texttt{ident}, \texttt{intcon}, \texttt{realcon}, operator, delimiter, dan sebagainya).
+  \item \textbf{\texttt{Logger}}: komponen pendukung untuk menampilkan \textit{diagnostic message}, khususnya ketika scanner menemukan karakter ilegal atau komentar/string yang tidak tertutup.
+\end{itemize}
+
+\subsubsection{Klasifikasi Token pada Implementasi Scanner}
+
+Ketika perulangan \texttt{scanToken()} dipanggil, program mensimulasikan dimulainya pemrosesan dari \textit{Start State} ($q_0$). Bergantung pada karakter yang dibaca oleh \texttt{advance()}, cabang implementasi dibagi berdasarkan tipe token sebagai berikut:
 
 \begin{itemize}
     \item \textbf{Modul 1: Identifier \& Keywords ($q_1, q_2\_ident$)}\\
