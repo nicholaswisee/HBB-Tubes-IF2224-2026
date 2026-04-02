@@ -107,8 +107,11 @@ void Scanner::scanToken() {
         else
             addToken(TokenType::colon);
         return;
-    case '=':
-        addToken(TokenType::eql);
+   case '=':
+        if (match('='))
+            addToken(TokenType::eql);
+        else
+            Logger::error(line, "Unexpected character: =");
         return;
     case '<':
         if (match('='))
