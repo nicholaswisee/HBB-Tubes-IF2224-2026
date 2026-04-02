@@ -89,6 +89,7 @@
 
 % ── Hyperlinks ──────────────────────────────────────────────
 \usepackage{hyperref}
+\usepackage{xurl}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
 
 % ── SI units ────────────────────────────────────────────────
@@ -125,7 +126,7 @@
 \newcommand{\University}{Institut Teknologi Bandung}
 
 % Repository link (used in Appendix)
-\newcommand{\RepoURL}{https://github.com/your-org/your-repo}
+\newcommand{\RepoURL}{https://github.com/nicholaswisee/HBB-Tubes-IF2224-2026}
 \newcommand{\DeployURL}{https://your-deployment-url.example.com}
 \newcommand{\DFAURL}{https://drive.google.com/file/d/1XT-esS_K76ImoWZUwJKy43QvJW_NdP0a/view}
 
@@ -139,7 +140,7 @@
     {\large \textsc{\AssignmentSubtitle}}\\[0.2cm]
     {\large \textsc{\Semester}}\\[2cm]
 
-    \includegraphics[height=7cm]{logo-itb.png}\\[2cm]
+    \includegraphics[height=8cm]{nael.jpeg}\\[2cm]
 
     {\large \textbf{Disusun oleh:}}\\[0.3cm]
     {\large
@@ -387,16 +388,116 @@ secara langsung menjadi algoritma terprogram menggunakan pendekatan
 \textit{modular} dan penyeleksian kondisi, membaca satu demi satu karakter
 hingga menghasilkan klasifikasi \textit{token} yang tepat.
 
-\section{Perancangan \& Implementasi}
+\section{Perancangan \textit{Lexical Analyzer}}
 
 \subsection{Diagram Transisi DFA}
 
 Berikut merupakan rancangan \textit{Deterministic Finite Automata} (DFA) yang dikembangkan untuk mengenali seluruh pembentukan leksikal token pada bahasa pemrograman Arion.
 
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\begin{small}
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{2.7cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{5.2cm}|}
+\hline
+\textbf{Kategori Token} & \textbf{Current State} & \textbf{Input} & \textbf{Next State} & \textbf{Aksi / Keterangan} \\
+\hline
+\endfirsthead
+
+\hline
+\textbf{Kategori Token} & \textbf{Current State} & \textbf{Input} & \textbf{Next State} & \textbf{Aksi / Keterangan} \\
+\hline
+\endhead
+
+\hline
+\multicolumn{5}{r}{\textit{Lanjut ke halaman berikutnya}} \\
+\endfoot
+
+\hline
+\endlastfoot
+
+\textbf{Identifier \& Keyword} & q0 & [a-zA-Z] & q\_ident & Huruf pertama \\
+ & q\_ident & [a-zA-Z0-9] & q\_ident & Loop huruf/angka \\
+ & q\_ident & selain itu & accept & Cek keyword / identifier \\
+\hline
+
+\textbf{Number} & q0 & [0-9] & q\_number & Angka pertama \\
+ & q\_number & [0-9] & q\_number & Loop integer \\
+ & q\_number & . & q\_real\_coma & Masuk desimal \\
+ & q\_number & selain itu & q\_intcon & Accept integer \\
+ & q\_real\_coma & [0-9] & q\_real & Digit setelah titik \\
+ & q\_real\_coma & selain itu & q\_error\_1 & Error format real \\
+ & q\_real & [0-9] & q\_real & Loop desimal \\
+ & q\_real & selain itu & accept & Accept real \\
+\hline
+
+\textbf{String \& Char} & q0 & ' & q\_string & Mulai string \\
+ & q\_string & selain ' dan EOF & q\_string & Loop isi \\
+ & q\_string & ' & accept & Selesai string/char \\
+ & q\_string & EOF & q\_error\_2 & Error tidak ditutup \\
+\hline
+
+\textbf{Operator Tunggal} & q0 & + & q\_plus & Accept \\
+ & q0 & - & q\_minus & Accept \\
+ & q0 & * & q\_times & Accept \\
+ & q0 & / & q\_rdiv & Accept \\
+ & q0 & [ & q\_lbrack & Accept \\
+ & q0 & ] & q\_rbrack & Accept \\
+ & q0 & , & q\_comma & Accept \\
+ & q0 & ; & q\_semicolon & Accept \\
+ & q0 & . & q\_period & Accept \\
+ & q0 & ) & q\_rparent & Accept \\
+\hline
+
+\textbf{Operator Relasional} & q0 & < & q\_< & Kombinasi \\
+ & q\_< & = & q\_leq & Accept (<=) \\
+ & q\_< & > & q\_neq & Accept (<>) \\
+ & q\_< & selain itu & q\_lss & Accept (<) \\
+ & q0 & > & q\_> & Kombinasi \\
+ & q\_> & = & q\_geq & Accept (>=) \\
+ & q\_> & selain itu & q\_gtr & Accept (>) \\
+ & q0 & = & q\_= & Kombinasi \\
+ & q\_= & = & q\_eql & Accept (==) \\
+ & q\_= & selain itu & q\_error\_3 & Error \\
+\hline
+
+\textbf{Assignment} & q0 & : & q\_: & Kombinasi \\
+ & q\_: & = & q\_becomes & Accept (:=) \\
+ & q\_: & selain itu & q\_colon & Accept (:) \\
+\hline
+
+\textbf{Komentar (* *)} & q0 & ( & q\_( & Kombinasi \\
+ & q\_( & * & q\_comment & Mulai komentar \\
+ & q\_comment & selain * & q\_comment & Loop isi \\
+ & q\_comment & * ) & accept & Selesai komentar \\
+ & q\_comment & EOF & q\_error\_4 & Error tidak ditutup \\
+\hline
+
+\textbf{Komentar \{ \}} & q0 & \{ & q\_\{ & Mulai komentar \\
+ & q\_\{ & \} & accept & Selesai komentar \\
+ & q\_\{ & selain \} & q\_\{ & Loop isi \\
+ & q\_\{ & EOF & q\_error\_5 & Error tidak ditutup \\
+\hline
+
+\textbf{Whitespace} & q0 & spasi/tab/newline & q0 & Diabaikan \\
+\hline
+
+\end{longtable}
+\end{small}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{Diagram DFA.png} % Pastikan nama file Anda sesuai
-    \caption{Diagram Transisi DFA untuk \textit{Lexical Analyzer} Bahasa Arion}
+    \includegraphics[width=0.75\textwidth]{dfa1.png} % Pastikan nama file Anda sesuai
+    \caption{Diagram Transisi DFA untuk \textit{Lexical Analyzer} Bahasa Arion
+    (Part 1)}
+    \label{fig:dfa_diagram}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{dfa2.png} % Pastikan nama file Anda sesuai
+    \caption{Diagram Transisi DFA untuk \textit{Lexical Analyzer} Bahasa Arion
+    (Part 2)}
     \label{fig:dfa_diagram}
 \end{figure}
 
@@ -426,7 +527,7 @@ Salah satu keputusan desain yang paling krusial pada DFA ini adalah menyatukan p
     \item \textbf{Efisiensi Resolusi Pascakomputasi:} Melalui penggabungan jalur ini, tugas murni mesin DFA disederhanakan hanya untuk mengekstrak satu rentetan kata yang valid secara leksikal. Setelah *accepting state* tercapai, proses validasi dilimpahkan pada kode program. Algoritma akan melakukan pencarian (\textit{lookup}) nilai \textit{lexeme} tersebut pada Tabel \textit{Keyword} terpusat (\textit{Hash Map}). Jika ditemukan kesamaan, maka token secara spesifik diklasifikasikan sebagai \textit{keyword} (misal: \texttt{varsy}). Sebaliknya jika hasil nihil, secara *default* token tersebut diresmikan sebagai \texttt{ident} reguler.
 \end{itemize}
 
-\subsection{Implementasi Program (Lexical Analyzer)}
+\subsection{Struktur Program \textit{Lexical Analyzer}}
 
 Tahapan pertama dalam \textit{compiler} ini adalah \textit{Lexical Analyzer} (Scanner) yang bertugas membaca \textit{source code} karakter demi karakter dari \texttt{SourceBuffer} dan mengelompokkannya menjadi \textit{Token}. Implementasi pada \texttt{Scanner.cpp} dan \texttt{Scanner.hpp} dibangun dengan secara langsung mereplikasi logika kerja \textit{Deterministic Finite Automaton} (DFA) yang telah dijabarkan sebelumnya.
 
@@ -508,17 +609,7 @@ Berdasarkan teorema Kleene, setiap bahasa yang dapat dideskripsikan oleh ekspres
 %   SECTION 3 — PERANCANGAN DAN IMPLEMENTASI
 % ============================================================
 
-\section{Perancangan dan Implementasi}
-
-\subsection{Diagram DFA}
-Diagram DFA yang dirancang untuk lexer bahasa Arion ditunjukkan pada Gambar~\ref{fig:dfa}.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{Diagram DFA.png}
-  \caption{Diagram DFA lexer bahasa Arion}
-  \label{fig:dfa}
-\end{figure}
+\section{Implementasi}
 
 \subsection{Pendekatan Modular pada DFA}
 DFA lexer Arion dirancang dengan pendekatan \textit{modular}: state awal $q_0$ berfungsi sebagai \textit{dispatcher} yang memeriksa karakter pertama dan mendelegasikan pemrosesan ke modul-modul khusus. Pendekatan ini dipilih karena:
@@ -626,7 +717,6 @@ HBB-Tubes-IF2224-2026/
     Makefile                    # Skrip kompilasi
 \end{lstlisting}
 
-\subsection{Keuntungan Struktur Modular untuk Milestone Selanjutnya}
 Arsitektur modular yang digunakan pada lexer dirancang untuk memudahkan pengembangan pada milestone berikutnya. Daftar token yang dihasilkan oleh \texttt{Scanner} dapat langsung dikonsumsi oleh \textit{parser} (analisis sintaktik) tanpa modifikasi antarmuka. Struktur \texttt{Token} yang menyimpan informasi nomor baris memungkinkan pelaporan kesalahan yang akurat pada tahap analisis semantik. Selain itu, pemisahan \texttt{SourceBuffer} dari \texttt{Scanner} memungkinkan penggantian sumber masukan (misalnya dari string langsung untuk pengujian unit) tanpa mengubah logika DFA.
 
 % ============================================================
@@ -830,39 +920,9 @@ Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan 
   \item \textbf{Komentar tidak menghasilkan token} --- Keputusan desain untuk tidak menghasilkan token \texttt{comment} menyederhanakan antarmuka dengan parser, namun memerlukan perhatian khusus agar komentar yang tidak ditutup terdeteksi sebagai kesalahan.
 \end{enumerate}
 
-\subsection{Saran Pengembangan}
-\begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item Menambahkan dukungan untuk \textit{escape character} dalam literal string (misalnya \texttt{\textbackslash n}, \texttt{\textbackslash t}).
-  \item Mengimplementasikan \textit{error recovery} yang lebih canggih, misalnya dengan \textit{panic mode} yang mencoba menyinkronisasi kembali pada titik koma atau kata kunci berikutnya.
-  \item Menambahkan informasi kolom (selain baris) pada struktur \texttt{Token} untuk pelaporan kesalahan yang lebih presisi.
-  \item Mempertimbangkan penggunaan tabel transisi DFA yang dibangkitkan secara otomatis dari spesifikasi ekspresi reguler untuk meningkatkan maintainabilitas.
-\end{enumerate}
-
-\subsection{Refleksi Individu}
-
-\subsubsection{\MemberA}
-\textbf{Peran:} \\
-\textbf{Refleksi:} [Diisi oleh anggota]
-
-\subsubsection{\MemberB}
-\textbf{Peran:} \\
-\textbf{Refleksi:} [Diisi oleh anggota]
-
-\subsubsection{\MemberC}
-\textbf{Peran:} \\
-\textbf{Refleksi:} [Diisi oleh anggota]
-
-\subsubsection{\MemberD}
-\textbf{Peran:} \\
-\textbf{Refleksi:} [Diisi oleh anggota]
-
-% ============================================================
-%   REFERENCES
-% ============================================================
-
 \newpage
 \addcontentsline{toc}{section}{References}
-\section*{References}
+\section*{Daftar Pustaka}
 
 \begin{enumerate}[label={[\arabic*]}, leftmargin=2.5em, itemsep=0.3em]
 
@@ -878,21 +938,23 @@ Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan 
 %   APPENDIX
 % ============================================================
 
-\newpage
 \addcontentsline{toc}{section}{Appendix}
 \section*{Appendix}
 
 \begin{table}[H]
   \centering
-  \begin{tabular}{ll}
+  \begin{small}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{11.7cm}}
     \toprule
     \textbf{Sumber Daya} & \textbf{Tautan} \\
     \midrule
     Repository GitHub & \url{\RepoURL} \\
-    Live Deployment   & \url{\DeployURL} \\
-    DFA Diagram       & \url{\DFAURL} \\
+    Deployment      & \url{\DeployURL} \\
+    Diagram DFA       & \url{\DFAURL} \\
     \bottomrule
   \end{tabular}
+  \end{small}
   \caption{Tautan repository, deployment, dan diagram}
 \end{table}
 
