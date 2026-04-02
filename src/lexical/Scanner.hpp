@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+struct PendingError {
+    int line;
+    std::string message;
+};
+
 class Scanner {
   public:
     explicit Scanner(const std::string &path);
@@ -17,6 +22,7 @@ class Scanner {
     size_t current = 0;
     int line = 1;
     std::vector<Token> tokens;
+    std::vector<PendingError> errors;
 
     void scanToken();
     bool isAtEnd() const;
@@ -26,6 +32,7 @@ class Scanner {
     bool match(char expected);
 
     void addToken(TokenType type, Literal literal = Literal{});
+    void addError(int line, const std::string &message);
     void identifier();
     void number();
     void stringLiteral();

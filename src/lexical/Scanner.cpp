@@ -24,8 +24,18 @@ vector<Token> Scanner::scanTokens() {
 
 void Scanner::printAllTokens() {
     const vector<Token> scannedTokens = scanTokens();
-    for (const Token &token : scannedTokens) {
-        printToken(token);
+    size_t ti = 0, ei = 0;
+    while (ti < scannedTokens.size() || ei < errors.size()) {
+        bool takeError = ei < errors.size() &&
+                         (ti >= scannedTokens.size() ||
+                          errors[ei].line <= scannedTokens[ti].line);
+        if (takeError) {
+            Logger::error(errors[ei].line, errors[ei].message);
+            ei++;
+        } else {
+            printToken(scannedTokens[ti]);
+            ti++;
+        }
     }
 }
 
@@ -50,7 +60,7 @@ void Scanner::scanToken() {
         if (!isAtEnd()) {
             advance();
         } else {
-            Logger::error(line, "Unterminated comment.");
+            addError(line, "Unterminated comment.");
         }
         return;
     case '(':
@@ -65,7 +75,7 @@ void Scanner::scanToken() {
                 advance(); // consume '*'
                 advance(); // consume ')'
             } else {
-                Logger::error(line, "Unterminated comment.");
+                addError(line, "Unterminated comment.");
             }
         } else {
             addToken(TokenType::lparent);
@@ -107,11 +117,11 @@ void Scanner::scanToken() {
         else
             addToken(TokenType::colon);
         return;
-   case '=':
+    case '=':
         if (match('='))
             addToken(TokenType::eql);
         else
-            Logger::error(line, "Unexpected character: =");
+            addError(line, "Unexpected character: =");
         return;
     case '<':
         if (match('='))
@@ -138,8 +148,8 @@ void Scanner::scanToken() {
             number();
             return;
         } else {
-            Logger::error(line, std::string("Unexpected character: ") +
-                                    std::string(1, c));
+            addError(line, std::string("Unexpected character: ") +
+                              std::string(1, c));
             return;
         }
     }
@@ -165,6 +175,10 @@ bool Scanner::match(char expected) {
 void Scanner::addToken(TokenType type, Literal literal) {
     string lex = source.substring(start, current - start);
     tokens.emplace_back(Token{type, lex, literal, line});
+}
+
+void Scanner::addError(int ln, const std::string &message) {
+    errors.push_back({ln, message});
 }
 
 void Scanner::identifier() {
@@ -220,7 +234,7 @@ void Scanner::stringLiteral() {
     }
 
     if (isAtEnd()) {
-        Logger::error(line, "Unterminated string or character literal.");
+        addError(line, "Unterminated string or character literal.");
         return;
     }
 
