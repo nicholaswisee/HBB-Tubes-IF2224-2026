@@ -148,8 +148,22 @@ void Scanner::scanToken() {
             number();
             return;
         } else {
-            addError(line, std::string("Unexpected character: ") +
-                              std::string(1, c));
+            while (!isAtEnd()) {
+                char p = peek();
+                if (p == ' ' || p == '\t' || p == '\r' || p == '\n' ||
+                    p == '\0') {
+                    break;
+                }
+                if (p == '(' || p == ')' || p == '[' || p == ']' ||
+                    p == '{' || p == '}' || p == ',' || p == ';' ||
+                    p == '\'' || isAlpha(p) ||
+                    isdigit(static_cast<unsigned char>(p))) {
+                    break;
+                }
+                advance();
+            }
+            std::string lex = source.substring(start, current - start);
+            addToken(TokenType::unknown, Literal{lex});
             return;
         }
     }
@@ -238,7 +252,7 @@ void Scanner::stringLiteral() {
         return;
     }
 
-    advance(); // consume closing quote
+    advance(); 
     string val = source.substring(start + 1, current - start - 2);
 
     if (val.length() == 1) {
@@ -267,7 +281,7 @@ void Scanner::number() {
         advance();
 
     if (peek() == '.' && isdigit(static_cast<unsigned char>(peekNext()))) {
-        advance(); // consume '.'
+        advance(); 
         while (isdigit(static_cast<unsigned char>(peek())))
             advance();
         addToken(TokenType::realcon,

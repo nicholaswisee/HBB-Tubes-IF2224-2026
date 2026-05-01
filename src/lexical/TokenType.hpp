@@ -71,8 +71,9 @@ enum class TokenType {
     downtosy, // downto
 
     // Special
-    comment,  // { ... } or (* ... *)
-    eof_token // End of File (Essential for the Parser!)
+    comment,   // { ... } or (* ... *)
+    eof_token, // End of File (Essential for the Parser!)
+    unknown    // Unrecognized character sequence
 };
 
 inline std::string_view tokenTypeName(TokenType type) {
@@ -183,6 +184,8 @@ inline std::string_view tokenTypeName(TokenType type) {
         return "comment";
     case TokenType::eof_token:
         return "eof_token";
+    case TokenType::unknown:
+        return "unknown";
     }
 
     return "unknown";
