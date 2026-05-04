@@ -455,15 +455,13 @@ shared_ptr<ParseTreeNode> Parser::parseStatement() {
     auto node = makeNode("<statement>");
 
     if (check(TokenType::ident)) {
-        // Lookahead: ident followed by becomes → assignment
-        //            ident followed by lparent or other → proc/func call
         size_t saved = pos;
-        advance(); // consume ident
-        if (check(TokenType::becomes)) {
-            pos = saved; // backtrack
+        parseVariable(); 
+        bool isAssign = check(TokenType::becomes);
+        pos = saved; // backtrack
+        if (isAssign) {
             node->addChild(parseAssignmentStatement());
         } else {
-            pos = saved; // backtrack
             node->addChild(parseProcFuncCall());
         }
     } else if (check(TokenType::ifsy)) {
@@ -484,16 +482,14 @@ shared_ptr<ParseTreeNode> Parser::parseStatement() {
     return node;
 }
 
-// assignment-statement → ident becomes expression
 shared_ptr<ParseTreeNode> Parser::parseAssignmentStatement() {
     auto node = makeNode("<assignment-statement>");
-    node->addChild(consumeTerminal(TokenType::ident, "Expected identifier"));
+    node->addChild(parseVariable());
     node->addChild(consumeTerminal(TokenType::becomes, "Expected ':='"));
     node->addChild(parseExpression());
     return node;
 }
 
-// if-statement → ifsy expression thensy statement (elsesy statement)?
 shared_ptr<ParseTreeNode> Parser::parseIfStatement() {
     auto node = makeNode("<if-statement>");
     node->addChild(consumeTerminal(TokenType::ifsy, "Expected 'if'"));
@@ -509,7 +505,6 @@ shared_ptr<ParseTreeNode> Parser::parseIfStatement() {
     return node;
 }
 
-// case-statement → casesy expression ofsy case-block endsy
 shared_ptr<ParseTreeNode> Parser::parseCaseStatement() {
     auto node = makeNode("<case-statement>");
     node->addChild(consumeTerminal(TokenType::casesy, "Expected 'case'"));
@@ -520,8 +515,6 @@ shared_ptr<ParseTreeNode> Parser::parseCaseStatement() {
     return node;
 }
 
-// case-block → constant (comma constant)* colon statement
-//              (semicolon case-block?)*
 shared_ptr<ParseTreeNode> Parser::parseCaseBlock() {
     auto node = makeNode("<case-block>");
 
@@ -537,7 +530,6 @@ shared_ptr<ParseTreeNode> Parser::parseCaseBlock() {
 
     while (match(TokenType::semicolon)) {
         node->addChild(makeNode(previous().toString()));
-        // Check if there's another case-block or we hit 'end'
         if (!check(TokenType::endsy)) {
             node->addChild(parseCaseBlock());
         }
@@ -546,7 +538,6 @@ shared_ptr<ParseTreeNode> Parser::parseCaseBlock() {
     return node;
 }
 
-// while-statement → whilesy expression dosy statement
 shared_ptr<ParseTreeNode> Parser::parseWhileStatement() {
     auto node = makeNode("<while-statement>");
     node->addChild(consumeTerminal(TokenType::whilesy, "Expected 'while'"));
@@ -556,7 +547,6 @@ shared_ptr<ParseTreeNode> Parser::parseWhileStatement() {
     return node;
 }
 
-// repeat-statement → repeatsy statement-list untilsy expression
 shared_ptr<ParseTreeNode> Parser::parseRepeatStatement() {
     auto node = makeNode("<repeat-statement>");
     node->addChild(consumeTerminal(TokenType::repeatsy, "Expected 'repeat'"));
@@ -566,8 +556,6 @@ shared_ptr<ParseTreeNode> Parser::parseRepeatStatement() {
     return node;
 }
 
-// for-statement → forsy ident becomes expression (tosy | downtosy)
-//                 expression dosy statement
 shared_ptr<ParseTreeNode> Parser::parseForStatement() {
     auto node = makeNode("<for-statement>");
     node->addChild(consumeTerminal(TokenType::forsy, "Expected 'for'"));
@@ -590,7 +578,6 @@ shared_ptr<ParseTreeNode> Parser::parseForStatement() {
     return node;
 }
 
-// procedure/function-call → ident (lparent parameter-list rparent)?
 shared_ptr<ParseTreeNode> Parser::parseProcFuncCall() {
     auto node = makeNode("<procedure/function-call>");
     node->addChild(consumeTerminal(TokenType::ident,
@@ -606,7 +593,6 @@ shared_ptr<ParseTreeNode> Parser::parseProcFuncCall() {
     return node;
 }
 
-// parameter-list → expression (comma expression)*
 shared_ptr<ParseTreeNode> Parser::parseParameterList() {
     auto node = makeNode("<parameter-list>");
     node->addChild(parseExpression());
@@ -619,12 +605,10 @@ shared_ptr<ParseTreeNode> Parser::parseParameterList() {
     return node;
 }
 
-// expression → simple-expression (relational-operator simple-expression)?
 shared_ptr<ParseTreeNode> Parser::parseExpression() {
     auto node = makeNode("<expression>");
     node->addChild(parseSimpleExpression());
 
-    // relational-operator: eql | neq | gtr | geq | lss | leq
     if (check(TokenType::eql) || check(TokenType::neq) ||
         check(TokenType::gtr) || check(TokenType::geq) ||
         check(TokenType::lss) || check(TokenType::leq)) {
@@ -635,18 +619,15 @@ shared_ptr<ParseTreeNode> Parser::parseExpression() {
     return node;
 }
 
-// simple-expression → (plus | minus)? term (additive-operator term)*
 shared_ptr<ParseTreeNode> Parser::parseSimpleExpression() {
     auto node = makeNode("<simple-expression>");
 
-    // optional leading sign
     if (check(TokenType::plus) || check(TokenType::minus)) {
         node->addChild(makeNode(advance().toString()));
     }
 
     node->addChild(parseTerm());
 
-    // additive-operator: plus | minus | orsy
     while (check(TokenType::plus) || check(TokenType::minus) ||
            check(TokenType::orsy)) {
         node->addChild(makeNode(advance().toString()));
@@ -656,12 +637,10 @@ shared_ptr<ParseTreeNode> Parser::parseSimpleExpression() {
     return node;
 }
 
-// term → factor (multiplicative-operator factor)*
 shared_ptr<ParseTreeNode> Parser::parseTerm() {
     auto node = makeNode("<term>");
     node->addChild(parseFactor());
 
-    // multiplicative-operator: times | rdiv | idiv | imod | andsy
     while (check(TokenType::times) || check(TokenType::rdiv) ||
            check(TokenType::idiv) || check(TokenType::imod) ||
            check(TokenType::andsy)) {
@@ -672,10 +651,6 @@ shared_ptr<ParseTreeNode> Parser::parseTerm() {
     return node;
 }
 
-// factor → intcon | realcon | charcon | string
-//        | ident  (could be plain ident or proc/func call)
-//        | (lparent expression rparent)
-//        | notsy factor
 shared_ptr<ParseTreeNode> Parser::parseFactor() {
     auto node = makeNode("<factor>");
 
@@ -683,15 +658,14 @@ shared_ptr<ParseTreeNode> Parser::parseFactor() {
         check(TokenType::charcon) || check(TokenType::string)) {
         node->addChild(makeNode(advance().toString()));
     } else if (check(TokenType::ident)) {
-        // Could be just ident or a function call ident(params)
         size_t saved = pos;
         advance();
         if (check(TokenType::lparent)) {
             pos = saved;
             node->addChild(parseProcFuncCall());
         } else {
-            // Plain identifier
-            node->addChild(makeNode(previous().toString()));
+            pos = saved;
+            node->addChild(parseVariable());
         }
     } else if (match(TokenType::lparent)) {
         node->addChild(makeNode(previous().toString()));
@@ -705,5 +679,52 @@ shared_ptr<ParseTreeNode> Parser::parseFactor() {
         error("Expected factor (value, identifier, or expression)");
     }
 
+    return node;
+}
+
+shared_ptr<ParseTreeNode> Parser::parseVariable() {
+    auto node = makeNode("<variable>");
+    node->addChild(consumeTerminal(TokenType::ident,
+                                   "Expected identifier"));
+    while (check(TokenType::lbrack) || check(TokenType::period)) {
+        node->addChild(parseComponentVariable());
+    }
+    return node;
+}
+
+shared_ptr<ParseTreeNode> Parser::parseComponentVariable() {
+    auto node = makeNode("<component-variable>");
+    if (match(TokenType::lbrack)) {
+        node->addChild(makeNode(previous().toString()));
+        node->addChild(parseIndexList());
+        node->addChild(
+            consumeTerminal(TokenType::rbrack, "Expected ']'"));
+    } else if (match(TokenType::period)) {
+        node->addChild(makeNode(previous().toString()));
+        node->addChild(
+            consumeTerminal(TokenType::ident, "Expected field name"));
+    } else {
+        error("Expected '[' or '.'");
+    }
+    return node;
+}
+
+shared_ptr<ParseTreeNode> Parser::parseIndexList() {
+    auto node = makeNode("<index-list>");
+    if (check(TokenType::intcon) || check(TokenType::charcon) ||
+        check(TokenType::ident)) {
+        node->addChild(makeNode(advance().toString()));
+    } else {
+        error("Expected index (integer, char, or identifier)");
+    }
+    while (match(TokenType::comma)) {
+        node->addChild(makeNode(previous().toString()));
+        if (check(TokenType::intcon) || check(TokenType::charcon) ||
+            check(TokenType::ident)) {
+            node->addChild(makeNode(advance().toString()));
+        } else {
+            error("Expected index after ','");
+        }
+    }
     return node;
 }
