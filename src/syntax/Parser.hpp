@@ -69,4 +69,7 @@ class Parser {
     std::shared_ptr<ParseTreeNode> parseSimpleExpression();
     std::shared_ptr<ParseTreeNode> parseTerm();
     std::shared_ptr<ParseTreeNode> parseFactor();
+    std::shared_ptr<ParseTreeNode> parseVariable();
+    std::shared_ptr<ParseTreeNode> parseComponentVariable();
+    std::shared_ptr<ParseTreeNode> parseIndexList();
 };
