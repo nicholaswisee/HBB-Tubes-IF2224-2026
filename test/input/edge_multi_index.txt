@@ -1,0 +1,6 @@
+program MultiIndex;
+var
+  arr: array [1..10] of integer;
+begin
+  arr[1, 2] := 5;
+end.

@@ -1,0 +1,14 @@
+program FuncInExpr;
+var
+  x: integer;
+function Foo: integer;
+begin
+  Foo := 1;
+end;
+function Bar(a: integer): integer;
+begin
+  Bar := a * 2;
+end;
+begin
+  x := Foo + Bar(3);
+end.

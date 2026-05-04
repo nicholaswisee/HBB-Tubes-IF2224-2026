@@ -1,0 +1,13 @@
+program NestedRecord;
+type
+  Inner == record
+    y: integer
+  end;
+  Outer == record
+    x: Inner
+  end;
+var
+  o: Outer;
+begin
+  o.x.y := 10;
+end.
