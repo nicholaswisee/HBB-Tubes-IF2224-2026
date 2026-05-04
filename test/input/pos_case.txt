@@ -1,0 +1,10 @@
+program CaseTest;
+var
+  i, x: integer;
+begin
+  case i of
+    0: x := 0;
+    1, 2: x := 1;
+    3: x := 2;
+  end;
+end.

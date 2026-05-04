@@ -1,0 +1,14 @@
+program FuncTest;
+function Add(a, b: integer): integer;
+begin
+  Add := a + b;
+end;
+
+function GetZero: integer;
+begin
+  GetZero := 0;
+end;
+
+begin
+  writeln(Add(1, 2));
+end.

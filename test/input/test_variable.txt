@@ -1,0 +1,11 @@
+program TestVar;
+
+var
+  arr: array [1..10] of integer;
+  rec: record x: integer end;
+
+begin
+  arr[1] := 5;
+  rec.x := 10;
+  arr[2] := arr[1] + rec.x;
+end.

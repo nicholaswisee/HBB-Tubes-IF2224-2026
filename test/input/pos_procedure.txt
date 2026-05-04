@@ -1,0 +1,14 @@
+program ProcTest;
+procedure PrintSum(a, b: integer);
+begin
+  writeln(a + b);
+end;
+
+procedure NoParam;
+begin
+end;
+
+begin
+  PrintSum(3, 4);
+  NoParam;
+end.

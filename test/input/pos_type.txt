@@ -1,0 +1,12 @@
+program TypeTest;
+type
+  MyInt == integer;
+  Range == 1..10;
+  Color == (Red, Green, Blue);
+  Person == record
+    age: integer;
+    name: string
+  end;
+  Arr == array [1..10] of integer;
+begin
+end.
