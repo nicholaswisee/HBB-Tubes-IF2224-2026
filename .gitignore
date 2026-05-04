@@ -10,3 +10,5 @@ obj/*
 *.aux
 *.fdb_latexmk
 *.toc
+
+.vscode/
