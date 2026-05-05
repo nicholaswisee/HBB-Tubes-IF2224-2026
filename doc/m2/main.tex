@@ -87,15 +87,12 @@
   breakable
 }
 
-% ── Hyperlinks ──────────────────────────────────────────────
 \usepackage{hyperref}
 \usepackage{xurl}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
 
-% ── SI units ────────────────────────────────────────────────
 \usepackage{siunitx}
 
-% ── Header / Footer ─────────────────────────────────────────
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
@@ -165,54 +162,49 @@
 
 \section{Pendahuluan}
 
-Bahasa Pemrograman diciptakan sebagai perantara komunikasi antara manusia yang
-mengerti logika dan bahasa tingkat tinggi dengan komputer yang hanya dapat
-mengerti bahasa mesin (\textit{machine code}). Tanpa adanya bahasa pemrograman,
-manusia harus menuliskan instruksi komputer secara tingkat rendah kepada
-komputer yang hanya mengerti 0 dan 1. Dalam hierarkinya, bahasa tingkat tinggi
-(\textit{high-level}) dirancang agar lebih mendekati bahasa manusia, namun hal ini
-menuntut proses transformasi yang berlapis agar dapat dipahami oleh CPU.
+Pada tahap sebelumnya, telah berhasil dibangun sebuah \textit{lexical analyzer} (lexer) yang mampu membaca kode sumber bahasa Arion dan mengubahnya menjadi daftar token. Setiap token merepresentasikan unit leksikal terkecil dari program, seperti kata kunci, identifier, konstanta, dan operator. Meskipun lexer telah berfungsi dengan baik dalam mengenali dan mengklasifikasikan token-token tersebut, lexer belum mampu memastikan apakah urutan token tersebut membentuk struktur program yang valid sesuai dengan aturan tata bahasa (\textit{grammar}) bahasa Arion.
+
+Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan beberapa tahap berurutan. Setelah analisis leksikal完成, tahap berikutnya adalah analisis sintaktik (\textit{syntax analysis}) atau yang sering disebut \textit{parsing}. Pada tahap ini, parser menerima daftar token dari lexer dan memeriksa apakah urutan token tersebut sesuai dengan aturan grammar yang didefinisikan untuk bahasa Arion. Parser kemudian membangun sebuah struktur hierarkis yang disebut Parse Tree, yang merepresentasikan hubungan struktural antar-komponen program secara menyeluruh.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\textwidth]{tipe-bahasa.png}
-\caption{Tipe-tipe bahasa pemrograman}
+\caption{Tahap-tahap kompilasi dalam compiler}
 \caption*{Sumber: Asisten IF2224}
 \end{figure}
 
-Proses transformasi ini dilakukan melalui mekanisme \textit{compiler} atau
-\textit{interpreter}. Tahap awal dan fundamental dalam mekanisme tersebut adalah
-Analisis Leksikal (\textit{Lexical Analysis}). Pada tahap ini, kode sumber yang berupa
-rangkaian karakter mentah dibaca dan dikelompokkan menjadi satuan makna terkecil
-yang disebut token, seperti kata kunci (\textit{keyword}), pengenal
-(\textit{identifier}), operator, dan konstanta. Analisis leksikal berperan
-krusial dalam menyederhanakan tugas tahap berikutnya, yaitu parsing, dengan
-membuang elemen yang tidak relevan seperti spasi dan komentar, serta mendeteksi
-simbol invalid sejak awal.
+Parse Tree adalah representasi lengkap dari struktur sintaks program sesuai dengan grammar bahasa yang digunakan. Setiap node dalam parse tree merepresentasikan simbol non-terminal atau terminal dari aturan produksi grammar. Berbeda dengan Abstract Syntax Tree (AST) yang menyederhanakan struktur dengan menghapus node-node informatif, Parse Tree memuat semua detail simbol seolah-olah seseorang menggambarkan semua langkah produksi secara lengkap. Parse Tree berguna untuk menunjukkan bagaimana token-token hasil lexical analysis membentuk struktur program yang sesuai dengan aturan grammar.
 
 \subsection{Latar Belakang}
-Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}), analisis sintaktik, analisis semantik, hingga pembangkitan kode (\textit{code generation}). Tahap pertama --- analisis leksikal --- bertanggung jawab untuk membaca kode sumber karakter demi karakter dan mengelompokkannya menjadi satuan-satuan bermakna yang disebut \textit{token}. Keberhasilan tahap ini menjadi fondasi bagi seluruh tahap kompilasi berikutnya.
+Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang
+saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}),
+analisis sintaktik, analisis semantik, hingga pembangkitan kode (\textit{code
+generation}). Setelah lexer berhasil mengonversi kode sumber menjadi deretan
+token, tahap analisis sintaktik menjadi penting untuk memverifikasi apakah
+urutan token tersebut memenuhi aturan tata bahasa yang telah didefinisikan.
 
-Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone pertama berfokus pada pembangunan \textit{lexical analyzer} (lexer) yang mampu mengenali seluruh jenis token yang didefinisikan dalam spesifikasi bahasa Arion.
+Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone kedua ini berfokus pada pembangunan \textit{syntax analyzer} (parser) yang mampu memeriksa urutan token dari lexer dan membangun Parse Tree sesuai dengan aturan grammar bahasa Arion. Parser yang dibangun menggunakan algoritma \textit{Recursive Descent} yang mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi-fungsi rekursif.
 
 \subsection{Rumusan Masalah}
-Bagaimana merancang dan mengimplementasikan sebuah \textit{lexical analyzer} berbasis \textit{Deterministic Finite Automaton} (DFA) yang mampu:
+Bagaimana merancang dan mengimplementasikan sebuah \textit{syntax analyzer} berbasis \textit{Recursive Descent Parser} yang mampu:
 \begin{enumerate}[label=\arabic*.]
-  \item Membaca kode sumber bahasa Arion dari berkas masukan.
-  \item Mengenali dan mengklasifikasikan setiap leksem ke dalam tipe token yang sesuai (kata kunci, identifier, konstanta, operator, dan komentar).
-  \item Menangani kasus-kasus ambigu seperti pembedaan \texttt{charcon} dan \texttt{string}, bilangan bulat dan bilangan riil, serta operator satu dan dua karakter.
-  \item Melaporkan kesalahan leksikal dengan informasi nomor baris yang akurat.
+  \item Membaca daftar token dari keluaran \textit{lexical analyzer}.
+  \item Memeriksa apakah urutan token sesuai dengan aturan tata bahasa (\textit{grammar}) bahasa Arion.
+  \item Mendeteksi dan melaporkan kesalahan sintaks (\textit{syntax error}) dengan informasi lokasi yang akurat.
+  \item Membangun Parse Tree yang merepresentasikan struktur hierarkis program sumber.
 \end{enumerate}
 
 \subsection{Gambaran Umum Sistem}
-Sistem yang dibangun merupakan sebuah \textit{lexical analyzer} untuk bahasa Arion yang diimplementasikan dalam bahasa C++20. Lexer ini membaca berkas kode sumber, memproses setiap karakter menggunakan logika DFA berbasis \textit{switch-case}, dan menghasilkan daftar token sebagai keluaran. Sistem terdiri atas lima komponen utama: \texttt{SourceBuffer} (pembacaan berkas), \texttt{TokenType} (definisi tipe token), \texttt{Token} (struktur data token), \texttt{Scanner} (mesin DFA), dan \texttt{Logger} (pelaporan kesalahan).
+Sistem yang dibangun merupakan sebuah \textit{syntax analyzer} untuk bahasa Arion yang diimplementasikan dalam bahasa C++20. Parser ini menerima daftar token dari lexer (berupa berkas teks yang berisi token-token), memproses setiap token menggunakan algoritma Recursive Descent, dan menghasilkan Parse Tree sebagai keluaran. Sistem terdiri atas beberapa komponen utama: Parser (mesin Recursive Descent), Node (struktur data node pada Parse Tree), TreeBuilder (konstruktor Parse Tree), dan ErrorHandler (pelaporan kesalahan sintaks).
 
 \subsection{Spesifikasi Umum}
 \begin{enumerate}[label=\arabic*.]
-  \item Mengenali 52 jenis token: 5 tipe literal/nilai (\texttt{intcon}, \texttt{realcon}, \texttt{charcon}, \texttt{string}, \texttt{ident}), 25 kata kunci, 20 operator dan tanda baca, serta \texttt{comment} dan \texttt{eof\_token}.
-  \item Kata kunci bersifat \textit{case-insensitive} (\texttt{BEGIN}, \texttt{Begin}, dan \texttt{begin} dikenali sebagai token yang sama).
-  \item Mendukung dua gaya komentar: \texttt{\{ \ldots\ \}} dan \texttt{(* \ldots\ *)}.
-  \item Melaporkan kesalahan leksikal tanpa menghentikan proses scanning (\textit{error recovery}).
+  \item Menggunakan algoritma \textit{Recursive Descent} dengan grammar yang
+      dispesifikasikan dalam program.
+  \item Mendukung seluruh node Parse Tree sesuai spesifikasi: program, program-header, declaration-part, compound-statement, statement, expression, dan lainnya.
+  \item Melaporkan kesalahan sintaks dengan pesan yang informatif dan akurat.
+  \item Menghasilkan Parse Tree yang terformat dengan jelas, ditampilkan ke terminal dan disimpan ke dalam berkas teks.
+  \item Menerima masukan berupa berkas daftar token hasil dari lexer milestone pertama.
 \end{enumerate}
 
 
