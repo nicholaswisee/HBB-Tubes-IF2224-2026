@@ -239,12 +239,12 @@ shared_ptr<ParseTreeNode> Parser::parseArrayType() {
 // range → expression period period expression
 shared_ptr<ParseTreeNode> Parser::parseRange() {
     auto node = makeNode("<range>");
-    node->addChild(parseExpression());
+    node->addChild(parseConstant());
     node->addChild(
         consumeTerminal(TokenType::period, "Expected '..' in range (first '.')"));
     node->addChild(
         consumeTerminal(TokenType::period, "Expected '..' in range (second '.')"));
-    node->addChild(parseExpression());
+    node->addChild(parseConstant());
     return node;
 }
 
@@ -585,9 +585,10 @@ shared_ptr<ParseTreeNode> Parser::parseProcFuncCall() {
 
     if (match(TokenType::lparent)) {
         node->addChild(makeNode(previous().toString()));
-        node->addChild(parseParameterList());
-        node->addChild(
-            consumeTerminal(TokenType::rparent, "Expected ')'"));
+        if (!check(TokenType::rparent)) {
+            node->addChild(parseParameterList());
+        }
+        node->addChild(consumeTerminal(TokenType::rparent, "Expected ')'"));
     }
 
     return node;
