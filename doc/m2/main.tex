@@ -164,7 +164,7 @@
 
 Pada tahap sebelumnya, telah berhasil dibangun sebuah \textit{lexical analyzer} (lexer) yang mampu membaca kode sumber bahasa Arion dan mengubahnya menjadi daftar token. Setiap token merepresentasikan unit leksikal terkecil dari program, seperti kata kunci, identifier, konstanta, dan operator. Meskipun lexer telah berfungsi dengan baik dalam mengenali dan mengklasifikasikan token-token tersebut, lexer belum mampu memastikan apakah urutan token tersebut membentuk struktur program yang valid sesuai dengan aturan tata bahasa (\textit{grammar}) bahasa Arion.
 
-Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan beberapa tahap berurutan. Setelah analisis leksikal完成, tahap berikutnya adalah analisis sintaktik (\textit{syntax analysis}) atau yang sering disebut \textit{parsing}. Pada tahap ini, parser menerima daftar token dari lexer dan memeriksa apakah urutan token tersebut sesuai dengan aturan grammar yang didefinisikan untuk bahasa Arion. Parser kemudian membangun sebuah struktur hierarkis yang disebut Parse Tree, yang merepresentasikan hubungan struktural antar-komponen program secara menyeluruh.
+Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan beberapa tahap berurutan. Setelah analisis leksikal selesai, tahap berikutnya adalah analisis sintaktik (\textit{syntax analysis}) atau yang sering disebut \textit{parsing}. Pada tahap ini, parser menerima daftar token dari lexer dan memeriksa apakah urutan token tersebut sesuai dengan aturan grammar yang didefinisikan untuk bahasa Arion. Parser kemudian membangun sebuah struktur hierarkis yang disebut Parse Tree, yang merepresentasikan hubungan struktural antar-komponen program secara menyeluruh.
 
 \begin{figure}[H]
 \centering
@@ -314,401 +314,572 @@ Secara garis besar, pendekatan \textit{syntax analyzer} dapat diklasifikasikan k
 \begin{itemize}
     \item \textbf{\textit{Top-Down Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul akar (\textit{root}) dan diturunkan ke arah simpul daun (\textit{leaves}). Implementasi yang umum digunakan pada pendekatan ini adalah algoritma \textit{Recursive Descent}.
     \item \textbf{\textit{Bottom-Up Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul daun (\textit{leaves}) dan dikompresi perlahan menuju simpul akar (\textit{root}). Contoh algoritma dari kategori ini adalah \textit{LR Parser}.
-\end{itemize}\subsection{Teori Bahasa Formal dan Otomata}
+\end{itemize}
+\subsection{Teori Bahasa Formal dan Otomata}
 
-\subsubsection{\textit{Regular Expression}}
-\textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang
-digunakan untuk mendeskripsikan suatu bahasa reguler. Dalam kompilator, RE
-digunakan secara luas untuk mendefinisikan \textit{pattern} (pola) dari
-\textit{token} secara akurat. Dengan menggunakan operasi dasar seperti
-\textit{Concatenation} (penyambungan), \textit{Union} (penggabungan alternatif),
-dan \textit{Kleene Closure} (perulangan nol kali atau lebih), pembuat bahasa
-dapat mendefinisikan aturan rumit, misalnya: "Sebuah identifier harus diawali
-dengan huruf, diikuti oleh kombinasi huruf atau angka dengan jumlah berapa pun."
+Berbeda dengan tahap analisis leksikal yang menggunakan \textit{Regular
+Expression} dan \textit{Finite Automata} untuk mengenali pola token, tahap
+analisis sintaktik menggunakan konsep (\textit{Context-Free Grammar}) sebagai
+dasar untuk memeriksa dan membangun struktur program.
 
-\subsubsection{\textit{Finite Automata} (FA)}
+\subsubsection{Context-Free Grammar (CFG)}
 
-\textit{Finite Automata} (FA) atau \textit{Finite State Machine} (FSM) adalah
-model komputasi matematika abstrak yang digunakan untuk mengenali
-\textit{Regular Expression}. Dalam konteks kompilator, FA berfungsi sebagai
-mesin pemeriksa yang menelusuri karakter masukan untuk memvalidasi apakah urutan
-karakter tersebut (\textit{lexeme}) membentuk \textit{token} yang sah sesuai
-aturan bahasa.
+\textit{Context-Free Grammar} (CFG) adalah formalisme matematis yang digunakan
+untuk mendefinisikan sintaks dari bahasa pemrograman. CFG terdiri dari himpunan
+simbol terminal, himpunan simbol non-terminal, himpunan aturan produksi, dan
+simbol awal. Aturan produksi menentukan bagaimana simbol non-terminal dapat
+diturunkan menjadi rangkaian simbol terminal dan non-terminal lainnya.
 
-Secara formal, sebuah \textit{Finite Automata} didefinisikan secara matematis
-sebagai \textit{5-tuple} $(Q, \Sigma, \delta, q_0, F)$, yang terdiri dari:
+Secara formal, sebuah CFG didefinisikan sebagai \textit{4-tuple} $(V, T, P, S)$,
+yang terdiri dari:
 \begin{itemize}
-    \item $Q$ : Himpunan hingga dari kedudukan atau \textit{state}.
-    \item $\Sigma$ : Himpunan hingga dari simbol \textit{input} atau alfabet
-        (contoh: himpunan huruf, angka, dan simbol baca).
-    \item $\delta$ : Fungsi transisi yang memetakan $Q \times \Sigma \rightarrow
-        Q$ (menentukan \textit{state} tujuan berdasarkan \textit{state} saat ini dan simbol yang dibaca).
-    \item $q_0$ : \textit{State} awal (\textit{initial state}), di mana $q_0 \in
-        Q$. Mesin selalu memulai komputasi dari \textit{state} ini.
-    \item $F$ : Himpunan \textit{state} akhir atau penerima
-        (\textit{final/accepting state}), di mana $F \subseteq Q$.
+    \item $V$ : Himpunan hingga simbol non-terminal (variabel).
+    \item $T$ : Himpunan hingga simbol terminal (token dari lexer).
+    \item $P$ : Himpunan aturan produksi yang mendefinisikan bagaimana simbol
+        diturunkan.
+    \item $S$ : Simbol awal (\textit{start symbol}), di mana $S \in V$.
 \end{itemize}
 
-Mesin FA membaca masukan berupa \textit{string} karakter demi karakter secara
-sekuensial dari kiri ke kanan. Setiap kali membaca satu simbol,
-mesin akan berpindah dari \textit{state} saat ini ke \textit{state} berikutnya
-sesuai dengan aturan pada fungsi transisi ($\delta$). Jika setelah seluruh
-karakter pada masukan selesai dibaca mesin berhenti pada salah satu
-\textit{state} yang termasuk dalam himpunan $F$, maka masukan tersebut diterima
-(\textit{accepted}) sebagai \textit{token} yang valid. Sebaliknya, jika berhenti
-di luar $F$ atau menemukan transisi yang tidak terdefinisi, maka terjadi
-\textit{lexical error}.
+Dalam konteks compiler, simbol terminal berasal dari hasil analisis leksikal (token), sedangkan simbol non-terminal merepresentasikan struktur sintaks program seperti \texttt{<program>}, \texttt{<statement>}, \texttt{<expression>}, dan lainnya.
 
-Berdasarkan sifat penentuan fungsi transisinya, \textit{Finite Automata} dibedakan menjadi dua jenis:
+Sebagai contoh, grammar sederhana untuk ekspresi aritmatika dapat didefinisikan sebagai:
+\begin{align*}
+E &\rightarrow E + T \mid T \\
+T &\rightarrow T \times F \mid F \\
+F &\rightarrow (E) \mid \texttt{intcon}
+\end{align*}
+
+Aturan produksi ini menunjukkan bahwa sebuah ekspresi $E$ dapat berupa $E + T$ atau simplemente $T$, dan seterusnya.
+
+\subsubsection{Derivasi dan Parse Tree}
+
+Proses penerapan aturan produksi untuk mengubah simbol awal menjadi deretan simbol terminal disebut \textit{derivasi}. Terdapat dua strategi derivasi utama:
+\begin{itemize}
+    \item \textbf{\textit{Leftmost Derivation}}: Simbol non-terminal paling kiri dikembangkan terlebih dahulu pada setiap langkah.
+    \item \textbf{\textit{Rightmost Derivation}}: Simbol non-terminal paling kanan dikembangkan terlebih dahulu pada setiap langkah.
+\end{itemize}
+
+Parse Tree adalah representasi visual dari proses derivasi. Setiap node dalam
+parse tree merepresentasikan simbol (terminal atau non-terminal), dan setiap
+edge merepresentasikan penerapan aturan produksi. Parse Tree memuat seluruh
+simbol yang muncul selama derivasi, berbeda dengan Abstract Syntax Tree (AST)
+yang menghilangkan node-node informatif.
+
+\subsubsection{Recursive Descent Parser}
+
+\textit{Recursive Descent} adalah algoritma \textit{top-down parsing} yang
+mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi
+rekursif. Setiap fungsi bertanggung jawab untuk mengenali simbol non-terminal
+tertentu dan semua turunannya.
+
+Prinsip kerja Recursive Descent adalah:
 \begin{enumerate}
-    \item \textbf{\textit{Nondeterministic Finite Automata} (NFA)}: Suatu mesin
-        di mana sebuah \textit{state} dapat memiliki nol, satu, atau lebih jalur
-        transisi untuk satu simbol \textit{input} yang sama. NFA juga
-        mengizinkan perpindahan \textit{state} tanpa perlu membaca karakter
-        \textit{input} (disebut transisi epsilon atau $\epsilon$-transition).
-    \item \textbf{\textit{Deterministic Finite Automata} (DFA)}: Suatu mesin di
-        mana setiap \textit{state} memiliki tepat satu jalur transisi secara
-        mutlak untuk setiap simbol \textit{input} di dalam $\Sigma$. Tidak ada
-        ambiguitas jalur dan tidak ada transisi epsilon.
+    \item Setiap simbol non-terminal diimplementasikan sebagai satu fungsi.
+    \item Fungsi membaca token dari input dan memeriksa apakah token tersebut
+        sesuai dengan ekspektasi berdasarkan aturan produksi.
+    \item Jika ditemukan simbol non-terminal di ruas kanan produksi, fungsi
+        memanggil fungsi lain yang berhubungan dengannya.
+    \item Jika token yang dibaca tidak sesuai, parser melaporkan kesalahan sintaks.
 \end{enumerate}
 
-Dalam implementasi program \textit{Lexical Analyzer} yang sebenarnya, model
-\textbf{DFA} adalah spesifikasi yang wajib digunakan. Hal ini karena sifat
-deterministiknya yang tidak ambigu memungkinkan aturan transisi dikonversi
-secara langsung menjadi algoritma terprogram menggunakan pendekatan
-\textit{modular} dan penyeleksian kondisi, membaca satu demi satu karakter
-hingga menghasilkan klasifikasi \textit{token} yang tepat.
+Keunggulan Recursive Descent adalah kesederhanaan implementasinya dan kemudahan dalam memahami alur parsing. Namun, kelemahannya adalah ketidakmampuan untuk menangani \textit{left recursion} (produk seperti $A \rightarrow A \alpha$) yang dapat menyebabkan infinite recursion.
 
-\section{Perancangan \textit{Lexical Analyzer}}
+\section{Perancangan Syntax Analyzer}
 
-\subsection{Diagram Transisi DFA}
+Perancangan \textit{syntax analyzer} untuk bahasa Arion didasarkan pada aturan tata bahasa bebas konteks (\textit{Context-Free Grammar}) yang mendefinisikan struktur sintaks bahasa secara hierarkis. Parser yang dibangun menggunakan algoritma \textit{Recursive Descent} dengan pendekatan \textit{top-down parsing}. Pada bagian ini, dijelaskan rancangan grammar bahasa Arion, perancangan Parse Tree, algoritma Recursive Descent, strategi penanganan kesalahan, dan alur kerja program.
 
-Berikut merupakan rancangan \textit{Deterministic Finite Automata} (DFA) yang dikembangkan untuk mengenali seluruh pembentukan leksikal token pada bahasa pemrograman Arion.
+\subsection{Grammar Bahasa Arion}
 
-\setlength{\LTleft}{0pt}
-\setlength{\LTright}{0pt}
-\begin{small}
-\setlength{\tabcolsep}{4pt}
-\begin{longtable}{|>{\raggedright\arraybackslash}p{2.7cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{2.2cm}|>{\raggedright\arraybackslash}p{5.2cm}|}
-\hline
-\textbf{Kategori Token} & \textbf{Current State} & \textbf{Input} & \textbf{Next State} & \textbf{Aksi / Keterangan} \\
-\hline
-\endfirsthead
+Grammar bahasa Arion didefinisikan dalam bentuk aturan produksi (\textit{production rules}) yang terdiri atas simbol non-terminal (struktur sintaks) dan simbol terminal (token hasil lexer). Simbol awal (\textit{start symbol}) dari grammar ini adalah \texttt{<program>}. Berikut adalah seluruh aturan produksi yang digunakan dalam perancangan parser.
 
-\hline
-\textbf{Kategori Token} & \textbf{Current State} & \textbf{Input} & \textbf{Next State} & \textbf{Aksi / Keterangan} \\
-\hline
-\endhead
+\subsubsection{Struktur Program}
+\begin{align*}
+\langle \text{program} \rangle &\rightarrow \langle \text{program-header} \rangle \; \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle \; \texttt{period} \\
+\langle \text{program-header} \rangle &\rightarrow \texttt{programsy} \; \texttt{ident} \; \texttt{semicolon} \\
+\langle \text{block} \rangle &\rightarrow \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle
+\end{align*}
 
-\hline
-\multicolumn{5}{r}{\textit{Lanjut ke halaman berikutnya}} \\
-\endfoot
+\subsubsection{Deklarasi}
+\begin{align*}
+\langle \text{declaration-part} \rangle &\rightarrow ( \langle \text{const-declaration} \rangle )^* \; ( \langle \text{type-declaration} \rangle )^* \\
+&\quad\; ( \langle \text{var-declaration} \rangle )^* \; ( \langle \text{subprogram-declaration} \rangle )^* \\
+\langle \text{const-declaration} \rangle &\rightarrow \texttt{constsy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{constant} \rangle \; \texttt{semicolon} )^+ \\
+\langle \text{constant} \rangle &\rightarrow \texttt{charcon} \;|\; \texttt{string} \;|\; [ \texttt{plus} \;|\; \texttt{minus} ] \; ( \texttt{ident} \;|\; \texttt{intcon} \;|\; \texttt{realcon} ) \\
+\langle \text{type-declaration} \rangle &\rightarrow \texttt{typesy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
+\langle \text{type} \rangle &\rightarrow \texttt{ident} \;|\; \langle \text{array-type} \rangle \;|\; \langle \text{range} \rangle \;|\; \langle \text{enumerated} \rangle \;|\; \langle \text{record-type} \rangle \\
+\langle \text{array-type} \rangle &\rightarrow \texttt{arraysy} \; \texttt{lbrack} \; ( \langle \text{range} \rangle \;|\; \texttt{ident} ) \; \texttt{rbrack} \; \texttt{ofsy} \; \langle \text{type} \rangle \\
+\langle \text{range} \rangle &\rightarrow \langle \text{expression} \rangle \; \texttt{period} \; \texttt{period} \; \langle \text{expression} \rangle \\
+\langle \text{enumerated} \rangle &\rightarrow \texttt{lparent} \; \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^* \; \texttt{rparent} \\
+\langle \text{record-type} \rangle &\rightarrow \texttt{recordsy} \; \langle \text{field-list} \rangle \; \texttt{endsy} \\
+\langle \text{field-list} \rangle &\rightarrow \langle \text{field-part} \rangle \; ( \texttt{semicolon} \; \langle \text{field-part} \rangle )^* \\
+\langle \text{field-part} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \\
+\langle \text{var-declaration} \rangle &\rightarrow \texttt{varsy} \; ( \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
+\langle \text{identifier-list} \rangle &\rightarrow \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^*
+\end{align*}
 
-\hline
-\endlastfoot
+\subsubsection{Subprogram}
+\begin{align*}
+\langle \text{subprogram-declaration} \rangle &\rightarrow \langle \text{procedure-declaration} \rangle \;|\; \langle \text{function-declaration} \rangle \\
+\langle \text{procedure-declaration} \rangle &\rightarrow \texttt{proceduresy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{semicolon} \\
+&\quad\; \langle \text{block} \rangle \; \texttt{semicolon} \\
+\langle \text{function-declaration} \rangle &\rightarrow \texttt{functionsy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{colon} \; \texttt{ident} \\
+&\quad\; \texttt{semicolon} \; \langle \text{block} \rangle \; \texttt{semicolon} \\
+\langle \text{formal-parameter-list} \rangle &\rightarrow \texttt{lparent} \; \langle \text{parameter-group} \rangle \; ( \texttt{semicolon} \; \langle \text{parameter-group} \rangle )^* \; \texttt{rparent} \\
+\langle \text{parameter-group} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; ( \texttt{ident} \;|\; \langle \text{array-type} \rangle )
+\end{align*}
 
-\textbf{Identifier \& Keyword} & q0 & [a-zA-Z] & q\_ident & Huruf pertama \\
- & q\_ident & [a-zA-Z0-9] & q\_ident & Loop huruf/angka \\
- & q\_ident & selain itu & accept & Cek keyword / identifier \\
-\hline
+\subsubsection{Statement}
+\begin{align*}
+\langle \text{compound-statement} \rangle &\rightarrow \texttt{beginsy} \; \langle \text{statement-list} \rangle \; \texttt{endsy} \\
+\langle \text{statement-list} \rangle &\rightarrow \langle \text{statement} \rangle \; ( \texttt{semicolon} \; \langle \text{statement} \rangle )^* \\
+\langle \text{statement} \rangle &\rightarrow \langle \text{assignment-statement} \rangle \;|\; \langle \text{if-statement} \rangle \;|\; \langle \text{case-statement} \rangle \\
+&\quad\;|\; \langle \text{while-statement} \rangle \;|\; \langle \text{repeat-statement} \rangle \;|\; \langle \text{for-statement} \rangle \\
+&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; \epsilon \\
+\langle \text{assignment-statement} \rangle &\rightarrow \langle \text{variable} \rangle \; \texttt{becomes} \; \langle \text{expression} \rangle \\
+\langle \text{if-statement} \rangle &\rightarrow \texttt{ifsy} \; \langle \text{expression} \rangle \; \texttt{thensy} \; \langle \text{statement} \rangle \\
+&\quad\;[ \texttt{elsesy} \; \langle \text{statement} \rangle ] \\
+\langle \text{case-statement} \rangle &\rightarrow \texttt{casesy} \; \langle \text{expression} \rangle \; \texttt{ofsy} \; \langle \text{case-block} \rangle \; \texttt{endsy} \\
+\langle \text{case-block} \rangle &\rightarrow \langle \text{constant} \rangle \; ( \texttt{comma} \; \langle \text{constant} \rangle )^* \; \texttt{colon} \; \langle \text{statement} \rangle \\
+&\quad\; ( \texttt{semicolon} \; \langle \text{case-block} \rangle )^* \\
+\langle \text{while-statement} \rangle &\rightarrow \texttt{whilesy} \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
+\langle \text{repeat-statement} \rangle &\rightarrow \texttt{repeatsy} \; \langle \text{statement-list} \rangle \; \texttt{untilsy} \; \langle \text{expression} \rangle \\
+\langle \text{for-statement} \rangle &\rightarrow \texttt{forsy} \; \texttt{ident} \; \texttt{becomes} \; \langle \text{expression} \rangle \\
+&\quad\; ( \texttt{tosy} \;|\; \texttt{downtosy} ) \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
+\langle \text{procedure/function-call} \rangle &\rightarrow \texttt{ident} \; [ \texttt{lparent} \; \langle \text{parameter-list} \rangle \; \texttt{rparent} ] \\
+\langle \text{parameter-list} \rangle &\rightarrow \langle \text{expression} \rangle \; ( \texttt{comma} \; \langle \text{expression} \rangle )^*
+\end{align*}
 
-\textbf{Number} & q0 & [0-9] & q\_number & Angka pertama \\
- & q\_number & [0-9] & q\_number & Loop integer \\
- & q\_number & . & q\_real\_coma & Masuk desimal \\
- & q\_number & selain itu & q\_intcon & Accept integer \\
- & q\_real\_coma & [0-9] & q\_real & Digit setelah titik \\
- & q\_real\_coma & selain itu & q\_error\_1 & Error format real \\
- & q\_real & [0-9] & q\_real & Loop desimal \\
- & q\_real & selain itu & accept & Accept real \\
-\hline
+\subsubsection{Ekspresi}
+\begin{align*}
+\langle \text{expression} \rangle &\rightarrow \langle \text{simple-expression} \rangle \\
+&\quad\;[ \langle \text{relational-operator} \rangle \; \langle \text{simple-expression} \rangle ] \\
+\langle \text{simple-expression} \rangle &\rightarrow [ \texttt{plus} \;|\; \texttt{minus} ] \; \langle \text{term} \rangle \\
+&\quad\; ( \texttt{plus} \;|\; \texttt{minus} \;|\; \texttt{orsy} ) \; \langle \text{term} \rangle )^* \\
+\langle \text{term} \rangle &\rightarrow \langle \text{factor} \rangle \; ( ( \texttt{times} \;|\; \texttt{rdiv} \;|\; \texttt{idiv} \;|\; \texttt{imod} \;|\; \texttt{andsy} ) \; \langle \text{factor} \rangle )^* \\
+\langle \text{factor} \rangle &\rightarrow \texttt{intcon} \;|\; \texttt{realcon} \;|\; \texttt{charcon} \;|\; \texttt{string} \;|\; \langle \text{variable} \rangle \\
+&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; ( \langle \text{expression} \rangle ) \;|\; \texttt{notsy} \; \langle \text{factor} \rangle
+\end{align*}
 
-\textbf{String \& Char} & q0 & ' & q\_string & Mulai string \\
- & q\_string & selain ' dan EOF & q\_string & Loop isi \\
- & q\_string & ' & accept & Selesai string/char \\
- & q\_string & EOF & q\_error\_2 & Error tidak ditutup \\
-\hline
+\subsubsection{Variable}
+\begin{align*}
+\langle \text{variable} \rangle &\rightarrow \texttt{ident} \; ( \langle \text{component-variable} \rangle )^* \\
+\langle \text{component-variable} \rangle &\rightarrow \texttt{lbrack} \; \langle \text{index-list} \rangle \; \texttt{rbrack} \;|\; \texttt{period} \; \texttt{ident} \\
+\langle \text{index-list} \rangle &\rightarrow ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) \; ( \texttt{comma} \; ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) )^*
+\end{align*}
 
-\textbf{Operator Tunggal} & q0 & + & q\_plus & Accept \\
- & q0 & - & q\_minus & Accept \\
- & q0 & * & q\_times & Accept \\
- & q0 & / & q\_rdiv & Accept \\
- & q0 & [ & q\_lbrack & Accept \\
- & q0 & ] & q\_rbrack & Accept \\
- & q0 & , & q\_comma & Accept \\
- & q0 & ; & q\_semicolon & Accept \\
- & q0 & . & q\_period & Accept \\
- & q0 & ) & q\_rparent & Accept \\
-\hline
+\subsection{Perancangan Parse Tree}
 
-\textbf{Operator Relasional} & q0 & < & q\_< & Kombinasi \\
- & q\_< & = & q\_leq & Accept (<=) \\
- & q\_< & > & q\_neq & Accept (<>) \\
- & q\_< & selain itu & q\_lss & Accept (<) \\
- & q0 & > & q\_> & Kombinasi \\
- & q\_> & = & q\_geq & Accept (>=) \\
- & q\_> & selain itu & q\_gtr & Accept (>) \\
- & q0 & = & q\_= & Kombinasi \\
- & q\_= & = & q\_eql & Accept (==) \\
- & q\_= & selain itu & q\_error\_3 & Error \\
-\hline
+Parse Tree yang dihasilkan oleh parser merupakan representasi hierarkis dari
+struktur sintaks program. Setiap simpul (\textit{node}) dalam Parse Tree memuat
+label yang menunjukkan simbol terminal atau non-terminal yang direpresentasikan.
+Simpul non-terminal diberi label dengan nama aturan produksi dalam tanda kurung
+sudut (misalnya \texttt{<program>}, \texttt{<expression>}), sedangkan simpul
+terminal diberi label sesuai representasi token dari lexer (misalnya
+\texttt{programsy}, \texttt{ident(Hello)}, \texttt{semicolon}).
 
-\textbf{Assignment} & q0 & : & q\_: & Kombinasi \\
- & q\_: & = & q\_becomes & Accept (:=) \\
- & q\_: & selain itu & q\_colon & Accept (:) \\
-\hline
+Struktur data yang digunakan untuk merepresentasikan Parse Tree terdiri
+dari label string yang mengidentifikasi node (terminal atau non-terminal dan
+daftar anak (sub-pohon) yang terurut sesuai urutan dalam aturan
+produksi. Setiap node non-terminal dibuat dengan menciptakan node baru, kemudian
+menambahkan node-node anak sesuai dengan aturan produksi yang sedang diproses.
+Node terminal dibuat dengan membungkus token yang telah dikonsumsi dari aliran
+masukan.
 
-\textbf{Komentar (* *)} & q0 & ( & q\_( & Kombinasi \\
- & q\_( & * & q\_comment & Mulai komentar \\
- & q\_comment & selain * & q\_comment & Loop isi \\
- & q\_comment & * ) & accept & Selesai komentar \\
- & q\_comment & EOF & q\_error\_4 & Error tidak ditutup \\
-\hline
+\subsection{Perancangan Algoritma Recursive Descent}
 
-\textbf{Komentar \{ \}} & q0 & \{ & q\_\{ & Mulai komentar \\
- & q\_\{ & \} & accept & Selesai komentar \\
- & q\_\{ & selain \} & q\_\{ & Loop isi \\
- & q\_\{ & EOF & q\_error\_5 & Error tidak ditutup \\
-\hline
-
-\textbf{Whitespace} & q0 & spasi/tab/newline & q0 & Diabaikan \\
-\hline
-
-\end{longtable}
-\end{small}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{dfa1.png} % Pastikan nama file Anda sesuai
-    \caption{Diagram Transisi DFA untuk \textit{Lexical Analyzer} Bahasa Arion
-    (Part 1)}
-    \label{fig:dfa_diagram}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{dfa2.png} % Pastikan nama file Anda sesuai
-    \caption{Diagram Transisi DFA untuk \textit{Lexical Analyzer} Bahasa Arion
-    (Part 2)}
-    \label{fig:dfa_diagram}
-\end{figure}
-
-Perancangan diagram transisi DFA ini merupakan representasi logis dari bagaimana \textit{scanner} membaca karakter demi karakter (\textit{character stream}) dan menentukan validitas sebuah \textit{lexeme}. Berdasarkan diagram di atas, terdapat beberapa keputusan desain dan analisis perancangan \textit{state} yang diterapkan:
-
-\subsubsection*{1. Mekanisme \textit{Look-ahead} pada Operator Relasional dan \textit{Assignment}}
-Bahasa Arion memiliki operator yang terdiri dari satu karakter (seperti \texttt{+}, \texttt{-}, \texttt{=}) dan multi-karakter (seperti \texttt{<=}, \texttt{>=}, \texttt{<>}, \texttt{:=}). Pada DFA, hal ini ditangani melalui mekanisme \textit{look-ahead}. 
-Sebagai contoh, ketika mesin membaca karakter \texttt{<}, ia berpindah ke sebuah \textit{intermediate state}. Dari sana, mesin akan "mengintip" karakter berikutnya:
-\begin{itemize}
-    \item Jika karakter selanjutnya adalah \texttt{=}, mesin bertransisi ke state akhir untuk token \texttt{leq} (\texttt{<=}).
-    \item Jika karakter selanjutnya adalah \texttt{>}, mesin bertransisi ke state akhir untuk token \texttt{neq} (\texttt{<>}).
-    \item Jika karakter selanjutnya adalah karakter di luar itu, mesin melakukan \textit{retract} (memundurkan pembacaan) dan menerima input sebagai token \texttt{lss} (\texttt{<}).
-\end{itemize}
-
-\subsubsection*{2. Pemisahan State Bilangan Bulat (\texttt{intcon}) dan Riil (\texttt{realcon})}
-Penelusuran angka diawali dengan pembacaan digit (\texttt{0-9}). Selama input berupa digit, mesin akan terus berputar pada \textit{state} loop angka tersebut. Untuk mengakomodasi konstanta riil (\texttt{realcon}), DFA menyediakan jalur transisi khusus jika menemukan karakter titik (\texttt{.}). Mesin tidak akan langsung menerima titik tersebut sebagai operator \texttt{period}, melainkan menunggu datangnya digit lanjutan. Jika setelah titik dipastikan terdapat digit tambahan, aliran akan bergeser secara definitif ke rute final \texttt{realcon}. Jika tidak, mesin akan menangani titik tersebut sebagai leksikal terpisah.
-
-\subsubsection*{3. Pengelolaan Literal dan Komentar (\textit{Trap States})}
-Literal teks dan karakter dipicu oleh tanda petik tunggal (\texttt{'}). DFA memiliki \textit{state} khusus yang akan terus melahap semua karakter apa pun hingga menemukan tanda petik penutup. Perbedaan validasi panjang untuk \texttt{charcon} (panjang = 1) dan \texttt{string} (panjang $> 1$) didelegasikan pada proses operasional program pasca-DFA.
-Selain itu, DFA juga memetakan rute untuk membuang isi komentar. Pembacaan \texttt{\{} atau kombinasi \texttt{(} diikuti \texttt{*} akan membawa mesin ke dalam semacam \textit{trap state} yang terus menerus membaca karakter tanpa membentuk elemen baru, hingga akhirnya menemukan blok penutup \texttt{\}} atau \texttt{*)}.
-
-\subsubsection*{4. Analisis Penggabungan State untuk Token \texttt{ident} dan \textit{Keyword}}
-Salah satu keputusan desain yang paling krusial pada DFA ini adalah menyatukan penelusuran \textit{Identifier} (\texttt{ident}) dan seluruh \textit{Keyword} (seperti \texttt{program}, \texttt{var}, \texttt{begin}, dll) ke dalam satu jalur transisi gabungan yang sama (\texttt{q\_ident/keyword}). Keputusan arsitektural ini diambil dengan pertimbangan berikut:
-\begin{itemize}
-    \item \textbf{Kesamaan Leksikal dan Ekspresi Reguler:} Baik \textit{keyword} maupun \textit{identifier} dibentuk oleh pola ekspresi reguler yang ekuivalen sepenuhnya, yaitu \texttt{[a-z,A-Z][a-z,A-Z,0-9\_]*}. Keduanya wajib diawali oleh alfabet dan bebas diikuti oleh rentetan alfanumerik.
-    \item \textbf{Mencegah Fenomena \textit{State Explosion}:} Apabila ke-52 token \textit{keyword} pada spesifikasi Arion dipetakan secara eksplisit huruf demi huruf membentuk sebuah graf berarah (seperti pada struktur data \textit{Trie}), diagram transisi akan menjadi terlampau masif dan tidak proporsional. Hal ini juga memicu kerentanan ambiguitas saat membedakan awalan sebuah variabel (contoh: variabel \texttt{integerKu}) dengan \textit{keyword} yang beririsan (\texttt{integer}).
-    \item \textbf{Efisiensi Resolusi Pascakomputasi:} Melalui penggabungan jalur ini, tugas murni mesin DFA disederhanakan hanya untuk mengekstrak satu rentetan kata yang valid secara leksikal. Setelah *accepting state* tercapai, proses validasi dilimpahkan pada kode program. Algoritma akan melakukan pencarian (\textit{lookup}) nilai \textit{lexeme} tersebut pada Tabel \textit{Keyword} terpusat (\textit{Hash Map}). Jika ditemukan kesamaan, maka token secara spesifik diklasifikasikan sebagai \textit{keyword} (misal: \texttt{varsy}). Sebaliknya jika hasil nihil, secara *default* token tersebut diresmikan sebagai \texttt{ident} reguler.
-\end{itemize}
-
-\subsection{Struktur Program \textit{Lexical Analyzer}}
-
-Tahapan pertama dalam \textit{compiler} ini adalah \textit{Lexical Analyzer} (Scanner) yang bertugas membaca \textit{source code} karakter demi karakter dari \texttt{SourceBuffer} dan mengelompokkannya menjadi \textit{Token}. Implementasi pada \texttt{Scanner.cpp} dan \texttt{Scanner.hpp} dibangun dengan secara langsung mereplikasi logika kerja \textit{Deterministic Finite Automaton} (DFA) yang telah dijabarkan sebelumnya.
-
-\subsubsection{Struktur Proyek}
-
-Struktur implementasi untuk \textit{lexical analyzer} pada proyek ini berfokus pada folder \texttt{src/lexical} dengan pembagian berkas sebagai berikut:
-\begin{itemize}
-  \item \texttt{SourceBuffer.hpp} \& \texttt{.cpp}: modul pembaca berkas sumber yang menyediakan akses karakter per karakter secara aman, termasuk operasi utilitas \textit{look-ahead}.
-  \item \texttt{Scanner.hpp} \& \texttt{.cpp}: deklarasi dan implementasi kelas \texttt{Scanner} yang menjadi jantung dari mesin \textit{lexical analyzer}.
-  \item \texttt{Token.hpp}: representasi unit objek token beserta atribut esensialnya (jenis terminal, nilai \textit{lexeme}, dan metadata penunjuk baris).
-  \item \texttt{TokenType.hpp}: definisi enumerasi dari seluruh simpul terminal (52 tipe token) yang dikenali dan dipersyaratkan oleh spesifikasi bahasa Arion.
-  \item \texttt{Logger.hpp}: utilitas sistem pelaporan untuk memunculkan pesan peringatan diagnostik selama tahap kompilasi (*lexical errors*).
-\end{itemize}
-
-\subsubsection{Klasifikasi Implementasi Alur DFA dalam Program}
-
-Siklus mesin direpresentasikan oleh perulangan \texttt{scanToken()}. Saat fungsi ini dipanggil, ia bertindak seolah-olah mesin me-reset kembali ke \textit{Start State} ($q_0$). Percabangan logika implementasi didasarkan pada pembacaan karakter awal \texttt{advance()} dengan *switch-case* atau percabangan if, membentuk modul sebagai berikut:
-
-\begin{itemize}
-    \item \textbf{Modul 1: Identifier \& Keywords (\texttt{q\_ident/keyword})}\\
-    Jika evaluasi mengembalikan fungsi valid \texttt{isAlpha()}, siklus memanggil \texttt{Scanner::identifier()}. Dalam metode ini, program membaca karakter selanjutnya (\textit{looping}) secara kontinu selama fungsi \texttt{isAlphaNumeric()} masih bernilai *true*. Saat bertemu karakter asing, iterasi diputus. Teks \textit{lexeme} yang terakumulasi lantas diekstrak dan dicocokkan dengan kontainer tabel konstanta \textit{keyword} (\texttt{unordered\_map}). Kecocokan berbuah \textit{Token Keyword} (\texttt{programsy}, \texttt{forsy}, dll); jika tidak, instansiasi mengembalikan \textit{Token} \texttt{ident}.
-
-    \item \textbf{Modul 2: Numbers - intcon \& realcon (\texttt{q\_number\_int, q\_real\_number})}\\
-    Menemukan awalan digit angka mendelegasikan alur ke \texttt{Scanner::number()}. Blok perulangan primitif mengekstrak deret murni bilangan bulat. Melalui pendekatan *look-ahead*, mesin kemudian menguji validitas karakter titik `\texttt{.}' di depannya. Konformitas \textit{match} (titik diikuti digit) memicu program mengakumulasi komposit tipe nilai primitif bilangan riil (berujung \textit{Token} \texttt{realcon}). Tanpa validasi tersebut, nilai default yang diteruskan secara presisi adalah \textit{Token} \texttt{intcon}.
-
-    \item \textbf{Modul 3: Strings \& Chars (\texttt{q\_string\_char})}\\
-    Pemicu petik tunggal `\texttt{'}' melompat ke rutinitas \texttt{Scanner::stringLiteral()}. Secara sederhana program mengolah teks bebas di dalamnya hingga blok penutup kutip terkalibrasi. Selesai memindai, evaluasi dihitung: panjang tepat 1 karakter menyuntikkan kategori \texttt{charcon}, sedangkan lebih dari itu bermuara sebagai \texttt{string}. Modul ini dibekali dengan interupsi \textit{error handling} seandainya baris berakhir gantung (*Unterminated string*).
-
-    \item \textbf{Modul 4: Operators \& Delimiters}\\
-    Karakter tunggal terminal absolut (spt: \texttt{+}, \texttt{*}, \texttt{;}, \texttt{,}) memiliki *node accepting state* permanen dan langsung diregister menjadi simbol terminal. Tipe multi-operator memanfaatkan delegasi pergeseran via fungsi \texttt{match()}:
-    \begin{itemize}
-        \item Simbol \texttt{:} akan menguji metode \texttt{match('=')}. Retur presisi mencetak \texttt{becomes} (\texttt{:=}). Ketiadaan retur berbuah terminal tunggal \texttt{colon} (\texttt{:}).
-        \item Skema ekuivalen membentengi karakter \texttt{<} yang sanggup bercabang ke \texttt{leq} (\texttt{<=}), \texttt{neq} (\texttt{<>}), hingga *fallback* tunggal \texttt{lss} (\texttt{<}). Serta pada \texttt{>} yang mencakup \texttt{geq} (\texttt{>=}) atau \texttt{gtr} (\texttt{>}).
-    \end{itemize}
-
-    \item \textbf{Modul 5: Penanganan Whitespace \& Comments}\\
-    \textit{Whitespace} murni layaknya spasi, tabulasi (\texttt{\char`\\t}), dan \textit{carriage return} (\texttt{\char`\\r}) secara utuh digugurkan eksistensinya tanpa mencetak token (lompatan balik siklik pada DFA). Transisi *newline* (\texttt{\char`\\n}) dimanfaatkan pasif sebagai *tracker* eskalasi baris.
-    Di ranah *comments*, insiden identifikasi pembuka blok (spt \texttt{\{} atau \texttt{(*} ) mengaktivasikan pengurasan karakter \textit{dummy loop} (*trap state*) ke dalam *buffer* kosong hingga mendeteksi entitas kutub pasangannya masing-masing.
-\end{itemize}
-
-Seluruh mekanisme program berpedoman pada manuver pergeseran \textit{pointer} alami yang mencerminkan topologi transisi diagram. Kompilasi unit valid tersebut akan diteruskan secara konsisten menuju inisialisasi pada \textit{constructor} statis dari kelas \texttt{Token}.
-
-\subsection{Token: Tipe dan Nilai}
-Sebuah \textit{token} terdiri atas dua komponen utama: \textbf{tipe token} (\textit{token type}) yang menunjukkan kategori leksikal, dan \textbf{nilai} (\textit{value/lexeme}) yang menyimpan representasi teks aslinya. Sebagai contoh dalam bahasa Arion:
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{llp{6cm}}
-    \toprule
-    \textbf{Leksem} & \textbf{Tipe Token} & \textbf{Keterangan} \\
-    \midrule
-    \texttt{program}  & \texttt{programsy} & Kata kunci deklarasi program \\
-    \texttt{myVar}    & \texttt{ident}     & Identifier yang didefinisikan pengguna \\
-    \texttt{42}       & \texttt{intcon}    & Konstanta bilangan bulat \\
-    \texttt{3.14}     & \texttt{realcon}   & Konstanta bilangan riil \\
-    \texttt{'a'}      & \texttt{charcon}   & Konstanta karakter tunggal \\
-    \texttt{'hello'}  & \texttt{string}    & Literal string (lebih dari satu karakter) \\
-    \texttt{:=}       & \texttt{becomes}   & Operator penugasan \\
-    \texttt{==}       & \texttt{eql}       & Operator persamaan \\
-    \bottomrule
-  \end{tabular}
-  \caption{Contoh token dalam bahasa Arion}
-\end{table}
-
-Bahasa Arion mendefinisikan total 52 jenis token yang mencakup literal, kata kunci, operator aritmetika, operator logika, operator perbandingan, tanda baca, serta token khusus untuk komentar dan akhir berkas.
-
-\subsection{Hubungan Bahasa Reguler dan Pola Token}
-Setiap jenis token dalam suatu bahasa pemrograman dapat dideskripsikan oleh sebuah ekspresi reguler (\textit{regular expression}). Sebagai contoh:
-\begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Identifier:} \verb|[a-zA-Z_][a-zA-Z0-9_]*| --- dimulai oleh huruf atau \textit{underscore}, diikuti oleh nol atau lebih karakter alfanumerik.
-  \item \textbf{Integer:} \verb|[0-9]+| --- satu atau lebih digit.
-  \item \textbf{Real:} \verb|[0-9]+\.[0-9]+| --- digit, titik, lalu digit lagi.
-  \item \textbf{Operator dua karakter:} \verb|:=|, \verb|==|, \verb|<=|, \verb|>=|, \verb|<>| --- urutan dua karakter tetap.
-\end{itemize}
-
-Berdasarkan teorema Kleene, setiap bahasa yang dapat dideskripsikan oleh ekspresi reguler merupakan bahasa reguler dan dapat dikenali oleh DFA. Oleh karena itu, pendekatan berbasis DFA memberikan jaminan teoritis bahwa semua pola token dapat dikenali secara efisien dan deterministik.
-
-% ============================================================
-%   SECTION 3 — PERANCANGAN DAN IMPLEMENTASI
-% ============================================================
-
-\section{Implementasi}
-
-\subsection{Pendekatan Modular pada DFA}
-DFA lexer Arion dirancang dengan pendekatan \textit{modular}: state awal $q_0$ berfungsi sebagai \textit{dispatcher} yang memeriksa karakter pertama dan mendelegasikan pemrosesan ke modul-modul khusus. Pendekatan ini dipilih karena:
-\begin{enumerate}[label=\arabic*.]
-  \item Setiap modul menangani satu kategori token sehingga kompleksitas logika terisolasi.
-  \item Penambahan pola token baru cukup dilakukan pada modul yang relevan tanpa mengubah modul lain.
-  \item Memudahkan pengujian dan \textit{debugging} per modul secara independen.
+Algoritma Recursive Descent dirancang dengan mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi rekursif. Setiap fungsi:
+\begin{enumerate}
+    \item Membuat node Parse Tree baru dengan label non-terminal yang sesuai.
+    \item Memeriksa token saat ini (\textit{lookahead}) untuk menentukan cabang produksi yang akan diambil.
+    \item Mengonsumsi token terminal yang sesuai atau memanggil fungsi non-terminal lain secara rekursif.
+    \item Mengembalikan node yang telah terisi lengkap dengan anak-anaknya.
 \end{enumerate}
 
-Berikut adalah modul-modul utama dalam DFA:
+Dalam perancangan ini, terdapat beberapa strategi disambiguasi untuk menangani kasus di mana satu token dapat mengawali beberapa aturan produksi berbeda:
+\begin{itemize}
+    \item \textbf{Statement vs Assignment vs Function Call}: Ketika parser menemukan token \texttt{ident}, parser menyimpan posisi saat ini, mencoba mem-parsing sebagai \texttt{<variable>}, lalu memeriksa apakah token berikutnya adalah \texttt{becomes} (\texttt{:=}). Jika ya, diinterpretasikan sebagai \texttt{<assignment-statement>}; jika tidak, diinterpretasikan sebagai \texttt{<procedure/function-call>}.
+    \item \textbf{Factor: variable vs function call}: Dalam \texttt{<factor>}, saat menemukan \texttt{ident}, parser melihat satu token ke depan (\textit{lookahead}) untuk memeriksa apakah terdapat \texttt{lparent}. Jika ya, diinterpretasikan sebagai pemanggilan fungsi; jika tidak, sebagai variable.
+    \item \textbf{Range vs ident dalam type}: Dalam \texttt{<type>}, token \texttt{ident} bisa merupakan tipe sederhana atau awal dari \texttt{<range>}. Parser memeriksa keberadaan dua titik berurutan (\texttt{period period}) setelah ekspresi untuk menentukan interpretasi.
+\end{itemize}
 
-\subsubsection{Modul Identifier dan Kata Kunci (\textit{q\_identifyModule})}
-Modul ini dimasuki ketika karakter pertama adalah huruf atau \textit{underscore}. Scanner terus membaca karakter alfanumerik hingga menemukan karakter non-alfanumerik, lalu melakukan \textit{retract} (tidak mengonsumsi karakter terakhir). Leksem yang terkumpul dikonversi ke huruf kecil dan dicari dalam tabel kata kunci. Jika ditemukan, token kata kunci yang sesuai dihasilkan; jika tidak, token \texttt{ident} dihasilkan dengan leksem asli (mempertahankan huruf besar/kecil asli).
+\subsection{Strategi Penanganan Kesalahan}
 
-\begin{lstlisting}[style=cpp, caption={Penanganan identifier dan kata kunci}]
-void Scanner::identifier() {
-    while (isAlphaNumeric(peek()))
-        advance();
-    string text = source.substring(start, current - start);
-    string lower = toLower(text);
-    auto it = keywords.find(lower);
-    if (it != keywords.end())
-        addToken(it->second);
-    else
-        addToken(TokenType::ident, Literal{text});
+Parser dirancang untuk mendeteksi dan melaporkan kesalahan sintaks dengan informasi yang informatif. Strategi yang digunakan meliputi:
+\begin{itemize}
+    \item \textbf{Error detection}: Setiap fungsi parsing memeriksa token yang diharapkan. Jika token tidak sesuai dengan yang diharapkan, parser segera melaporkan kesalahan.
+    \item \textbf{Pesan error informatif}: Pesan kesalahan mencakup nomor baris, deskripsi kesalahan, dan token yang ditemukan (misalnya \texttt{"Syntax error on line 3: Expected ';' after program name (got period)"}).
+    \item \textbf{\textit{Error recovery}}: Parser menggunakan pendekatan \textit{panic mode}, yaitu melompati token hingga menemukan token sinkronisasi (seperti \texttt{semicolon}, \texttt{endsy}, atau \texttt{beginsy}) untuk melanjutkan parsing.
+\end{itemize}
+
+\subsection{Alur Program}
+
+Alur kerja program secara keseluruhan adalah sebagai berikut:
+\begin{enumerate}
+    \item Program membaca berkas kode sumber dari direktori \texttt{test/input/}.
+    \item \texttt{Scanner} melakukan analisis leksikal dan menghasilkan daftar token.
+    \item Token-token tersebut ditampilkan ke terminal untuk verifikasi.
+    \item \texttt{Parser} menerima daftar token dan melakukan analisis sintaks dengan algoritma Recursive Descent untuk membangun Parse Tree.
+    \item Parse Tree yang dihasilkan ditampilkan ke terminal dengan format hierarkis dan disimpan ke dalam berkas teks di direktori \texttt{test/output/}.
+\end{enumerate}
+
+\section{Implementasi Parser}
+
+Parser pada compiler Arion diimplementasikan menggunakan algoritma Recursive Descent dalam bahasa C++20. Setiap aturan produksi dalam grammar bahasa Arion direpresentasikan sebagai satu fungsi yang mengembalikan node Parse Tree. Implementasi ini terletak pada direktori \texttt{src/syntax/} dengan struktur kelas yang terdefinisi dengan baik.
+
+\subsection{Struktur Kelas Parser}
+
+Kelas \texttt{Parser} didefinisikan dalam berkas \texttt{Parser.hpp} dan diimplementasikan dalam \texttt{Parser.cpp}. Kelas ini menyimpan daftar token sebagai masukan dan sebuah pointer posisi (\texttt{pos}) untuk menelusuri token secara sekuensial.
+
+\begin{lstlisting}[style=cpp, caption={Deklarasi kelas Parser}]
+class Parser {
+  public:
+    explicit Parser(const std::vector<Token> &tokens);
+    std::shared_ptr<ParseTreeNode> parse();
+
+  private:
+    std::vector<Token> tokens;
+    size_t pos = 0;
+    // ...
+};
+\end{lstlisting}
+
+Kelas \texttt{Parser} menyediakan beberapa metode bantu (\textit{helper methods}) untuk navigasi token yang menjadi fondasi bagi seluruh fungsi parsing:
+
+\begin{itemize}
+    \item \texttt{peek()}: Mengembalikan token saat ini tanpa mengonsumsinya.
+    \item \texttt{advance()}: Mengonsumsi token saat ini dan memajukan posisi.
+    \item \texttt{previous()}: Mengembalikan token yang baru saja dikonsumsi.
+    \item \texttt{check(type)}: Memeriksa apakah token saat ini bertipe tertentu.
+    \item \texttt{match(type)}: Jika token saat ini sesuai, konsumsi dan kembalikan \texttt{true}.
+    \item \texttt{expect(type, errMsg)}: Mengonsumsi token dan melaporkan error jika tidak sesuai.
+    \item \texttt{consumeTerminal(type, errMsg)}: Seperti \texttt{expect}, tetapi membungkus hasilnya dalam node Parse Tree.
+    \item \texttt{isAtEnd()}: Memeriksa apakah seluruh token telah diproses.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi metode bantu parser}]
+const Token &Parser::peek() const { return tokens[pos]; }
+
+const Token &Parser::advance() {
+    if (!isAtEnd()) pos++;
+    return previous();
+}
+
+bool Parser::match(TokenType type) {
+    if (check(type)) { advance(); return true; }
+    return false;
+}
+
+const Token &Parser::expect(TokenType type, const string &errMsg) {
+    if (check(type)) return advance();
+    error(errMsg);
+}
+
+shared_ptr<ParseTreeNode>
+Parser::consumeTerminal(TokenType type, const string &errMsg) {
+    const Token &tok = expect(type, errMsg);
+    return makeNode(tok.toString());
 }
 \end{lstlisting}
 
-\subsubsection{Modul Bilangan (\textit{q\_number\_module})}
-Modul ini dimasuki ketika karakter pertama adalah digit. Scanner membaca digit berturut-turut. Jika setelah titik (\texttt{.}) terdapat digit lagi, maka bilangan diklasifikasikan sebagai \texttt{realcon}; jika tidak, bilangan menjadi \texttt{intcon} dan titik diperlakukan sebagai token \texttt{period} terpisah.
+\subsection{Struktur Data Parse Tree}
 
-\begin{lstlisting}[style=cpp, caption={Penanganan bilangan bulat dan riil}]
-void Scanner::number() {
-    while (isdigit(static_cast<unsigned char>(peek())))
+Parse Tree direpresentasikan menggunakan struktur \texttt{ParseTreeNode} yang didefinisikan dalam berkas \texttt{ParseTree.hpp}. Setiap node hanya menyimpan label string dan daftar anak (sub-pohon) yang terurut. Tidak ada pembedaan tipe node -- semua node adalah \texttt{ParseTreeNode} dengan label yang menunjukkan simbol terminal atau non-terminal. Node non-terminal diberi label seperti \texttt{<program>}, \texttt{<expression>}, sedangkan node terminal diberi label sesuai representasi token seperti \texttt{programsy}, \texttt{ident(Hello)}.
+
+\begin{lstlisting}[style=cpp, caption={Struktur data ParseTreeNode}]
+struct ParseTreeNode {
+    std::string label;
+    std::vector<std::shared_ptr<ParseTreeNode>> children;
+
+    explicit ParseTreeNode(const std::string &label) : label(label) {}
+
+    void addChild(std::shared_ptr<ParseTreeNode> child) {
+        children.push_back(std::move(child));
+    }
+
+    void print(std::ostream &os, const std::string &prefix = "",
+               bool isLast = true, bool isRoot = true) const;
+
+    void printToConsole() const;
+    void saveToFile(const std::string &path) const;
+};
+
+inline std::shared_ptr<ParseTreeNode> makeNode(const std::string &label) {
+    return std::make_shared<ParseTreeNode>(label);
+}
+\end{lstlisting}
+
+Fungsi \texttt{makeNode()} digunakan sebagai \textit{factory function} untuk membuat node baru. Setiap node dapat memiliki banyak anak yang ditambahkan melalui metode \texttt{addChild()}. Node terminal dibuat dengan memanggil \texttt{consumeTerminal()} yang membungkus token hasil parsing menjadi node.
+
+\subsection{Implementasi Aturan Grammar}
+
+Setiap aturan produksi dalam grammar bahasa Arion diimplementasikan sebagai satu fungsi yang mengembalikan \texttt{shared\_ptr<ParseTreeNode>}. Pola implementasi setiap fungsi adalah sama: membuat node baru dengan label non-terminal, kemudian memanggil fungsi \texttt{consumeTerminal()} untuk token terminal atau fungsi parsing lain untuk non-terminal.
+
+\subsubsection{Program dan Struktur Dasar}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi aturan <program> dan <program-header>}]
+shared_ptr<ParseTreeNode> Parser::parseProgram() {
+    auto node = makeNode("<program>");
+    node->addChild(parseProgramHeader());
+    node->addChild(parseDeclarationPart());
+    node->addChild(parseCompoundStatement());
+    node->addChild(consumeTerminal(TokenType::period,
+                                   "Expected '.' at end of program"));
+    return node;
+}
+
+shared_ptr<ParseTreeNode> Parser::parseProgramHeader() {
+    auto node = makeNode("<program-header>");
+    node->addChild(consumeTerminal(TokenType::programsy,
+                                   "Expected 'program'"));
+    node->addChild(consumeTerminal(TokenType::ident,
+                                   "Expected program name (identifier)"));
+    node->addChild(consumeTerminal(TokenType::semicolon,
+                                   "Expected ';' after program name"));
+    return node;
+}
+\end{lstlisting}
+
+\subsubsection{Implementasi Deklarasi}
+
+Bagian deklarasi menggunakan perulangan \texttt{while} dan \texttt{do-while} untuk menangani aturan produksi dengan pengulangan (\textit{Kleene star}). Berikut adalah implementasi untuk deklarasi konstanta dan variable:
+
+\begin{lstlisting}[style=cpp, caption={Implementasi deklarasi konstanta}]
+shared_ptr<ParseTreeNode> Parser::parseConstDeclaration() {
+    auto node = makeNode("<const-declaration>");
+    node->addChild(consumeTerminal(TokenType::constsy, "Expected 'const'"));
+
+    do {
+        node->addChild(consumeTerminal(TokenType::ident,
+                                       "Expected identifier in const declaration"));
+        node->addChild(consumeTerminal(TokenType::eql,
+                                       "Expected '==' in const declaration"));
+        node->addChild(parseConstant());
+        node->addChild(consumeTerminal(TokenType::semicolon,
+                                       "Expected ';' after constant"));
+    } while (check(TokenType::ident));
+
+    return node;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi deklarasi variable}]
+shared_ptr<ParseTreeNode> Parser::parseVarDeclaration() {
+    auto node = makeNode("<var-declaration>");
+    node->addChild(consumeTerminal(TokenType::varsy, "Expected 'var'"));
+
+    do {
+        node->addChild(parseIdentifierList());
+        node->addChild(consumeTerminal(TokenType::colon,
+                                       "Expected ':' in var declaration"));
+        node->addChild(parseType());
+        node->addChild(consumeTerminal(TokenType::semicolon,
+                                       "Expected ';' after var declaration"));
+    } while (check(TokenType::ident));
+
+    return node;
+}
+\end{lstlisting}
+
+\subsubsection{Implementasi Statement}
+
+Statement dalam bahasa Arion terdiri dari beberapa jenis. Implementasi fungsi \texttt{parseStatement()} menggunakan \textit{lookahead} dan \textit{backtracking} untuk membedakan antara \texttt{<assignment-statement>} dan \texttt{<procedure/function-call>}, karena keduanya diawali oleh token \texttt{ident}.
+
+\begin{lstlisting}[style=cpp, caption={Implementasi parsing statement}]
+shared_ptr<ParseTreeNode> Parser::parseStatement() {
+    auto node = makeNode("<statement>");
+
+    if (check(TokenType::ident)) {
+        size_t saved = pos;
+        parseVariable();
+        bool isAssign = check(TokenType::becomes);
+        pos = saved; // backtrack
+
+        if (isAssign) {
+            node->addChild(parseAssignmentStatement());
+        } else {
+            node->addChild(parseProcFuncCall());
+        }
+    } else if (check(TokenType::ifsy)) {
+        node->addChild(parseIfStatement());
+    } else if (check(TokenType::whilesy)) {
+        node->addChild(parseWhileStatement());
+    } else if (check(TokenType::forsy)) {
+        node->addChild(parseForStatement());
+    } else if (check(TokenType::repeatsy)) {
+        node->addChild(parseRepeatStatement());
+    } else if (check(TokenType::casesy)) {
+        node->addChild(parseCaseStatement());
+    } else if (check(TokenType::beginsy)) {
+        node->addChild(parseCompoundStatement());
+    }
+
+    return node;
+}
+\end{lstlisting}
+
+\subsubsection{Implementasi Ekspresi}
+
+Ekspresi dalam bahasa Arion mengikuti hierarki operator standar dengan tiga tingkatan prioritas: relasional, aditif, dan multiplikatif. Berikut adalah implementasi untuk ekspresi, simple-ekspresi, dan term:
+
+\begin{lstlisting}[style=cpp, caption={Implementasi ekspresi dengan hierarki operator}]
+shared_ptr<ParseTreeNode> Parser::parseExpression() {
+    auto node = makeNode("<expression>");
+    node->addChild(parseSimpleExpression());
+
+    if (check(TokenType::eql) || check(TokenType::neq) ||
+        check(TokenType::gtr) || check(TokenType::geq) ||
+        check(TokenType::lss) || check(TokenType::leq)) {
+        node->addChild(makeNode(advance().toString()));
+        node->addChild(parseSimpleExpression());
+    }
+
+    return node;
+}
+
+shared_ptr<ParseTreeNode> Parser::parseTerm() {
+    auto node = makeNode("<term>");
+    node->addChild(parseFactor());
+
+    while (check(TokenType::times) || check(TokenType::rdiv) ||
+           check(TokenType::idiv) || check(TokenType::imod) ||
+           check(TokenType::andsy)) {
+        node->addChild(makeNode(advance().toString()));
+        node->addChild(parseFactor());
+    }
+
+    return node;
+}
+\end{lstlisting}
+
+\subsection{Mekanisme Disambiguasi}
+
+Terdapat beberapa kasus ambiguitas dalam grammar yang memerlukan \textit{lookahead} dan \textit{backtracking} untuk diselesaikan:
+
+\begin{enumerate}
+    \item \textbf{Statement vs Assignment vs Function Call}: Ketika parser menemukan \texttt{ident}, parser menyimpan posisi token, memanggil \texttt{parseVariable()}, dan memeriksa apakah token berikutnya adalah \texttt{becomes}. Jika iya, parser melakukan \textit{backtrack} ke posisi awal dan memanggil \texttt{parseAssignmentStatement()}. Jika tidak, parser melakukan \textit{backtrack} dan memanggil \texttt{parseProcFuncCall()}.
+    \item \textbf{Factor: variable vs function call}: Dalam \texttt{parseFactor()}, setelah membaca \texttt{ident}, parser memeriksa apakah token berikutnya adalah \texttt{lparent}. Jika iya, dilakukan pemanggilan fungsi; jika tidak, diperlakukan sebagai variable.
+    \item \textbf{Range vs simple type}: Dalam \texttt{parseType()}, token \texttt{ident} bisa merupakan tipe sederhana atau awal dari range. Parser memeriksa apakah setelah ekspresi terdapat dua titik berurutan (\texttt{period period}) untuk menentukan interpretasi.
+\end{enumerate}
+
+\begin{lstlisting}[style=cpp, caption={Disambiguasi factor: variable vs function call}]
+shared_ptr<ParseTreeNode> Parser::parseFactor() {
+    auto node = makeNode("<factor>");
+
+    if (check(TokenType::intcon) || check(TokenType::realcon) ||
+        check(TokenType::charcon) || check(TokenType::string)) {
+        node->addChild(makeNode(advance().toString()));
+    } else if (check(TokenType::ident)) {
+        size_t saved = pos;
         advance();
-    if (peek() == '.' &&
-        isdigit(static_cast<unsigned char>(peekNext()))) {
-        advance(); // konsumsi '.'
-        while (isdigit(static_cast<unsigned char>(peek())))
-            advance();
-        addToken(TokenType::realcon, /* nilai double */);
+        if (check(TokenType::lparent)) {
+            pos = saved;
+            node->addChild(parseProcFuncCall());
+        } else {
+            pos = saved;
+            node->addChild(parseVariable());
+        }
+    } else if (match(TokenType::lparent)) {
+        node->addChild(makeNode(previous().toString()));
+        node->addChild(parseExpression());
+        node->addChild(consumeTerminal(TokenType::rparent,
+                                       "Expected ')'"));
+    } else if (match(TokenType::notsy)) {
+        node->addChild(makeNode(previous().toString()));
+        node->addChild(parseFactor());
     } else {
-        addToken(TokenType::intcon, /* nilai integer */);
+        error("Expected factor (value, identifier, or expression)");
+    }
+
+    return node;
+}
+\end{lstlisting}
+
+\subsection{Penanganan Kesalahan Sintaks}
+
+Kesalahan sintaks ditangani menggunakan struktur \texttt{SyntaxError} yang merupakan turunan dari \texttt{std::runtime\_error}. Struktur ini menyimpan nomor baris dan pesan kesalahan.
+
+\begin{lstlisting}[style=cpp, caption={Struktur SyntaxError dan fungsi error}]
+struct SyntaxError : public std::runtime_error {
+    int line;
+    SyntaxError(int line, const std::string &msg)
+        : std::runtime_error(msg), line(line) {}
+};
+
+[[noreturn]] void Parser::error(const string &msg) {
+    const Token &tok = peek();
+    ostringstream oss;
+    oss << "Syntax error on line " << tok.line << ": " << msg
+        << " (got " << tok.toString() << ")";
+    throw SyntaxError(tok.line, oss.str());
+}
+\end{lstlisting}
+
+Pada \texttt{main.cpp}, eksepsi \texttt{SyntaxError} ditangkap dan pesan kesalahan ditampilkan ke \texttt{stderr}. Program akan mengembalikan kode keluar 1 jika terjadi kesalahan sintaks.
+
+\begin{lstlisting}[style=cpp, caption={Penanganan error di main.cpp}]
+try {
+    Parser parser(tokens);
+    auto tree = parser.parse();
+    tree->printToConsole();
+    tree->saveToFile(outFile.string());
+} catch (const SyntaxError &e) {
+    std::cerr << "\n" << e.what() << "\n";
+    return 1;
+}
+\end{lstlisting}
+
+Fungsi \texttt{expect()} dan \texttt{consumeTerminal()} menjadi garda terdepan dalam deteksi error. Ketika token yang diharapkan tidak ditemukan, parser segera menghentikan proses dan melaporkan kesalahan. Pesan error diformat dengan nomor baris dan token yang ditemukan, sehingga memudahkan pengguna dalam menelusuri sumber kesalahan.
+
+\subsection{Pencetakan dan Penyimpanan Parse Tree}
+
+Parse Tree yang dihasilkan dicetak ke terminal menggunakan format hierarkis dengan garis penghubung (\textit{ASCII art}). Setiap level indentasi menggunakan prefix \texttt{|} untuk cabang yang memiliki saudara setelahnya dan spasi untuk cabang terakhir. Node akar dicetak tanpa prefix, sedangkan node anak menggunakan awalan \texttt{+--} untuk anak terakhir dan \texttt{|--} untuk anak lainnya.
+
+Selain dicetak ke terminal, Parse Tree juga disimpan ke dalam berkas teks di direktori \texttt{test/output/} dengan nama yang sama dengan berkas masukan tetapi berekstensi \texttt{.txt}. Hal ini memungkinkan verifikasi hasil parsing secara otomatis maupun manual.
+
+\begin{lstlisting}[style=cpp, caption={Fungsi pencetakan Parse Tree}]
+void ParseTreeNode::print(std::ostream &os, const std::string &prefix,
+                           bool isLast, bool isRoot) const {
+    if (isRoot) {
+        os << label << "\n";
+    } else {
+        os << prefix;
+        os << (isLast ? "+-- " : "|-- ");
+        os << label << "\n";
+    }
+
+    string childPrefix = isRoot ? "" : prefix + (isLast ? "    " : "|   ");
+
+    for (size_t i = 0; i < children.size(); ++i) {
+        children[i]->print(os, childPrefix, i == children.size() - 1, false);
     }
 }
 \end{lstlisting}
 
-\subsubsection{Modul String dan Charcon}
-Modul ini dimasuki ketika karakter \texttt{'} (kutip tunggal) ditemukan. Scanner membaca karakter hingga menemukan kutip penutup. Setelah isi literal diekstrak, panjangnya diperiksa: jika tepat satu karakter, token \texttt{charcon} dihasilkan; jika lebih (atau nol), token \texttt{string} dihasilkan. Jika kutip penutup tidak ditemukan hingga akhir berkas, kesalahan dilaporkan.
-
-\subsubsection{Modul Komentar}
-Dua gaya komentar didukung: komentar kurung kurawal \texttt{\{ \ldots\ \}} dan komentar parenthesis-bintang \texttt{(* \ldots\ *)}. Pada kedua kasus, seluruh isi komentar dikonsumsi tanpa menghasilkan token apa pun. Komentar \textbf{tidak bersarang}: pada gaya \texttt{\{ \}}, karakter \texttt{\{} di dalam komentar diabaikan dan komentar ditutup oleh \texttt{\}} pertama yang ditemui.
-
-\subsubsection{Modul Operator Dua Karakter}
-Untuk operator yang terdiri atas dua karakter (\texttt{:=}, \texttt{==}, \texttt{<=}, \texttt{>=}, \texttt{<>}), scanner menggunakan metode \texttt{match()} sebagai \textit{lookahead}. Setelah membaca karakter pertama, \texttt{match()} memeriksa apakah karakter berikutnya melengkapi operator dua karakter. Jika ya, kedua karakter dikonsumsi; jika tidak, hanya karakter pertama yang menjadi token.
-
-\begin{lstlisting}[style=cpp, caption={Contoh lookahead untuk operator :=}]
-case ':':
-    if (match('='))
-        addToken(TokenType::becomes);  // :=
-    else
-        addToken(TokenType::colon);    // :
-    return;
-\end{lstlisting}
-
-\subsection{Mekanisme \textit{Retract} dan \textit{Lookahead}}
-Scanner menggunakan dua pointer: \texttt{start} (awal leksem saat ini) dan \texttt{current} (posisi baca saat ini). Metode \texttt{advance()} mengonsumsi satu karakter dan memajukan \texttt{current}, sedangkan \texttt{peek()} dan \texttt{peekNext()} membaca karakter berikutnya \textbf{tanpa} memajukan pointer. Pola ini memungkinkan scanner melakukan keputusan secara deterministik tanpa perlu \textit{backtracking} yang mahal.
-
-\subsection{Penanganan \textit{Case-Insensitivity}}
-Kata kunci dalam bahasa Arion bersifat \textit{case-insensitive}. Implementasinya dilakukan dengan mengonversi leksem ke huruf kecil menggunakan \texttt{toLower()} sebelum pencarian di tabel kata kunci (\texttt{unordered\_map}). Leksem asli tetap disimpan untuk keperluan pelaporan dan modul-modul berikutnya.
-
-\subsection{Struktur Kelas dan Tanggung Jawab}
-
-\begin{table}[H]
-  \centering
-  \begin{tabular}{lp{9cm}}
-    \toprule
-    \textbf{Kelas/Berkas} & \textbf{Tanggung Jawab} \\
-    \midrule
-    \texttt{SourceBuffer} & Membaca berkas kode sumber ke dalam buffer string. Menyediakan akses karakter per posisi (\texttt{at()}) dan ekstraksi substring (\texttt{substring()}). Mengisolasi operasi I/O dari logika DFA. \\
-    \texttt{TokenType} & Mendefinisikan \texttt{enum class TokenType} dengan 52 anggota dan fungsi \texttt{tokenTypeName()} untuk konversi ke string. \\
-    \texttt{Token} & Struktur data yang menyimpan tipe token, leksem, literal (berupa \texttt{variant<monostate, string, double>}), dan nomor baris. Menyediakan fungsi \texttt{printToken()} untuk keluaran format standar. \\
-    \texttt{Scanner} & Mesin utama DFA. Mengelola pointer \texttt{start}/\texttt{current}, mengimplementasikan \texttt{scanToken()} dengan \textit{switch-case}, serta mendelegasikan ke metode-metode modul. \\
-    \texttt{Logger} & Melaporkan kesalahan leksikal ke \texttt{stderr} dengan format \texttt{[line N] Error: pesan}. \\
-    \texttt{main.cpp} & Titik masuk program. Membaca nama berkas dari argumen, membuat objek \texttt{Scanner}, dan memanggil \texttt{printAllTokens()}. \\
-    \bottomrule
-  \end{tabular}
-  \caption{Pembagian tanggung jawab kelas}
-\end{table}
-
 \subsection{Struktur Direktori Proyek}
+
+Struktur direktori proyek untuk milestone kedua adalah sebagai berikut:
+
 \begin{lstlisting}[style=bash, caption={Tata letak direktori proyek}]
 HBB-Tubes-IF2224-2026/
     src/
         main.cpp                # Titik masuk program
-        lexical/
-            SourceBuffer.hpp/cpp  # Pembacaan berkas
-            TokenType.hpp         # Definisi tipe token
-            Token.hpp/cpp         # Struktur dan pencetakan token
-            Scanner.hpp/cpp       # Mesin DFA utama
-            Logger.hpp            # Pelaporan kesalahan
+        lexical/                # Lexical analyzer (milestone 1)
+            SourceBuffer.hpp/...
+            TokenType.hpp
+            Token.hpp/...
+            Scanner.hpp/...
+            Logger.hpp
+        syntax/                 # Syntax analyzer (milestone 2)
+            Parser.hpp/cpp      # Implementasi Recursive Descent Parser
+            ParseTree.hpp       # Struktur data Parse Tree
     test/
-        input/                  # Berkas-berkas uji masukan
+        input/                  # Berkas masukan uji
+            pos_*.txt           # Kasus uji positif
+            neg_*.txt           # Kasus uji negatif (error)
+            edge_*.txt          # Kasus uji batas
     doc/                        # Laporan dan dokumentasi
     Makefile                    # Skrip kompilasi
 \end{lstlisting}
-
-Arsitektur modular yang digunakan pada lexer dirancang untuk memudahkan pengembangan pada milestone berikutnya. Daftar token yang dihasilkan oleh \texttt{Scanner} dapat langsung dikonsumsi oleh \textit{parser} (analisis sintaktik) tanpa modifikasi antarmuka. Struktur \texttt{Token} yang menyimpan informasi nomor baris memungkinkan pelaporan kesalahan yang akurat pada tahap analisis semantik. Selain itu, pemisahan \texttt{SourceBuffer} dari \texttt{Scanner} memungkinkan penggantian sumber masukan (misalnya dari string langsung untuk pengujian unit) tanpa mengubah logika DFA.
 
 % ============================================================
 %   SECTION 4 — PENGUJIAN
