@@ -284,38 +284,37 @@ Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja
     tabel simbol untuk menghasilkan program target atau bahasa mesin.
 \end{enumerate}
 
-\subsubsection{Analisis Leksikal (\textit{Lexical Analysis})}
-Sebagai fokus utama pada \textit{milestone} ini, Analisis Leksikal adalah fase
-pertama dari sebuah kompilator. Fase ini memproses kode sumber yang ditulis
-dalam bentuk kalimat sintaksis dan memecahnya menjadi serangkaian unit bermakna
-yang disebut \textit{token}. 
+\subsubsection{Analisis Sintaksis (\textit{Syntax Analysis})}
+Sebagai fokus utama pada \textit{milestone} ini, Analisis Sintaksis atau
+\textit{parser} adalah tahapan atau fase kedua dari sebuah kompilator. Fase ini
+bertugas untuk memeriksa urutan \textit{token} yang dihasilkan oleh
+\textit{lexical analyzer} agar sesuai dengan aturan tata bahasa
+(\textit{grammar}) dari bahasa pemrograman yang dikompilasi.  Dalam
+mendefinisikan dan melakukan evaluasi aturan sintaks, \textit{parser} secara
+umum mengadopsi format tata bahasa bebas konteks atau \textit{Context-Free
+Grammar} (CFG).
 
-Berdasarkan prinsip desain kompilator, mekanisme kerja dan tugas utama dari
-\textit{lexical analyzer} meliputi:
+Berdasarkan prinsip desain kompilator, mekanisme kerja dan tahapan \textit{parser} bertujuan untuk:
 \begin{itemize}
-    \item \textbf{Penyaringan Karakter}: \textit{Lexical analyzer} membaca kode
-        sumber sebagai aliran karakter (\textit{character stream}) dan secara
-        otomatis menghapus seluruh spasi kosong (\textit{whitespace}) maupun
-        komentar (\textit{comments}) di dalam kode sumber.
-    \item \textbf{Tokenisasi dan Pengenalan \textit{Lexeme}}: Barisan karakter
-        (\textit{alphanumeric}) yang memiliki makna diidentifikasi sebagai
-        \textit{lexeme}. \textit{Lexeme} ini kemudian dicocokkan dengan aturan
-        baku atau pola (\textit{pattern})—yang umumnya didefinisikan melalui
-        \textit{regular expression}—untuk divalidasi sebagai sebuah
-        \textit{token} (seperti kata kunci, konstanta, \textit{identifier}, atau
-        operator).
-    \item \textbf{Kerja Sama dengan \textit{Syntax Analyzer} (\textit{Parser})}:
-        \textit{Lexical analyzer} bekerja sangat erat dengan \textit{syntax
-        analyzer}. Ia memeriksa keberadaan \textit{token} yang legal dan
-        meneruskan data \textit{token} tersebut kepada \textit{syntax analyzer}
-        hanya pada saat dibutuhkan atau diminta (\textit{when it demands}).
-    \item \textbf{Penanganan Kesalahan (\textit{Error Handling})}: Apabila
-        \textit{lexical analyzer} memindai urutan karakter yang tidak valid atau
-        tidak dapat diklasifikasikan ke dalam pola \textit{token} apa pun, maka
-        ia akan langsung menghasilkan pesan kesalahan (\textit{error}).
+    \item \textbf{Memvalidasi Struktur Sintaks}: Memastikan urutan
+        \textit{token} membentuk struktur sintaks yang valid.
+    \item \textbf{Penanganan Kesalahan Sintaks (\textit{Syntax Error})}:
+        Mendeteksi dan melaporkan kesalahan sintaks (\textit{syntax error})
+        apabila ditemukan ketidaksesuaiaan.
+    \item \textbf{Membangun Representasi Program}: Mempersiapkan representasi
+        program untuk tahap kompilasi berikutnya. \textit{Parser} akan membangun
+        struktur sintaks hierarkis seperti \textit{Parse Tree} atau
+        \textit{Abstract Syntax Tree} (AST).
 \end{itemize}
 
-\subsection{Teori Bahasa Formal dan Otomata}
+
+\textit{Parse Tree} adalah representasi lengkap dari struktur sintaks program sesuai dengan \textit{grammar} bahasa yang digunakan. Karena merepresentasikan hierarki secara utuh, setiap \textit{node} di dalam pohon ini memuat semua simbol terminal dan non-terminal. \textit{Parse tree} berguna untuk menunjukkan bagaimana \textit{token-token} hasil \textit{lexical analysis} membentuk struktur program yang sesuai dengan aturan \textit{grammar}.
+
+Secara garis besar, pendekatan \textit{syntax analyzer} dapat diklasifikasikan ke dalam dua jenis \textit{parsing}:
+\begin{itemize}
+    \item \textbf{\textit{Top-Down Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul akar (\textit{root}) dan diturunkan ke arah simpul daun (\textit{leaves}). Implementasi yang umum digunakan pada pendekatan ini adalah algoritma \textit{Recursive Descent}.
+    \item \textbf{\textit{Bottom-Up Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul daun (\textit{leaves}) dan dikompresi perlahan menuju simpul akar (\textit{root}). Contoh algoritma dari kategori ini adalah \textit{LR Parser}.
+\end{itemize}\subsection{Teori Bahasa Formal dan Otomata}
 
 \subsubsection{\textit{Regular Expression}}
 \textit{Regular Expression} (RE) adalah sebuah notasi matematis formal yang
