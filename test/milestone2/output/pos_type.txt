@@ -1,0 +1,93 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(TypeTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <type-declaration>
+|       |-- typesy
+|       |-- ident(MyInt)
+|       |-- eql
+|       |-- <type>
+|       |   +-- ident(integer)
+|       |-- semicolon
+|       |-- ident(Range)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <range>
+|       |       |-- <expression>
+|       |       |   +-- <simple-expression>
+|       |       |       +-- <term>
+|       |       |           +-- <factor>
+|       |       |               +-- intcon(1)
+|       |       |-- period
+|       |       |-- period
+|       |       +-- <expression>
+|       |           +-- <simple-expression>
+|       |               +-- <term>
+|       |                   +-- <factor>
+|       |                       +-- intcon(10)
+|       |-- semicolon
+|       |-- ident(Color)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <enumerated>
+|       |       |-- lparent
+|       |       |-- ident(Red)
+|       |       |-- comma
+|       |       |-- ident(Green)
+|       |       |-- comma
+|       |       |-- ident(Blue)
+|       |       +-- rparent
+|       |-- semicolon
+|       |-- ident(Person)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <record-type>
+|       |       |-- recordsy
+|       |       |-- <field-list>
+|       |       |   |-- <field-part>
+|       |       |   |   |-- <identifier-list>
+|       |       |   |   |   +-- ident(age)
+|       |       |   |   |-- colon
+|       |       |   |   +-- <type>
+|       |       |   |       +-- ident(integer)
+|       |       |   |-- semicolon
+|       |       |   +-- <field-part>
+|       |       |       |-- <identifier-list>
+|       |       |       |   +-- ident(name)
+|       |       |       |-- colon
+|       |       |       +-- <type>
+|       |       |           +-- ident(string)
+|       |       +-- endsy
+|       |-- semicolon
+|       |-- ident(Arr)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <array-type>
+|       |       |-- arraysy
+|       |       |-- lbrack
+|       |       |-- <range>
+|       |       |   |-- <expression>
+|       |       |   |   +-- <simple-expression>
+|       |       |   |       +-- <term>
+|       |       |   |           +-- <factor>
+|       |       |   |               +-- intcon(1)
+|       |       |   |-- period
+|       |       |   |-- period
+|       |       |   +-- <expression>
+|       |       |       +-- <simple-expression>
+|       |       |           +-- <term>
+|       |       |               +-- <factor>
+|       |       |                   +-- intcon(10)
+|       |       |-- rbrack
+|       |       |-- ofsy
+|       |       +-- <type>
+|       |           +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   +-- <statement>
+|   +-- endsy
++-- period

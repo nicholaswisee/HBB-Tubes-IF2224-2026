@@ -1,0 +1,86 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(IfTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   |-- ident(x)
+|       |   |-- comma
+|       |   +-- ident(y)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(x)
+|   |   |       |   |-- gtr
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(0)
+|   |   |       |-- thensy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(y)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(x)
+|   |   |       |   |-- eql
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(0)
+|   |   |       |-- thensy
+|   |   |       |-- <statement>
+|   |   |       |   +-- <assignment-statement>
+|   |   |       |       |-- <variable>
+|   |   |       |       |   +-- ident(y)
+|   |   |       |       |-- becomes
+|   |   |       |       +-- <expression>
+|   |   |       |           +-- <simple-expression>
+|   |   |       |               +-- <term>
+|   |   |       |                   +-- <factor>
+|   |   |       |                       +-- intcon(0)
+|   |   |       |-- elsesy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(y)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       |-- minus
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

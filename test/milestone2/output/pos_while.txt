@@ -1,0 +1,62 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(WhileTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(i)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(i)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(0)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <while-statement>
+|   |   |       |-- whilesy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(i)
+|   |   |       |   |-- lss
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(10)
+|   |   |       |-- dosy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       |-- <term>
+|   |   |                       |   +-- <factor>
+|   |   |                       |       +-- <variable>
+|   |   |                       |           +-- ident(i)
+|   |   |                       |-- plus
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

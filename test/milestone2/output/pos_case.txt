@@ -1,0 +1,82 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(CaseTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   |-- ident(i)
+|       |   |-- comma
+|       |   +-- ident(x)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <case-statement>
+|   |   |       |-- casesy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- ofsy
+|   |   |       |-- <case-block>
+|   |   |       |   |-- <constant>
+|   |   |       |   |   +-- intcon(0)
+|   |   |       |   |-- colon
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <assignment-statement>
+|   |   |       |   |       |-- <variable>
+|   |   |       |   |       |   +-- ident(x)
+|   |   |       |   |       |-- becomes
+|   |   |       |   |       +-- <expression>
+|   |   |       |   |           +-- <simple-expression>
+|   |   |       |   |               +-- <term>
+|   |   |       |   |                   +-- <factor>
+|   |   |       |   |                       +-- intcon(0)
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <case-block>
+|   |   |       |       |-- <constant>
+|   |   |       |       |   +-- intcon(1)
+|   |   |       |       |-- comma
+|   |   |       |       |-- <constant>
+|   |   |       |       |   +-- intcon(2)
+|   |   |       |       |-- colon
+|   |   |       |       |-- <statement>
+|   |   |       |       |   +-- <assignment-statement>
+|   |   |       |       |       |-- <variable>
+|   |   |       |       |       |   +-- ident(x)
+|   |   |       |       |       |-- becomes
+|   |   |       |       |       +-- <expression>
+|   |   |       |       |           +-- <simple-expression>
+|   |   |       |       |               +-- <term>
+|   |   |       |       |                   +-- <factor>
+|   |   |       |       |                       +-- intcon(1)
+|   |   |       |       |-- semicolon
+|   |   |       |       +-- <case-block>
+|   |   |       |           |-- <constant>
+|   |   |       |           |   +-- intcon(3)
+|   |   |       |           |-- colon
+|   |   |       |           |-- <statement>
+|   |   |       |           |   +-- <assignment-statement>
+|   |   |       |           |       |-- <variable>
+|   |   |       |           |       |   +-- ident(x)
+|   |   |       |           |       |-- becomes
+|   |   |       |           |       +-- <expression>
+|   |   |       |           |           +-- <simple-expression>
+|   |   |       |           |               +-- <term>
+|   |   |       |           |                   +-- <factor>
+|   |   |       |           |                       +-- intcon(2)
+|   |   |       |           +-- semicolon
+|   |   |       +-- endsy
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

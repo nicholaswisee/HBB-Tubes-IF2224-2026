@@ -1,0 +1,57 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(MultiIndex)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(arr)
+|       |-- colon
+|       |-- <type>
+|       |   +-- <array-type>
+|       |       |-- arraysy
+|       |       |-- lbrack
+|       |       |-- <range>
+|       |       |   |-- <expression>
+|       |       |   |   +-- <simple-expression>
+|       |       |   |       +-- <term>
+|       |       |   |           +-- <factor>
+|       |       |   |               +-- intcon(1)
+|       |       |   |-- period
+|       |       |   |-- period
+|       |       |   +-- <expression>
+|       |       |       +-- <simple-expression>
+|       |       |           +-- <term>
+|       |       |               +-- <factor>
+|       |       |                   +-- intcon(10)
+|       |       |-- rbrack
+|       |       |-- ofsy
+|       |       +-- <type>
+|       |           +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   |-- ident(arr)
+|   |   |       |   +-- <component-variable>
+|   |   |       |       |-- lbrack
+|   |   |       |       |-- <index-list>
+|   |   |       |       |   |-- intcon(1)
+|   |   |       |       |   |-- comma
+|   |   |       |       |   +-- intcon(2)
+|   |   |       |       +-- rbrack
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(5)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

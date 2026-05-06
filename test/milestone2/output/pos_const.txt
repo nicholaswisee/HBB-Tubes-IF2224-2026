@@ -1,0 +1,34 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(ConstTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <const-declaration>
+|       |-- constsy
+|       |-- ident(MAX)
+|       |-- eql
+|       |-- <constant>
+|       |   +-- intcon(100)
+|       |-- semicolon
+|       |-- ident(PI)
+|       |-- eql
+|       |-- <constant>
+|       |   +-- realcon(3.14)
+|       |-- semicolon
+|       |-- ident(LETTER)
+|       |-- eql
+|       |-- <constant>
+|       |   +-- charcon('a')
+|       |-- semicolon
+|       |-- ident(GREETING)
+|       |-- eql
+|       |-- <constant>
+|       |   +-- string('hello')
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   +-- <statement>
+|   +-- endsy
++-- period

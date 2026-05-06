@@ -1,0 +1,86 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(ProcTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <procedure-declaration>
+|   |   |-- proceduresy
+|   |   |-- ident(PrintSum)
+|   |   |-- <formal-parameter-list>
+|   |   |   |-- lparent
+|   |   |   |-- <parameter-group>
+|   |   |   |   |-- <identifier-list>
+|   |   |   |   |   |-- ident(a)
+|   |   |   |   |   |-- comma
+|   |   |   |   |   +-- ident(b)
+|   |   |   |   |-- colon
+|   |   |   |   +-- ident(integer)
+|   |   |   +-- rparent
+|   |   |-- semicolon
+|   |   |-- <block>
+|   |   |   |-- <declaration-part>
+|   |   |   +-- <compound-statement>
+|   |   |       |-- beginsy
+|   |   |       |-- <statement-list>
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <procedure/function-call>
+|   |   |       |   |       |-- ident(writeln)
+|   |   |       |   |       |-- lparent
+|   |   |       |   |       |-- <parameter-list>
+|   |   |       |   |       |   +-- <expression>
+|   |   |       |   |       |       +-- <simple-expression>
+|   |   |       |   |       |           |-- <term>
+|   |   |       |   |       |           |   +-- <factor>
+|   |   |       |   |       |           |       +-- <variable>
+|   |   |       |   |       |           |           +-- ident(a)
+|   |   |       |   |       |           |-- plus
+|   |   |       |   |       |           +-- <term>
+|   |   |       |   |       |               +-- <factor>
+|   |   |       |   |       |                   +-- <variable>
+|   |   |       |   |       |                       +-- ident(b)
+|   |   |       |   |       +-- rparent
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <statement>
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <procedure-declaration>
+|       |-- proceduresy
+|       |-- ident(NoParam)
+|       |-- semicolon
+|       |-- <block>
+|       |   |-- <declaration-part>
+|       |   +-- <compound-statement>
+|       |       |-- beginsy
+|       |       |-- <statement-list>
+|       |       |   +-- <statement>
+|       |       +-- endsy
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(PrintSum)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   |-- <expression>
+|   |   |       |   |   +-- <simple-expression>
+|   |   |       |   |       +-- <term>
+|   |   |       |   |           +-- <factor>
+|   |   |       |   |               +-- intcon(3)
+|   |   |       |   |-- comma
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- intcon(4)
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       +-- ident(NoParam)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

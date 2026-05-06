@@ -1,0 +1,105 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(FuncTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <function-declaration>
+|   |   |-- functionsy
+|   |   |-- ident(Add)
+|   |   |-- <formal-parameter-list>
+|   |   |   |-- lparent
+|   |   |   |-- <parameter-group>
+|   |   |   |   |-- <identifier-list>
+|   |   |   |   |   |-- ident(a)
+|   |   |   |   |   |-- comma
+|   |   |   |   |   +-- ident(b)
+|   |   |   |   |-- colon
+|   |   |   |   +-- ident(integer)
+|   |   |   +-- rparent
+|   |   |-- colon
+|   |   |-- ident(integer)
+|   |   |-- semicolon
+|   |   |-- <block>
+|   |   |   |-- <declaration-part>
+|   |   |   +-- <compound-statement>
+|   |   |       |-- beginsy
+|   |   |       |-- <statement-list>
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <assignment-statement>
+|   |   |       |   |       |-- <variable>
+|   |   |       |   |       |   +-- ident(Add)
+|   |   |       |   |       |-- becomes
+|   |   |       |   |       +-- <expression>
+|   |   |       |   |           +-- <simple-expression>
+|   |   |       |   |               |-- <term>
+|   |   |       |   |               |   +-- <factor>
+|   |   |       |   |               |       +-- <variable>
+|   |   |       |   |               |           +-- ident(a)
+|   |   |       |   |               |-- plus
+|   |   |       |   |               +-- <term>
+|   |   |       |   |                   +-- <factor>
+|   |   |       |   |                       +-- <variable>
+|   |   |       |   |                           +-- ident(b)
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <statement>
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <function-declaration>
+|       |-- functionsy
+|       |-- ident(GetZero)
+|       |-- colon
+|       |-- ident(integer)
+|       |-- semicolon
+|       |-- <block>
+|       |   |-- <declaration-part>
+|       |   +-- <compound-statement>
+|       |       |-- beginsy
+|       |       |-- <statement-list>
+|       |       |   |-- <statement>
+|       |       |   |   +-- <assignment-statement>
+|       |       |   |       |-- <variable>
+|       |       |   |       |   +-- ident(GetZero)
+|       |       |   |       |-- becomes
+|       |       |   |       +-- <expression>
+|       |       |   |           +-- <simple-expression>
+|       |       |   |               +-- <term>
+|       |       |   |                   +-- <factor>
+|       |       |   |                       +-- intcon(0)
+|       |       |   |-- semicolon
+|       |       |   +-- <statement>
+|       |       +-- endsy
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(writeln)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- <procedure/function-call>
+|   |   |       |                       |-- ident(Add)
+|   |   |       |                       |-- lparent
+|   |   |       |                       |-- <parameter-list>
+|   |   |       |                       |   |-- <expression>
+|   |   |       |                       |   |   +-- <simple-expression>
+|   |   |       |                       |   |       +-- <term>
+|   |   |       |                       |   |           +-- <factor>
+|   |   |       |                       |   |               +-- intcon(1)
+|   |   |       |                       |   |-- comma
+|   |   |       |                       |   +-- <expression>
+|   |   |       |                       |       +-- <simple-expression>
+|   |   |       |                       |           +-- <term>
+|   |   |       |                       |               +-- <factor>
+|   |   |       |                       |                   +-- intcon(2)
+|   |   |       |                       +-- rparent
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

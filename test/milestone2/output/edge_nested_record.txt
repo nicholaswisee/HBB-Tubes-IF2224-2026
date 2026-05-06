@@ -1,0 +1,67 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(NestedRecord)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <type-declaration>
+|   |   |-- typesy
+|   |   |-- ident(Inner)
+|   |   |-- eql
+|   |   |-- <type>
+|   |   |   +-- <record-type>
+|   |   |       |-- recordsy
+|   |   |       |-- <field-list>
+|   |   |       |   +-- <field-part>
+|   |   |       |       |-- <identifier-list>
+|   |   |       |       |   +-- ident(y)
+|   |   |       |       |-- colon
+|   |   |       |       +-- <type>
+|   |   |       |           +-- ident(integer)
+|   |   |       +-- endsy
+|   |   |-- semicolon
+|   |   |-- ident(Outer)
+|   |   |-- eql
+|   |   |-- <type>
+|   |   |   +-- <record-type>
+|   |   |       |-- recordsy
+|   |   |       |-- <field-list>
+|   |   |       |   +-- <field-part>
+|   |   |       |       |-- <identifier-list>
+|   |   |       |       |   +-- ident(x)
+|   |   |       |       |-- colon
+|   |   |       |       +-- <type>
+|   |   |       |           +-- ident(Inner)
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(o)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(Outer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   |-- ident(o)
+|   |   |       |   |-- <component-variable>
+|   |   |       |   |   |-- period
+|   |   |       |   |   +-- ident(x)
+|   |   |       |   +-- <component-variable>
+|   |   |       |       |-- period
+|   |   |       |       +-- ident(y)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(10)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
