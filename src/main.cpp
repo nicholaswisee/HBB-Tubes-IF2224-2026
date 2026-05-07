@@ -8,8 +8,9 @@
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
-    const fs::path inputDir = "test/input";
-    const fs::path outputDir = "test/output";
+    // format: test/milestone[x]/[input or output]/[filename].txt
+    const fs::path inputDir = "test/milestone2/input";
+    const fs::path outputDir = "test/milestone2/output";
 
     if (argc != 2) {
         std::cerr << "Usage: ./bin/compiler <filename-in-test-input>\n";
