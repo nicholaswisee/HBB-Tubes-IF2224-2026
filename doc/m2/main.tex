@@ -887,179 +887,912 @@ HBB-Tubes-IF2224-2026/
 
 \section{Pengujian}
 
-Pengujian dilakukan terhadap berbagai kasus masukan untuk memverifikasi kebenaran lexer. Setiap kasus uji dijalankan dengan perintah \texttt{make run FILE=<nama\_berkas>}. Keluaran pada \texttt{stdout} (daftar token) dan \texttt{stderr} (pesan kesalahan) dibandingkan dengan hasil yang diharapkan.
+Pengujian dilakukan terhadap berbagai kasus masukan untuk memverifikasi kebenaran parser. Setiap kasus uji dijalankan dengan perintah \texttt{make run FILE=<nama\_berkas>}. Keluaran pada \texttt{stdout} (Parse Tree) dan \texttt{stderr} (pesan kesalahan sintaks) dibandingkan dengan hasil yang diharapkan.
 
-\subsection{Kasus Uji 1: Kata Kunci dalam Berbagai Huruf Besar/Kecil}
-\textbf{Berkas:} \texttt{edge\_keywords\_case.txt}
+\subsection{Kasus Uji 1: Program Minimal}
+\textbf{Berkas:} \texttt{pos\_minimal.txt}
 
-\textbf{Masukan:}
-\begin{lstlisting}[style=default]
-BEGIN While PROGRAM
-End If THEN
-REPEAT downto NOT
-DIV Mod Or
-\end{lstlisting}
-
-\textbf{Keluaran yang diharapkan:} \texttt{beginsy}, \texttt{whilesy}, \texttt{programsy}, \texttt{endsy}, \texttt{ifsy}, \texttt{thensy}, \texttt{repeatsy}, \texttt{downtosy}, \texttt{notsy}, \texttt{idiv}, \texttt{imod}, \texttt{orsy} --- total 12 token kata kunci.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase1.png}
-  \caption{Hasil pengujian kasus uji 1}
-\end{figure}
-
-\textbf{Analisis:} Seluruh kata kunci dikenali dengan benar meskipun ditulis dengan variasi huruf besar/kecil, membuktikan bahwa mekanisme \texttt{toLower()} bekerja sesuai spesifikasi.
-
-\subsection{Kasus Uji 2: Ambiguitas Bilangan Riil vs Titik}
-\textbf{Berkas:} \texttt{edge\_real\_vs\_period.txt}
+\textbf{Deskripsi:} Kasus uji dasar yang memverifikasi bahwa parser dapat memproses struktur program paling sederhana: header program, blok deklarasi kosong, dan blok utama kosong.
 
 \textbf{Masukan:}
 \begin{lstlisting}[style=default]
+program Minimal;
+begin
 end.
-3.14
-42.
-100.0
-5 .3
 \end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \texttt{endsy}, \texttt{period}, \texttt{realcon (3.14)}, \texttt{intcon (42)}, \texttt{period}, \texttt{realcon (100)}, \texttt{intcon (5)}, \texttt{period}, \texttt{intcon (3)} --- total 9 token.
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(Minimal)
+|   +-- semicolon
+|-- <declaration-part>
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase2.png}
-  \caption{Hasil pengujian kasus uji 2}
-\end{figure}
+\textbf{Analisis:} Parser membangun pohon parse dengan tiga anak dari \texttt{<program>}: \texttt{<program-header>}, \texttt{<declaration-part>} kosong, dan \texttt{<compound-statement>}. Node \texttt{<statement>} tanpa anak merepresentasikan produksi epsilon (pernyataan kosong).
 
-\textbf{Analisis:} Scanner membedakan \texttt{realcon} dan \texttt{period} berdasarkan \textit{lookahead}: titik hanya menjadi bagian bilangan riil jika diikuti digit. Kasus \texttt{42.} menghasilkan \texttt{intcon} + \texttt{period} karena tidak ada digit setelah titik.
+\subsection{Kasus Uji 2: Percabangan if-then-else}
+\textbf{Berkas:} \texttt{pos\_if.txt}
 
-\subsection{Kasus Uji 3: Charcon vs String}
-\textbf{Berkas:} \texttt{edge\_charcon\_vs\_string.txt}
+\textbf{Deskripsi:} Memverifikasi parsing \texttt{<if-statement>} dengan dua varian: tanpa cabang \texttt{else} dan dengan cabang \texttt{else}, serta ekspresi relasional sebagai kondisi.
 
 \textbf{Masukan:}
 \begin{lstlisting}[style=default]
-'a'
-'ab'
-'hello world'
-'x'
-''
+program IfTest;
+var
+  x, y: integer;
+begin
+  if x > 0 then
+    y := 1;
+  if x == 0 then
+    y := 0
+  else
+    y := -1;
+end.
 \end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \texttt{charcon (a)}, \texttt{string (ab)}, \texttt{string (hello world)}, \texttt{charcon (x)}, \texttt{string ()} --- total 5 token.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase3.png}
-  \caption{Hasil pengujian kasus uji 3}
-\end{figure}
-
-\textbf{Analisis:} Literal dengan tepat satu karakter menjadi \texttt{charcon}; selainnya (termasuk literal kosong \texttt{''}) menjadi \texttt{string}. Perilaku ini sesuai dengan logika \texttt{val.length() == 1} pada \texttt{stringLiteral()}.
-
-\subsection{Kasus Uji 4: Komentar Bersarang dan Berkas Hanya Komentar}
-\textbf{Berkas:} \texttt{edge\_nested\_comment.txt} dan \texttt{edge\_only\_comments.txt}
-
-\textbf{Masukan (komentar bersarang):}
+\textbf{Keluaran yang diharapkan:}
 \begin{lstlisting}[style=default]
-{ comment with { nested brace }
-x
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(IfTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   |-- ident(x)
+|       |   |-- comma
+|       |   +-- ident(y)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(x)
+|   |   |       |   |-- gtr
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(0)
+|   |   |       |-- thensy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(y)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(x)
+|   |   |       |   |-- eql
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(0)
+|   |   |       |-- thensy
+|   |   |       |-- <statement>
+|   |   |       |   +-- <assignment-statement>
+|   |   |       |       |-- <variable>
+|   |   |       |       |   +-- ident(y)
+|   |   |       |       |-- becomes
+|   |   |       |       +-- <expression>
+|   |   |       |           +-- <simple-expression>
+|   |   |       |               +-- <term>
+|   |   |       |                   +-- <factor>
+|   |   |       |                       +-- intcon(0)
+|   |   |       |-- elsesy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(y)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       |-- minus
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
 \end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \texttt{ident (x)} --- komentar dikonsumsi seluruhnya, hanya \texttt{x} yang tersisa.
+\textbf{Analisis:} Parser membedakan \texttt{if-then} dan \texttt{if-then-else} dengan benar. Operator \texttt{gtr} dan \texttt{eql} dihasilkan dari ekspresi relasional \texttt{x > 0} dan \texttt{x == 0}. Tanda negatif pada \texttt{-1} direpresentasikan sebagai operator unary \texttt{minus} yang menjadi anak pertama \texttt{<simple-expression>}.
 
-\textbf{Masukan (hanya komentar):} Berkas yang hanya berisi komentar \texttt{\{\}} dan \texttt{(* *)}.
+\subsection{Kasus Uji 3: Perulangan for (to dan downto)}
+\textbf{Berkas:} \texttt{pos\_for.txt}
 
-\textbf{Keluaran yang diharapkan:} Tidak ada token yang dicetak.
+\textbf{Deskripsi:} Memverifikasi parsing \texttt{<for-statement>} dalam dua bentuk: \texttt{to} (menaik) dan \texttt{downto} (menurun), serta pemanggilan prosedur di dalam tubuh perulangan.
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase4.png}
-  \caption{Hasil pengujian kasus uji 4}
-\end{figure}
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program ForTest;
+var
+  i: integer;
+begin
+  for i := 1 to 10 do
+    writeln(i);
+  for i := 10 downto 1 do
+    writeln(i);
+end.
+\end{lstlisting}
 
-\textbf{Analisis:} Komentar tidak bersarang; kurung kurawal \texttt{\{} di dalam komentar diabaikan. Berkas yang hanya mengandung komentar menghasilkan keluaran kosong, membuktikan bahwa komentar tidak menghasilkan token.
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(ForTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(i)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <for-statement>
+|   |   |       |-- forsy
+|   |   |       |-- ident(i)
+|   |   |       |-- becomes
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(1)
+|   |   |       |-- tosy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(10)
+|   |   |       |-- dosy
+|   |   |       +-- <statement>
+|   |   |           +-- <procedure/function-call>
+|   |   |               |-- ident(writeln)
+|   |   |               |-- lparent
+|   |   |               |-- <parameter-list>
+|   |   |               |   +-- <expression>
+|   |   |               |       +-- <simple-expression>
+|   |   |               |           +-- <term>
+|   |   |               |               +-- <factor>
+|   |   |               |                   +-- <variable>
+|   |   |               |                       +-- ident(i)
+|   |   |               +-- rparent
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <for-statement>
+|   |   |       |-- forsy
+|   |   |       |-- ident(i)
+|   |   |       |-- becomes
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(10)
+|   |   |       |-- downtosy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(1)
+|   |   |       |-- dosy
+|   |   |       +-- <statement>
+|   |   |           +-- <procedure/function-call>
+|   |   |               |-- ident(writeln)
+|   |   |               |-- lparent
+|   |   |               |-- <parameter-list>
+|   |   |               |   +-- <expression>
+|   |   |               |       +-- <simple-expression>
+|   |   |               |           +-- <term>
+|   |   |               |               +-- <factor>
+|   |   |               |                   +-- <variable>
+|   |   |               |                       +-- ident(i)
+|   |   |               +-- rparent
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
 
-\subsection{Kasus Uji 5: Konstruksi yang Tidak Ditutup}
-\textbf{Berkas:} \texttt{edge\_unterminated.txt} dan \texttt{edge\_unterminated\_comment.txt}
+\textbf{Analisis:} Kedua varian \texttt{<for-statement>} berhasil diparse. Token \texttt{tosy} dan \texttt{downtosy} menjadi anak yang membedakan arah perulangan. Pemanggilan \texttt{writeln(i)} dikenali sebagai \texttt{<procedure/function-call>} karena diikuti tanda kurung.
 
-\textbf{Masukan:} String literal tanpa kutip penutup (\texttt{'hello}) dan komentar tanpa kurung penutup (\texttt{\{ never ends}).
+\subsection{Kasus Uji 4: Deklarasi Fungsi dengan Parameter}
+\textbf{Berkas:} \texttt{pos\_function.txt}
+
+\textbf{Deskripsi:} Memverifikasi parsing \texttt{<function-declaration>} dengan dan tanpa parameter formal, serta pemanggilan fungsi secara bersarang di dalam argumen prosedur lain.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program FuncTest;
+function Add(a, b: integer): integer;
+begin
+  Add := a + b;
+end;
+
+function GetZero: integer;
+begin
+  GetZero := 0;
+end;
+
+begin
+  writeln(Add(1, 2));
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(FuncTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <function-declaration>
+|   |   |-- functionsy
+|   |   |-- ident(Add)
+|   |   |-- <formal-parameter-list>
+|   |   |   |-- lparent
+|   |   |   |-- <parameter-group>
+|   |   |   |   |-- <identifier-list>
+|   |   |   |   |   |-- ident(a)
+|   |   |   |   |   |-- comma
+|   |   |   |   |   +-- ident(b)
+|   |   |   |   |-- colon
+|   |   |   |   +-- ident(integer)
+|   |   |   +-- rparent
+|   |   |-- colon
+|   |   |-- ident(integer)
+|   |   |-- semicolon
+|   |   |-- <block>
+|   |   |   |-- <declaration-part>
+|   |   |   +-- <compound-statement>
+|   |   |       |-- beginsy
+|   |   |       |-- <statement-list>
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <assignment-statement>
+|   |   |       |   |       |-- <variable>
+|   |   |       |   |       |   +-- ident(Add)
+|   |   |       |   |       |-- becomes
+|   |   |       |   |       +-- <expression>
+|   |   |       |   |           +-- <simple-expression>
+|   |   |       |   |               |-- <term>
+|   |   |       |   |               |   +-- <factor>
+|   |   |       |   |               |       +-- <variable>
+|   |   |       |   |               |           +-- ident(a)
+|   |   |       |   |               |-- plus
+|   |   |       |   |               +-- <term>
+|   |   |       |   |                   +-- <factor>
+|   |   |       |   |                       +-- <variable>
+|   |   |       |   |                           +-- ident(b)
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <statement>
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <function-declaration>
+|       |-- functionsy
+|       |-- ident(GetZero)
+|       |-- colon
+|       |-- ident(integer)
+|       |-- semicolon
+|       |-- <block>
+|       |   |-- <declaration-part>
+|       |   +-- <compound-statement>
+|       |       |-- beginsy
+|       |       |-- <statement-list>
+|       |       |   |-- <statement>
+|       |       |   |   +-- <assignment-statement>
+|       |       |   |       |-- <variable>
+|       |       |   |       |   +-- ident(GetZero)
+|       |       |   |       |-- becomes
+|       |       |   |       +-- <expression>
+|       |       |   |           +-- <simple-expression>
+|       |       |   |               +-- <term>
+|       |       |   |                   +-- <factor>
+|       |       |   |                       +-- intcon(0)
+|       |       |   |-- semicolon
+|       |       |   +-- <statement>
+|       |       +-- endsy
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(writeln)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- <procedure/function-call>
+|   |   |       |                       |-- ident(Add)
+|   |   |       |                       |-- lparent
+|   |   |       |                       |-- <parameter-list>
+|   |   |       |                       |   |-- <expression>
+|   |   |       |                       |   |   +-- <simple-expression>
+|   |   |       |                       |   |       +-- <term>
+|   |   |       |                       |   |           +-- <factor>
+|   |   |       |                       |   |               +-- intcon(1)
+|   |   |       |                       |   |-- comma
+|   |   |       |                       |   +-- <expression>
+|   |   |       |                       |       +-- <simple-expression>
+|   |   |       |                       |           +-- <term>
+|   |   |       |                       |               +-- <factor>
+|   |   |       |                       |                   +-- intcon(2)
+|   |   |       |                       +-- rparent
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
+
+\textbf{Analisis:} Parser membangun \texttt{<formal-parameter-list>} untuk fungsi \texttt{Add} dan mengenali \texttt{GetZero} sebagai fungsi tanpa parameter. Nilai kembalian ditetapkan melalui \texttt{Add := ...} yang diparse sebagai \texttt{<assignment-statement>} biasa. Pada blok utama, \texttt{Add(1, 2)} dikenali sebagai \texttt{<procedure/function-call>} yang menjadi \texttt{<factor>} di dalam argumen \texttt{writeln}.
+
+\subsection{Kasus Uji 5: Deklarasi Tipe Kompleks}
+\textbf{Berkas:} \texttt{pos\_type.txt}
+
+\textbf{Deskripsi:} Memverifikasi parsing \texttt{<type-declaration>} dalam lima bentuk sekaligus: alias tipe, range numerik, enumerated, record, dan array.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program TypeTest;
+type
+  MyInt == integer;
+  Range == 1..10;
+  Color == (Red, Green, Blue);
+  Person == record
+    age: integer;
+    name: string
+  end;
+  Arr == array [1..10] of integer;
+begin
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(TypeTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <type-declaration>
+|       |-- typesy
+|       |-- ident(MyInt)
+|       |-- eql
+|       |-- <type>
+|       |   +-- ident(integer)
+|       |-- semicolon
+|       |-- ident(Range)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <range>
+|       |       |-- <expression>
+|       |       |   +-- <simple-expression>
+|       |       |       +-- <term>
+|       |       |           +-- <factor>
+|       |       |               +-- intcon(1)
+|       |       |-- period
+|       |       |-- period
+|       |       +-- <expression>
+|       |           +-- <simple-expression>
+|       |               +-- <term>
+|       |                   +-- <factor>
+|       |                       +-- intcon(10)
+|       |-- semicolon
+|       |-- ident(Color)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <enumerated>
+|       |       |-- lparent
+|       |       |-- ident(Red)
+|       |       |-- comma
+|       |       |-- ident(Green)
+|       |       |-- comma
+|       |       |-- ident(Blue)
+|       |       +-- rparent
+|       |-- semicolon
+|       |-- ident(Person)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <record-type>
+|       |       |-- recordsy
+|       |       |-- <field-list>
+|       |       |   |-- <field-part>
+|       |       |   |   |-- <identifier-list>
+|       |       |   |   |   +-- ident(age)
+|       |       |   |   |-- colon
+|       |       |   |   +-- <type>
+|       |       |   |       +-- ident(integer)
+|       |       |   |-- semicolon
+|       |       |   +-- <field-part>
+|       |       |       |-- <identifier-list>
+|       |       |       |   +-- ident(name)
+|       |       |       |-- colon
+|       |       |       +-- <type>
+|       |       |           +-- ident(string)
+|       |       +-- endsy
+|       |-- semicolon
+|       |-- ident(Arr)
+|       |-- eql
+|       |-- <type>
+|       |   +-- <array-type>
+|       |       |-- arraysy
+|       |       |-- lbrack
+|       |       |-- <range>
+|       |       |   |-- <expression>
+|       |       |   |   +-- <simple-expression>
+|       |       |   |       +-- <term>
+|       |       |   |           +-- <factor>
+|       |       |   |               +-- intcon(1)
+|       |       |   |-- period
+|       |       |   |-- period
+|       |       |   +-- <expression>
+|       |       |       +-- <simple-expression>
+|       |       |           +-- <term>
+|       |       |               +-- <factor>
+|       |       |                   +-- intcon(10)
+|       |       |-- rbrack
+|       |       |-- ofsy
+|       |       +-- <type>
+|       |           +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
+
+\textbf{Analisis:} Parser berhasil memproses lima definisi tipe dalam satu blok \texttt{type}. Range \texttt{1..10} menghasilkan node \texttt{<range>} dengan dua \texttt{period} terpisah sebagai pemisah. Enumerated menghasilkan node \texttt{<enumerated>} dengan daftar identifier. Record menghasilkan \texttt{<field-list>} bersarang. Array menggabungkan \texttt{<range>} di dalam \texttt{<array-type>}.
+
+\subsection{Kasus Uji 6: Case Statement dengan Label Ganda}
+\textbf{Berkas:} \texttt{pos\_case.txt}
+
+\textbf{Deskripsi:} Memverifikasi parsing \texttt{<case-statement>} dengan beberapa blok kasus, termasuk blok dengan dua label yang dipisahkan koma.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program CaseTest;
+var
+  i, x: integer;
+begin
+  case i of
+    0: x := 0;
+    1, 2: x := 1;
+    3: x := 2;
+  end;
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(CaseTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   |-- ident(i)
+|       |   |-- comma
+|       |   +-- ident(x)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <case-statement>
+|   |   |       |-- casesy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- ofsy
+|   |   |       |-- <case-block>
+|   |   |       |   |-- <constant>
+|   |   |       |   |   +-- intcon(0)
+|   |   |       |   |-- colon
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <assignment-statement>
+|   |   |       |   |       |-- <variable>
+|   |   |       |   |       |   +-- ident(x)
+|   |   |       |   |       |-- becomes
+|   |   |       |   |       +-- <expression>
+|   |   |       |   |           +-- <simple-expression>
+|   |   |       |   |               +-- <term>
+|   |   |       |   |                   +-- <factor>
+|   |   |       |   |                       +-- intcon(0)
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <case-block>
+|   |   |       |       |-- <constant>
+|   |   |       |       |   +-- intcon(1)
+|   |   |       |       |-- comma
+|   |   |       |       |-- <constant>
+|   |   |       |       |   +-- intcon(2)
+|   |   |       |       |-- colon
+|   |   |       |       |-- <statement>
+|   |   |       |       |   +-- <assignment-statement>
+|   |   |       |       |       |-- <variable>
+|   |   |       |       |       |   +-- ident(x)
+|   |   |       |       |       |-- becomes
+|   |   |       |       |       +-- <expression>
+|   |   |       |       |           +-- <simple-expression>
+|   |   |       |       |               +-- <term>
+|   |   |       |       |                   +-- <factor>
+|   |   |       |       |                       +-- intcon(1)
+|   |   |       |       |-- semicolon
+|   |   |       |       +-- <case-block>
+|   |   |       |           |-- <constant>
+|   |   |       |           |   +-- intcon(3)
+|   |   |       |           |-- colon
+|   |   |       |           |-- <statement>
+|   |   |       |           |   +-- <assignment-statement>
+|   |   |       |           |       |-- <variable>
+|   |   |       |           |       |   +-- ident(x)
+|   |   |       |           |       |-- becomes
+|   |   |       |           |       +-- <expression>
+|   |   |       |           |           +-- <simple-expression>
+|   |   |       |           |               +-- <term>
+|   |   |       |           |                   +-- <factor>
+|   |   |       |           |                       +-- intcon(2)
+|   |   |       |           +-- semicolon
+|   |   |       +-- endsy
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
+
+\textbf{Analisis:} Struktur \texttt{<case-block>} bersifat rekursif: setiap blok memuat \texttt{<constant>}, \texttt{colon}, \texttt{<statement>}, dan opsional \texttt{<case-block>} berikutnya. Label ganda \texttt{1, 2} menghasilkan dua node \texttt{<constant>} yang dipisahkan \texttt{comma} dalam satu blok yang sama.
+
+\subsection{Kasus Uji 7: Akses Field Record Bersarang (Edge Case)}
+\textbf{Berkas:} \texttt{edge\_nested\_record.txt}
+
+\textbf{Deskripsi:} Kasus batas yang memverifikasi bahwa parser dapat menangani akses field record berantai (\texttt{o.x.y}) dan tidak mengacaukan titik tunggal dengan operator range \texttt{..}.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program NestedRecord;
+type
+  Inner == record
+    y: integer
+  end;
+  Outer == record
+    x: Inner
+  end;
+var
+  o: Outer;
+begin
+  o.x.y := 10;
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(NestedRecord)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <type-declaration>
+|   |   |-- typesy
+|   |   |-- ident(Inner)
+|   |   |-- eql
+|   |   |-- <type>
+|   |   |   +-- <record-type>
+|   |   |       |-- recordsy
+|   |   |       |-- <field-list>
+|   |   |       |   +-- <field-part>
+|   |   |       |       |-- <identifier-list>
+|   |   |       |       |   +-- ident(y)
+|   |   |       |       |-- colon
+|   |   |       |       +-- <type>
+|   |   |       |           +-- ident(integer)
+|   |   |       +-- endsy
+|   |   |-- semicolon
+|   |   |-- ident(Outer)
+|   |   |-- eql
+|   |   |-- <type>
+|   |   |   +-- <record-type>
+|   |   |       |-- recordsy
+|   |   |       |-- <field-list>
+|   |   |       |   +-- <field-part>
+|   |   |       |       |-- <identifier-list>
+|   |   |       |       |   +-- ident(x)
+|   |   |       |       |-- colon
+|   |   |       |       +-- <type>
+|   |   |       |           +-- ident(Inner)
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(o)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(Outer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   |-- ident(o)
+|   |   |       |   |-- <component-variable>
+|   |   |       |   |   |-- period
+|   |   |       |   |   +-- ident(x)
+|   |   |       |   +-- <component-variable>
+|   |   |       |       |-- period
+|   |   |       |       +-- ident(y)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(10)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
+
+\textbf{Analisis:} Ekspresi \texttt{o.x.y} menghasilkan dua node \texttt{<component-variable>} yang berantai sebagai anak dari \texttt{<variable>}. Setiap \texttt{<component-variable>} memuat satu \texttt{period} dan satu \texttt{ident}. Parser tidak mengacaukan titik tunggal ini dengan pemisah range \texttt{..} karena konteksnya berbeda (di dalam \texttt{parseVariable}, bukan \texttt{parseRange}).
+
+\subsection{Kasus Uji 8: Disambiguasi Fungsi sebagai Variabel vs Pemanggilan Fungsi (Edge Case)}
+\textbf{Berkas:} \texttt{edge\_func\_in\_expr.txt}
+
+\textbf{Deskripsi:} Kasus batas yang memverifikasi mekanisme lookahead parser: \texttt{Foo} (tanpa tanda kurung) diperlakukan sebagai \texttt{<variable>}, sedangkan \texttt{Bar(3)} (dengan tanda kurung) diperlakukan sebagai \texttt{<procedure/function-call>}, keduanya dalam satu ekspresi.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program FuncInExpr;
+var
+  x: integer;
+function Foo: integer;
+begin
+  Foo := 1;
+end;
+function Bar(a: integer): integer;
+begin
+  Bar := a * 2;
+end;
+begin
+  x := Foo + Bar(3);
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{lstlisting}[style=default]
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(FuncInExpr)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <var-declaration>
+|   |   |-- varsy
+|   |   |-- <identifier-list>
+|   |   |   +-- ident(x)
+|   |   |-- colon
+|   |   |-- <type>
+|   |   |   +-- ident(integer)
+|   |   +-- semicolon
+|   |-- <function-declaration>
+|   |   |-- functionsy
+|   |   |-- ident(Foo)
+|   |   |-- colon
+|   |   |-- ident(integer)
+|   |   |-- semicolon
+|   |   |-- <block>
+|   |   |   |-- <declaration-part>
+|   |   |   +-- <compound-statement>
+|   |   |       |-- beginsy
+|   |   |       |-- <statement-list>
+|   |   |       |   |-- <statement>
+|   |   |       |   |   +-- <assignment-statement>
+|   |   |       |   |       |-- <variable>
+|   |   |       |   |       |   +-- ident(Foo)
+|   |   |       |   |       |-- becomes
+|   |   |       |   |       +-- <expression>
+|   |   |       |   |           +-- <simple-expression>
+|   |   |       |   |               +-- <term>
+|   |   |       |   |                   +-- <factor>
+|   |   |       |   |                       +-- intcon(1)
+|   |   |       |   |-- semicolon
+|   |   |       |   +-- <statement>
+|   |   |       +-- endsy
+|   |   +-- semicolon
+|   +-- <function-declaration>
+|       |-- functionsy
+|       |-- ident(Bar)
+|       |-- <formal-parameter-list>
+|       |   |-- lparent
+|       |   |-- <parameter-group>
+|       |   |   |-- <identifier-list>
+|       |   |   |   +-- ident(a)
+|       |   |   |-- colon
+|       |   |   +-- ident(integer)
+|       |   +-- rparent
+|       |-- colon
+|       |-- ident(integer)
+|       |-- semicolon
+|       |-- <block>
+|       |   |-- <declaration-part>
+|       |   +-- <compound-statement>
+|       |       |-- beginsy
+|       |       |-- <statement-list>
+|       |       |   |-- <statement>
+|       |       |   |   +-- <assignment-statement>
+|       |       |   |       |-- <variable>
+|       |       |   |       |   +-- ident(Bar)
+|       |       |   |       |-- becomes
+|       |       |   |       +-- <expression>
+|       |       |   |           +-- <simple-expression>
+|       |       |   |               +-- <term>
+|       |       |   |                   |-- <factor>
+|       |       |   |                   |   +-- <variable>
+|       |       |   |                   |       +-- ident(a)
+|       |       |   |                   |-- times
+|       |       |   |                   +-- <factor>
+|       |       |   |                       +-- intcon(2)
+|       |       |   |-- semicolon
+|       |       |   +-- <statement>
+|       |       +-- endsy
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(x)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               |-- <term>
+|   |   |               |   +-- <factor>
+|   |   |               |       +-- <variable>
+|   |   |               |           +-- ident(Foo)
+|   |   |               |-- plus
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- <procedure/function-call>
+|   |   |                           |-- ident(Bar)
+|   |   |                           |-- lparent
+|   |   |                           |-- <parameter-list>
+|   |   |                           |   +-- <expression>
+|   |   |                           |       +-- <simple-expression>
+|   |   |                           |           +-- <term>
+|   |   |                           |               +-- <factor>
+|   |   |                           |                   +-- intcon(3)
+|   |   |                           +-- rparent
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
+\end{lstlisting}
+
+\textbf{Analisis:} Pada ekspresi \texttt{Foo + Bar(3)}, parser di \texttt{parseFactor()} melakukan lookahead satu token setelah membaca \texttt{ident}. Karena \texttt{Foo} tidak diikuti \texttt{lparent}, ia diparse sebagai \texttt{<variable>}. Karena \texttt{Bar} diikuti \texttt{lparent}, ia diparse sebagai \texttt{<procedure/function-call>}. Keduanya menjadi \texttt{<factor>} dalam \texttt{<term>} yang berbeda di bawah satu \texttt{<simple-expression>}.
+
+\subsection{Kasus Uji 9: if tanpa then (Kasus Negatif)}
+\textbf{Berkas:} \texttt{neg\_missing\_then.txt}
+
+\textbf{Deskripsi:} Kasus negatif yang memverifikasi bahwa parser mendeteksi dan melaporkan kesalahan sintaks ketika kata kunci \texttt{then} tidak ada setelah kondisi \texttt{if}.
+
+\textbf{Masukan:}
+\begin{lstlisting}[style=default]
+program P;
+begin
+  if 1 == 1 x := 2;
+end.
+\end{lstlisting}
 
 \textbf{Keluaran yang diharapkan (stderr):}
 \begin{lstlisting}[style=default]
-[line 2] Error: Unterminated string or character literal.
-[line 2] Error: Unterminated comment.
+Syntax error on line 3: Expected 'then' (got ident(x))
 \end{lstlisting}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase5.png}
-  \caption{Hasil pengujian kasus uji 5}
-\end{figure}
+\textbf{Analisis:} Setelah memparse ekspresi \texttt{1 == 1}, fungsi \texttt{parseIfStatement()} memanggil \texttt{consumeTerminal(thensy, "Expected 'then'")}. Karena token berikutnya adalah \texttt{ident(x)}, bukan \texttt{thensy}, fungsi \texttt{error()} dipanggil dan melempar \texttt{SyntaxError} dengan nomor baris yang tepat.
 
-\textbf{Analisis:} Lexer melaporkan kesalahan dengan nomor baris yang akurat dan tidak mengalami \textit{crash}. Scanner meneruskan pemrosesan setelah menemukan kesalahan (\textit{error recovery}).
+\subsection{Kasus Uji 10: Assignment dengan Operator Salah (Kasus Negatif)}
+\textbf{Berkas:} \texttt{neg\_bad\_assign.txt}
 
-\subsection{Kasus Uji 6: Operator \texttt{==} vs Karakter \texttt{=} Tunggal}
-\textbf{Berkas:} \texttt{edge\_eql\_vs\_single\_eq.txt}
+\textbf{Deskripsi:} Kasus negatif yang memverifikasi bahwa parser menolak penggunaan operator \texttt{=} tunggal sebagai pengganti \texttt{:=} pada pernyataan assignment.
 
 \textbf{Masukan:}
 \begin{lstlisting}[style=default]
-x == 5
-y = 3
-== ==
+program P;
+var
+  x: integer;
+begin
+  x = 5;
+end.
 \end{lstlisting}
 
-\textbf{Keluaran yang diharapkan (stdout):} \texttt{ident (x)}, \texttt{eql}, \texttt{intcon (5)}, \texttt{ident (y)}, \texttt{intcon (3)}, \texttt{eql}, \texttt{eql}.
-
-\textbf{Keluaran yang diharapkan (stderr):} \texttt{[line 2] Error: Unexpected character: =}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase6.png}
-  \caption{Hasil pengujian kasus uji 6}
-\end{figure}
-
-\textbf{Analisis:} Operator \texttt{==} dikenali sebagai \texttt{eql}, sedangkan karakter \texttt{=} tunggal (tanpa diikuti \texttt{=}) menghasilkan kesalahan karena bukan operator valid dalam Arion.
-
-\subsection{Kasus Uji 7: Operator \texttt{:=} vs \texttt{:} Diikuti Karakter Lain}
-\textbf{Berkas:} \texttt{edge\_becomes\_vs\_colon.txt}
-
-\textbf{Masukan:}
+\textbf{Keluaran yang diharapkan (stderr):}
 \begin{lstlisting}[style=default]
-x := 10
-y : integer
-a :=b
-c: d
+Syntax error on line 5: Expected 'end' (got eql)
 \end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \texttt{ident (x)}, \texttt{becomes}, \texttt{intcon (10)}, \texttt{ident (y)}, \texttt{colon}, \texttt{ident (integer)}, \texttt{ident (a)}, \texttt{becomes}, \texttt{ident (b)}, \texttt{ident (c)}, \texttt{colon}, \texttt{ident (d)} --- total 12 token.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\textwidth]{testcase7.png}
-  \caption{Hasil pengujian kasus uji 7}
-\end{figure}
-
-\textbf{Analisis:} Mekanisme \texttt{match('=')} berhasil membedakan \texttt{:=} (becomes) dari \texttt{:} (colon). Perhatikan bahwa \texttt{integer} bukan kata kunci dalam Arion sehingga dikenali sebagai \texttt{ident}.
+\textbf{Analisis:} Parser melihat \texttt{ident(x)}, melakukan backtracking: setelah \texttt{parseVariable()} mengonsumsi \texttt{x}, token berikutnya adalah \texttt{eql} (bukan \texttt{becomes}), sehingga \texttt{isAssign = false}. Parser lalu memproses \texttt{x} sebagai pemanggilan prosedur tanpa argumen. Token \texttt{eql} yang tersisa tidak cocok dengan \texttt{semicolon} maupun \texttt{endsy}, sehingga \texttt{parseCompoundStatement()} memunculkan kesalahan.
 
 \subsection{Ringkasan Hasil Pengujian}
 
 \begin{table}[H]
   \centering
-  \begin{tabular}{clcc}
+  \begin{tabular}{clccc}
     \toprule
-    \textbf{No.} & \textbf{Deskripsi Kasus Uji} & \textbf{Status} & \textbf{Kesalahan} \\
+    \textbf{No.} & \textbf{Deskripsi Kasus Uji} & \textbf{Tipe} & \textbf{Status} & \textbf{Kesalahan} \\
     \midrule
-    1 & Kata kunci berbagai \textit{case}  & Lulus & Tidak ada \\
-    2 & Bilangan riil vs titik             & Lulus & Tidak ada \\
-    3 & Charcon vs string                  & Lulus & Tidak ada \\
-    4 & Komentar bersarang \& hanya komentar & Lulus & Tidak ada \\
-    5 & Konstruksi tidak ditutup            & Lulus & 2 kesalahan (sesuai harapan) \\
-    6 & \texttt{==} vs \texttt{=} tunggal   & Lulus & 1 kesalahan (sesuai harapan) \\
-    7 & \texttt{:=} vs \texttt{:}           & Lulus & Tidak ada \\
+    1  & Program minimal                        & Positif & Lulus & Tidak ada \\
+    2  & Percabangan if-then-else               & Positif & Lulus & Tidak ada \\
+    3  & Perulangan for (to dan downto)         & Positif & Lulus & Tidak ada \\
+    4  & Deklarasi fungsi dengan parameter      & Positif & Lulus & Tidak ada \\
+    5  & Deklarasi tipe kompleks                & Positif & Lulus & Tidak ada \\
+    6  & Case statement dengan label ganda      & Positif & Lulus & Tidak ada \\
+    7  & Akses field record bersarang           & Edge    & Lulus & Tidak ada \\
+    8  & Disambiguasi variabel vs fungsi        & Edge    & Lulus & Tidak ada \\
+    9  & \textit{if} tanpa \textit{then}        & Negatif & Lulus & 1 (sesuai harapan) \\
+    10 & Assignment dengan operator \texttt{=} & Negatif & Lulus & 1 (sesuai harapan) \\
     \bottomrule
   \end{tabular}
-  \caption{Ringkasan hasil pengujian}
+  \caption{Ringkasan hasil pengujian parser}
 \end{table}
 
-Seluruh kasus uji menghasilkan keluaran yang sesuai dengan ekspektasi. Pesan kesalahan pada kasus uji 5 dan 6 muncul pada \texttt{stderr} dengan nomor baris yang tepat.
+Seluruh kasus uji menghasilkan keluaran yang sesuai dengan ekspektasi. Pesan kesalahan pada kasus uji 9 dan 10 muncul pada \texttt{stderr} dengan nomor baris yang tepat, membuktikan bahwa mekanisme pelaporan kesalahan sintaks bekerja dengan benar.
 
 \section{Akhiran}
 
