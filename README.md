@@ -2,7 +2,11 @@
 
 ## Deskripsi Program
 
-Program ini merupakan proyek compiler bahasa Arion yang dibagi menjadi lima tahap: Lexical Analysis, Syntax Analysis, Semantic Analysis, Intermediate Code Generation, dan Interpreter. Milestone 1 berfokus pada implementasi Lexical Analysis (lexer) untuk membaca source code Arion dan menghasilkan token stream.
+Program ini merupakan proyek compiler bahasa Arion yang dibagi menjadi lima tahap: Lexical Analysis, Syntax Analysis, Semantic Analysis, Intermediate Code Generation, dan Interpreter. Milestone 1 berfokus pada implementasi Lexical Analysis (lexer) untuk membaca source code Arion dan menghasilkan token stream. Milestone 2 berfokus pada implementasi Syntax Analysis (parser) menggunakan algoritma Recursive Descent untuk memeriksa urutan token dan membangun Parse Tree.
+
+Program bekerja dalam dua fase:
+1. **Lexical Analysis**: Scanner membaca source code dan menghasilkan daftar token.
+2. **Syntax Analysis**: Parser menerima daftar token dan membangun Parse Tree menggunakan Recursive Descent, lalu mencetak tree ke terminal dan menyimpannya ke file teks di `test/output/`.
 
 ## Requirements
 
