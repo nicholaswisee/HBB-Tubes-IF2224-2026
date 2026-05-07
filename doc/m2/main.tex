@@ -434,7 +434,7 @@ Grammar bahasa Arion didefinisikan dalam bentuk aturan produksi (\textit{product
 \langle \text{statement-list} \rangle &\rightarrow \langle \text{statement} \rangle \; ( \texttt{semicolon} \; \langle \text{statement} \rangle )^* \\
 \langle \text{statement} \rangle &\rightarrow \langle \text{assignment-statement} \rangle \;|\; \langle \text{if-statement} \rangle \;|\; \langle \text{case-statement} \rangle \\
 &\quad\;|\; \langle \text{while-statement} \rangle \;|\; \langle \text{repeat-statement} \rangle \;|\; \langle \text{for-statement} \rangle \\
-&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; \epsilon \\
+&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; \langle \text{compound-statement} \rangle \;|\; \epsilon \\
 \langle \text{assignment-statement} \rangle &\rightarrow \langle \text{variable} \rangle \; \texttt{becomes} \; \langle \text{expression} \rangle \\
 \langle \text{if-statement} \rangle &\rightarrow \texttt{ifsy} \; \langle \text{expression} \rangle \; \texttt{thensy} \; \langle \text{statement} \rangle \\
 &\quad\;[ \texttt{elsesy} \; \langle \text{statement} \rangle ] \\
@@ -452,9 +452,9 @@ Grammar bahasa Arion didefinisikan dalam bentuk aturan produksi (\textit{product
 \subsubsection{Ekspresi}
 \begin{align*}
 \langle \text{expression} \rangle &\rightarrow \langle \text{simple-expression} \rangle \\
-&\quad\;[ \langle \text{relational-operator} \rangle \; \langle \text{simple-expression} \rangle ] \\
+&\quad\;[ ( \texttt{eql} \;|\; \texttt{neq} \;|\; \texttt{gtr} \;|\; \texttt{geq} \;|\; \texttt{lss} \;|\; \texttt{leq} ) \; \langle \text{simple-expression} \rangle ] \\
 \langle \text{simple-expression} \rangle &\rightarrow [ \texttt{plus} \;|\; \texttt{minus} ] \; \langle \text{term} \rangle \\
-&\quad\; ( \texttt{plus} \;|\; \texttt{minus} \;|\; \texttt{orsy} ) \; \langle \text{term} \rangle )^* \\
+&\quad\; ( ( \texttt{plus} \;|\; \texttt{minus} \;|\; \texttt{orsy} ) \; \langle \text{term} \rangle )^* \\
 \langle \text{term} \rangle &\rightarrow \langle \text{factor} \rangle \; ( ( \texttt{times} \;|\; \texttt{rdiv} \;|\; \texttt{idiv} \;|\; \texttt{imod} \;|\; \texttt{andsy} ) \; \langle \text{factor} \rangle )^* \\
 \langle \text{factor} \rangle &\rightarrow \texttt{intcon} \;|\; \texttt{realcon} \;|\; \texttt{charcon} \;|\; \texttt{string} \;|\; \langle \text{variable} \rangle \\
 &\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; ( \langle \text{expression} \rangle ) \;|\; \texttt{notsy} \; \langle \text{factor} \rangle
@@ -1797,20 +1797,49 @@ Seluruh kasus uji menghasilkan keluaran yang sesuai dengan ekspektasi. Pesan kes
 \section{Akhiran}
 
 \subsection{Kesimpulan}
-Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan \textit{lexical analyzer} untuk bahasa Arion dengan hasil sebagai berikut:
-\begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item \textbf{DFA berbasis modul} --- Lexer berhasil mengimplementasikan DFA dengan pendekatan modular yang memisahkan pengenalan identifier, bilangan, string, komentar, dan operator ke dalam modul-modul independen. Seluruh 52 jenis token dapat dikenali dengan benar.
-  \item \textbf{Penanganan ambiguitas} --- Kasus-kasus ambigu seperti pembedaan \texttt{charcon} vs \texttt{string} (berdasarkan panjang), \texttt{intcon} vs \texttt{realcon} (berdasarkan \textit{lookahead} setelah titik), dan operator satu vs dua karakter (menggunakan \texttt{match()}) berhasil ditangani secara deterministik.
-  \item \textbf{Error recovery} --- Lexer mampu melaporkan kesalahan leksikal (karakter tidak valid, literal/komentar tidak ditutup) tanpa menghentikan proses scanning, sehingga seluruh kesalahan dalam satu berkas dapat dilaporkan sekaligus.
-\end{enumerate}
+Pada milestone kedua ini, kelompok berhasil merancang dan mengimplementasikan
+\textit{syntax analyzer} (parser) untuk bahasa Arion menggunakan algoritma
+\textit{Recursive Descent}. Implementasi ini menerapkan setiap aturan produksi
+dalam grammar bahasa Arion sebagai fungsi rekursif yang membangun Parse Tree
+secara hierarkis. Parser mampu memproses seluruh struktur bahasa Arion, mulai
+dari header program, deklarasi (konstanta, tipe, variabel, subprogram), hingga
+berbagai jenis pernyataan seperti percabangan, perulangan, dan ekspresi
+aritmatika dan relasional.
+
+Parser berhasil menangani kasus-kasus ambigu secara deterministik melalui
+mekanisme \textit{lookahead} dan \textit{backtracking}, seperti pembedaan antara
+\texttt{<assignment-statement>} dan \texttt{<procedure/function-call>} pada
+tingkat pernyataan, serta pembedaan antara \texttt{<variable>} dan
+\texttt{<procedure/function-call>} di dalam \texttt{<factor>}. Selain itu,
+parser dilengkapi dengan deteksi kesalahan sintaks yang melaporkan nomor baris
+dan deskripsi kesalahan secara informatif, serta menghasilkan keluaran Parse
+Tree yang terformat dengan jelas ke terminal dan ke dalam berkas teks.
 
 \subsection{Tantangan yang Dihadapi}
-\begin{enumerate}[label=\arabic*., leftmargin=2em]
-  \item \textbf{DFA vs \textit{switch-case}} --- Terdapat \textit{tradeoff} antara implementasi DFA eksplisit (tabel transisi) dan pendekatan \textit{switch-case} yang lebih prosedural. Pendekatan \textit{switch-case} dipilih karena lebih mudah dibaca dan di-\textit{debug}, meskipun kurang fleksibel untuk modifikasi pola secara otomatis.
-  \item \textbf{Ambiguitas \texttt{charcon} vs \texttt{string}} --- Kedua tipe menggunakan pembatas yang sama (\texttt{'}), sehingga klasifikasi baru dapat dilakukan setelah seluruh isi literal terkumpul. Solusinya adalah memeriksa panjang setelah penutupan kutip.
-  \item \textbf{Komentar tidak menghasilkan token} --- Keputusan desain untuk tidak menghasilkan token \texttt{comment} menyederhanakan antarmuka dengan parser, namun memerlukan perhatian khusus agar komentar yang tidak ditutup terdeteksi sebagai kesalahan.
-\end{enumerate}
+Selama proses pengembangan parser, kelompok dihadapkan pada beberapa tantangan
+teknis. Tantangan utama adalah penanganan ambiguitas dalam grammar, terutama
+pembedaan antara \texttt{<assignment-statement>} dan
+\texttt{<procedure/function-call>} yang sama-sama diawali oleh token
+\texttt{ident}. Solusi yang diterapkan adalah mekanisme \textit{lookahead}
+dengan \textit{backtracking}: parser menyimpan posisi token, mencoba mem-parsing
+sebagai \texttt{<variable>}, lalu memeriksa apakah token berikutnya adalah
+\texttt{becomes} untuk menentukan interpretasi yang tepat.
 
+Tantangan berikutnya adalah disambiguasi yang diperlukan pada saat
+parser menemukan token \texttt{ident}. Di dalam \texttt{<factor>},
+parser harus melihat satu token ke depan untuk memutuskan apakah
+\texttt{ident} merupakan \texttt{<variable>} atau
+\texttt{<procedure/function-call>} (jika diikuti \texttt{lparent}).
+Selain itu, dalam \texttt{<type>}, token \texttt{ident} bisa merupakan tipe
+sederhana atau awal dari \texttt{<range>}, sehingga parser perlu memeriksa
+keberadaan dua titik berurutan.
+
+Tantangan teknis lainnya adalah perancangan struktur data Parse Tree yang
+sederhana namun cukup fleksibel untuk merepresentasikan seluruh node dalam
+grammar. Pendekatan yang dipilih adalah menggunakan satu struktur
+\texttt{ParseTreeNode} dengan label string dan daftar anak, tanpa pembedaan
+tipe node, yang menyederhanakan implementasi namun tetap menghasilkan representasi
+yang informatif.
 \newpage
 \addcontentsline{toc}{section}{References}
 \section*{Daftar Pustaka}
@@ -1827,9 +1856,6 @@ Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan 
 
 \end{enumerate}
 
-% ============================================================
-%   APPENDIX
-% ============================================================
 
 \addcontentsline{toc}{section}{Appendix}
 \section*{Appendix}
@@ -1843,8 +1869,6 @@ Pada milestone pertama ini, kelompok berhasil merancang dan mengimplementasikan 
     \textbf{Sumber Daya} & \textbf{Tautan} \\
     \midrule
     Repository GitHub & \url{\RepoURL} \\
-    Deployment      & \url{\DeployURL} \\
-    Diagram DFA       & \url{\DFAURL} \\
     \bottomrule
   \end{tabular}
   \end{small}
