@@ -32,18 +32,24 @@
 |   |   |       |           +-- <factor>
 |   |   |       |               +-- intcon(10)
 |   |   |       |-- dosy
-|   |   |       +-- <statement>
-|   |   |           +-- <procedure/function-call>
-|   |   |               |-- ident(writeln)
-|   |   |               |-- lparent
-|   |   |               |-- <parameter-list>
-|   |   |               |   +-- <expression>
-|   |   |               |       +-- <simple-expression>
-|   |   |               |           +-- <term>
-|   |   |               |               +-- <factor>
-|   |   |               |                   +-- <variable>
-|   |   |               |                       +-- ident(i)
-|   |   |               +-- rparent
+|   |   |       +-- <compound-statement>
+|   |   |           |-- beginsy
+|   |   |           |-- <statement-list>
+|   |   |           |   |-- <statement>
+|   |   |           |   |   +-- <procedure/function-call>
+|   |   |           |   |       |-- ident(writeln)
+|   |   |           |   |       |-- lparent
+|   |   |           |   |       |-- <parameter-list>
+|   |   |           |   |       |   +-- <expression>
+|   |   |           |   |       |       +-- <simple-expression>
+|   |   |           |   |       |           +-- <term>
+|   |   |           |   |       |               +-- <factor>
+|   |   |           |   |       |                   +-- <variable>
+|   |   |           |   |       |                       +-- ident(i)
+|   |   |           |   |       +-- rparent
+|   |   |           |   |-- semicolon
+|   |   |           |   +-- <statement>
+|   |   |           +-- endsy
 |   |   |-- semicolon
 |   |   |-- <statement>
 |   |   |   +-- <for-statement>
@@ -62,18 +68,24 @@
 |   |   |       |           +-- <factor>
 |   |   |       |               +-- intcon(1)
 |   |   |       |-- dosy
-|   |   |       +-- <statement>
-|   |   |           +-- <procedure/function-call>
-|   |   |               |-- ident(writeln)
-|   |   |               |-- lparent
-|   |   |               |-- <parameter-list>
-|   |   |               |   +-- <expression>
-|   |   |               |       +-- <simple-expression>
-|   |   |               |           +-- <term>
-|   |   |               |               +-- <factor>
-|   |   |               |                   +-- <variable>
-|   |   |               |                       +-- ident(i)
-|   |   |               +-- rparent
+|   |   |       +-- <compound-statement>
+|   |   |           |-- beginsy
+|   |   |           |-- <statement-list>
+|   |   |           |   |-- <statement>
+|   |   |           |   |   +-- <procedure/function-call>
+|   |   |           |   |       |-- ident(writeln)
+|   |   |           |   |       |-- lparent
+|   |   |           |   |       |-- <parameter-list>
+|   |   |           |   |       |   +-- <expression>
+|   |   |           |   |       |       +-- <simple-expression>
+|   |   |           |   |       |           +-- <term>
+|   |   |           |   |       |               +-- <factor>
+|   |   |           |   |       |                   +-- <variable>
+|   |   |           |   |       |                       +-- ident(i)
+|   |   |           |   |       +-- rparent
+|   |   |           |   |-- semicolon
+|   |   |           |   +-- <statement>
+|   |   |           +-- endsy
 |   |   |-- semicolon
 |   |   +-- <statement>
 |   +-- endsy
