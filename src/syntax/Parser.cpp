@@ -543,7 +543,7 @@ shared_ptr<ParseTreeNode> Parser::parseWhileStatement() {
     node->addChild(consumeTerminal(TokenType::whilesy, "Expected 'while'"));
     node->addChild(parseExpression());
     node->addChild(consumeTerminal(TokenType::dosy, "Expected 'do'"));
-    node->addChild(parseStatement());
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
@@ -574,7 +574,7 @@ shared_ptr<ParseTreeNode> Parser::parseForStatement() {
 
     node->addChild(parseExpression());
     node->addChild(consumeTerminal(TokenType::dosy, "Expected 'do'"));
-    node->addChild(parseStatement());
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
