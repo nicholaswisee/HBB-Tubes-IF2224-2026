@@ -1,0 +1,14 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(TestEmpty)
+|   +-- semicolon
+|-- <declaration-part>
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

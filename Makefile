@@ -55,6 +55,17 @@ clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
 	@echo "Cleaned up."
 
+# Build and run symbol table test
+test-symbol-table:
+	@echo "Building symbol table test..."
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) test/test_symbol_table.cpp \
+		src/semantic/TypeSystem.cpp \
+		src/semantic/SymbolTableManager.cpp \
+		-o $(BIN_DIR)/test_symbol_table
+	@echo "Running symbol table test..."
+	./$(BIN_DIR)/test_symbol_table
+
 # Basic placeholder for tests
 test: all
 	@echo "Running tests..."
