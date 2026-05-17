@@ -1,0 +1,337 @@
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(SemanticTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   |-- <var-declaration>
+|   |   |-- varsy
+|   |   |-- <identifier-list>
+|   |   |   |-- ident(i)
+|   |   |   |-- comma
+|   |   |   +-- ident(j)
+|   |   |-- colon
+|   |   |-- <type>
+|   |   |   +-- ident(integer)
+|   |   |-- semicolon
+|   |   |-- <identifier-list>
+|   |   |   +-- ident(r)
+|   |   |-- colon
+|   |   |-- <type>
+|   |   |   +-- ident(real)
+|   |   |-- semicolon
+|   |   |-- <identifier-list>
+|   |   |   +-- ident(b)
+|   |   |-- colon
+|   |   |-- <type>
+|   |   |   +-- ident(boolean)
+|   |   |-- semicolon
+|   |   |-- <identifier-list>
+|   |   |   +-- ident(arr)
+|   |   |-- colon
+|   |   |-- <type>
+|   |   |   +-- <array-type>
+|   |   |       |-- arraysy
+|   |   |       |-- lbrack
+|   |   |       |-- <range>
+|   |   |       |   |-- <constant>
+|   |   |       |   |   +-- intcon(1)
+|   |   |       |   |-- period
+|   |   |       |   |-- period
+|   |   |       |   +-- <constant>
+|   |   |       |       +-- intcon(10)
+|   |   |       |-- rbrack
+|   |   |       |-- ofsy
+|   |   |       +-- <type>
+|   |   |           +-- ident(integer)
+|   |   +-- semicolon
+|   +-- <procedure-declaration>
+|       |-- proceduresy
+|       |-- ident(greet)
+|       |-- <formal-parameter-list>
+|       |   |-- lparent
+|       |   |-- <parameter-group>
+|       |   |   |-- <identifier-list>
+|       |   |   |   +-- ident(msg)
+|       |   |   |-- colon
+|       |   |   +-- ident(string)
+|       |   +-- rparent
+|       |-- semicolon
+|       |-- <block>
+|       |   |-- <declaration-part>
+|       |   +-- <compound-statement>
+|       |       |-- beginsy
+|       |       |-- <statement-list>
+|       |       |   |-- <statement>
+|       |       |   |   +-- <procedure/function-call>
+|       |       |   |       |-- ident(writeln)
+|       |       |   |       |-- lparent
+|       |       |   |       |-- <parameter-list>
+|       |       |   |       |   +-- <expression>
+|       |       |   |       |       +-- <simple-expression>
+|       |       |   |       |           +-- <term>
+|       |       |   |       |               +-- <factor>
+|       |       |   |       |                   +-- <variable>
+|       |       |   |       |                       +-- ident(msg)
+|       |       |   |       +-- rparent
+|       |       |   |-- semicolon
+|       |       |   +-- <statement>
+|       |       +-- endsy
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(i)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(5)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(r)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- realcon(3.14)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(j)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- <variable>
+|   |   |                           +-- ident(i)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(r)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- <variable>
+|   |   |                           +-- ident(i)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(i)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- <variable>
+|   |   |                           +-- ident(r)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(b)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- <variable>
+|   |   |                           +-- ident(true)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(b)
+|   |   |       |-- thensy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- thensy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(2)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <while-statement>
+|   |   |       |-- whilesy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(b)
+|   |   |       |-- dosy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       |-- <term>
+|   |   |                       |   +-- <factor>
+|   |   |                       |       +-- <variable>
+|   |   |                       |           +-- ident(i)
+|   |   |                       |-- plus
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <while-statement>
+|   |   |       |-- whilesy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- dosy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       |-- <term>
+|   |   |                       |   +-- <factor>
+|   |   |                       |       +-- <variable>
+|   |   |                       |           +-- ident(i)
+|   |   |                       |-- minus
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(greet)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- string('Hello')
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(greet)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- intcon(123)
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(writeln)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   |-- <expression>
+|   |   |       |   |   +-- <simple-expression>
+|   |   |       |   |       +-- <term>
+|   |   |       |   |           +-- <factor>
+|   |   |       |   |               +-- <variable>
+|   |   |       |   |                   +-- ident(i)
+|   |   |       |   |-- comma
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- <variable>
+|   |   |       |                       +-- ident(j)
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(x)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(10)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   |-- ident(arr)
+|   |   |       |   +-- <component-variable>
+|   |   |       |       |-- lbrack
+|   |   |       |       |-- <index-list>
+|   |   |       |       |   +-- intcon(1)
+|   |   |       |       +-- rbrack
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(5)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   |-- ident(arr)
+|   |   |       |   +-- <component-variable>
+|   |   |       |       |-- lbrack
+|   |   |       |       |-- <index-list>
+|   |   |       |       |   +-- ident(i)
+|   |   |       |       +-- rbrack
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(10)
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period

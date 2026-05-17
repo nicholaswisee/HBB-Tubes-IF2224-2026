@@ -14,18 +14,12 @@
 |       |       |-- arraysy
 |       |       |-- lbrack
 |       |       |-- <range>
-|       |       |   |-- <expression>
-|       |       |   |   +-- <simple-expression>
-|       |       |   |       +-- <term>
-|       |       |   |           +-- <factor>
-|       |       |   |               +-- intcon(1)
+|       |       |   |-- <constant>
+|       |       |   |   +-- intcon(1)
 |       |       |   |-- period
 |       |       |   |-- period
-|       |       |   +-- <expression>
-|       |       |       +-- <simple-expression>
-|       |       |           +-- <term>
-|       |       |               +-- <factor>
-|       |       |                   +-- intcon(10)
+|       |       |   +-- <constant>
+|       |       |       +-- intcon(10)
 |       |       |-- rbrack
 |       |       |-- ofsy
 |       |       +-- <type>
