@@ -76,6 +76,10 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
+        std::cout << "\n=== Abstract Syntax Tree (AST) ===\n";
+        ast->print(std::cout);
+        std::cout << "\n";
+
         SymbolTableManager symTable;
         SemanticAnalyzer analyzer(symTable);
         analyzer.analyze(ast);
