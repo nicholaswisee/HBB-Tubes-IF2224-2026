@@ -1,0 +1,35 @@
+program SemanticTest;
+
+var
+  i, j: integer;
+  r: real;
+  b: boolean;
+  arr: array[1..10] of integer;
+
+procedure greet(msg: string);
+begin
+  writeln(msg);
+end;
+
+begin
+  i := 5;
+  r := 3.14;
+  j := i;
+  r := i;           { valid: Real := Integer }
+  i := r;           { error: Integer := Real }
+  b := true;
+  if b then
+    i := 1;
+  if i then         { error: condition must be boolean }
+    i := 2;
+  while b do
+    i := i + 1;
+  while i do        { error: condition must be boolean }
+    i := i - 1;
+  greet('Hello');   { valid }
+  greet(123);       { error: wrong arg type }
+  writeln(i, j);
+  x := 10;          { error: undeclared identifier }
+  arr[1] := 5;
+  arr[i] := 10;
+end.

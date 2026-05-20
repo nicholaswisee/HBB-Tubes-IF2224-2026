@@ -8,6 +8,7 @@
 
 struct ParseTreeNode {
     std::string label;
+    int line = 0;
     std::vector<std::shared_ptr<ParseTreeNode>> children;
 
     explicit ParseTreeNode(const std::string &label) : label(label) {}
@@ -48,6 +49,8 @@ struct ParseTreeNode {
         }
     }
 };
-inline std::shared_ptr<ParseTreeNode> makeNode(const std::string &label) {
-    return std::make_shared<ParseTreeNode>(label);
+inline std::shared_ptr<ParseTreeNode> makeNode(const std::string &label, int line = 0) {
+    auto node = std::make_shared<ParseTreeNode>(label);
+    node->line = line;
+    return node;
 }

@@ -1,5 +1,8 @@
 #include "lexical/Scanner.hpp"
 #include "syntax/Parser.hpp"
+#include "semantic/ParseTreeToAST.hpp"
+#include "semantic/SymbolTableManager.hpp"
+#include "semantic/SemanticAnalyzer.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -45,9 +48,10 @@ int main(int argc, char *argv[]) {
         }
     }
     std::cout << "\n=== Syntax Analysis (Parse Tree) ===\n";
+    std::shared_ptr<ParseTreeNode> tree;
     try {
         Parser parser(tokens);
-        auto tree = parser.parse();
+        tree = parser.parse();
         tree->printToConsole();
         if (!fs::exists(outputDir)) {
             fs::create_directories(outputDir);
@@ -59,6 +63,46 @@ int main(int argc, char *argv[]) {
 
     } catch (const SyntaxError &e) {
         std::cerr << "\n" << e.what() << "\n";
+        return 1;
+    }
+
+    std::cout << "\n=== Semantic Analysis ===\n";
+    try {
+        ParseTreeToAST converter;
+        auto ast = converter.convert(tree);
+
+        if (!ast) {
+            std::cerr << "Failed to convert parse tree to AST\n";
+            return 1;
+        }
+
+        std::cout << "\n=== Abstract Syntax Tree (AST) ===\n";
+        ast->print(std::cout);
+        std::cout << "\n";
+
+        SymbolTableManager symTable;
+        SemanticAnalyzer analyzer(symTable);
+        analyzer.analyze(ast);
+
+        if (analyzer.hasErrors()) {
+            analyzer.printErrors();
+        }
+
+        std::cout << "\n=== Symbol Tables ===\n";
+        symTable.printTab();
+        symTable.printBTab();
+        if (symTable.atabSize() > 0) {
+            symTable.printATab();
+        }
+
+        if (analyzer.hasErrors()) {
+            return 1;
+        }
+
+        std::cout << "Semantic analysis completed successfully.\n";
+
+    } catch (const std::exception& e) {
+        std::cerr << "Semantic analysis error: " << e.what() << "\n";
         return 1;
     }
 
