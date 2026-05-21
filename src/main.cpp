@@ -12,13 +12,23 @@ namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
     // format: test/milestone[x]/[input or output]/[filename].txt
-    const fs::path inputDir = "test/milestone2/input";
-    const fs::path outputDir = "test/milestone2/output";
-
-    if (argc != 2) {
-        std::cerr << "Usage: ./bin/compiler <filename-in-test-input>\n";
+    if (argc < 2 || argc > 3) {
+        std::cerr << "Usage: ./bin/compiler <filename-in-test-input> [milestone=3]\n";
         return 1;
     }
+
+    int milestone = 3;
+    if (argc == 3) {
+        try {
+            milestone = std::stoi(argv[2]);
+        } catch (...) {
+            std::cerr << "Invalid milestone number: " << argv[2] << "\n";
+            return 1;
+        }
+    }
+
+    const fs::path inputDir = "test/milestone" + std::to_string(milestone) + "/input";
+    const fs::path outputDir = "test/milestone" + std::to_string(milestone) + "/output";
 
     if (!fs::exists(inputDir) || !fs::is_directory(inputDir)) {
         std::cerr << "Input directory not found: " << inputDir << '\n';
