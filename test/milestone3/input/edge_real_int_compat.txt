@@ -1,0 +1,9 @@
+program RealIntCompat;
+var
+  i: integer;
+  r: real;
+begin
+  r := 5;
+  r := i;
+  i := r;
+end.

@@ -1,0 +1,15 @@
+program ScopeShadow;
+var
+  x: integer;
+procedure Proc;
+var
+  x: integer;
+begin
+  x := 99;
+  writeln(x);
+end;
+begin
+  x := 1;
+  Proc;
+  writeln(x);
+end.

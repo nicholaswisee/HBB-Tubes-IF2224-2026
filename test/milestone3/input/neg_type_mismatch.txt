@@ -1,0 +1,9 @@
+program TypeMismatch;
+var
+  i: integer;
+  b: boolean;
+begin
+  b := not i;
+  b := i and true;
+  b := true or i;
+end.

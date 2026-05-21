@@ -1,0 +1,14 @@
+program BasicAssign;
+var
+  i: integer;
+  r: real;
+  b: boolean;
+  s: string;
+begin
+  i := 42;
+  r := 3.14;
+  r := i;
+  b := true;
+  s := 'hello';
+  writeln(i);
+end.

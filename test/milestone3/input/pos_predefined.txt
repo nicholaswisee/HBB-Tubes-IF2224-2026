@@ -1,0 +1,12 @@
+program PredefinedTest;
+var
+  i: integer;
+  b: boolean;
+begin
+  b := true;
+  b := false;
+  readln(i);
+  writeln(i);
+  if b then
+    writeln('yes');
+end.

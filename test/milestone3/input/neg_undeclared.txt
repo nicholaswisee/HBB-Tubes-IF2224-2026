@@ -1,0 +1,7 @@
+program UndeclaredTest;
+var
+  i: integer;
+begin
+  i := z;
+  y := 10;
+end.

@@ -1,0 +1,15 @@
+program ScopeTest;
+var
+  x: integer;
+procedure Inner;
+var
+  y: integer;
+begin
+  y := 10;
+  writeln(y);
+end;
+begin
+  x := 5;
+  Inner;
+  writeln(x);
+end.

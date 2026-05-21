@@ -1,0 +1,51 @@
+﻿=== Semantic Analysis ===
+
+=== Abstract Syntax Tree (AST) ===
+ProgramNode(FuncReturn)
+    |-- declaration[0]: VarDeclNode(result : integer)
+    |   +-- typeNode: VariableNode(integer)
+    |-- declaration[1]: FuncDeclNode(Square : integer)
+    |   |-- param[0]: ParamNode(n : integer)
+    |   +-- body: CompoundNode
+    |       +-- statement[0]: AssignNode
+    |           |-- target: VariableNode(Square)
+    |           +-- value: BinaryOpNode(*)
+    |               |-- left: VariableNode(n)
+    |               +-- right: VariableNode(n)
+    +-- body: CompoundNode
+        |-- statement[0]: AssignNode
+        |   |-- target: VariableNode(result)
+        |   +-- value: ProcCallNode(Square)
+        |       +-- argument[0]: LiteralNode(5)
+        +-- statement[1]: ProcCallNode(writeln)
+            +-- argument[0]: VariableNode(result)
+
+
+=== Symbol Tables ===
+
+=== tab ===
+idx  id        obj  type  ref  nrm  lev  adr  link
+---------------------------------------------------
+0      0    0    0    1    0    0    0
+1    integer  3    1    0    1    0    0    0
+2    real  3    2    0    1    0    0    1
+3    char  3    3    0    1    0    0    2
+4    boolean  3    4    0    1    0    0    3
+5    string  3    5    0    1    0    0    4
+6    true  1    4    0    1    0    1    5
+7    false  1    4    0    1    0    0    6
+8    writeln  4    0    0    1    0    0    7
+9    readln  4    0    0    1    0    0    8
+10    write  4    0    0    1    0    0    9
+11    read  4    0    0    1    0    0    10
+12    FuncReturn  3    0    0    1    0    0    11
+13    result  2    1    0    1    0    0    12
+14    Square  5    1    1    1    0    0    13
+15    n  2    1    0    1    1    0    0
+
+=== btab ===
+idx  last  lpar  psze  vsze
+-----------------------------
+0    14    0    0    0
+1    15    15    0    1
+Semantic analysis completed successfully.

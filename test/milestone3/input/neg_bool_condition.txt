@@ -1,0 +1,12 @@
+program BoolCondTest;
+var
+  i: integer;
+begin
+  i := 1;
+  if i then
+    i := 2;
+  while i do
+  begin
+    i := i + 1;
+  end;
+end.
