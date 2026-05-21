@@ -1,5 +1,5 @@
-#include "semantic/SymbolTableManager.hpp"
-#include "semantic/TypeSystem.hpp"
+#include "SymbolTableManager.hpp"
+#include "TypeSystem.hpp"
 
 using namespace TypeSystem;
 
@@ -27,13 +27,14 @@ void SymbolTableManager::initPredefined() {
     enter("read", OBJ_PROCEDURE, TYPE_UNKNOWN, 0, 1, 0, 0);
 }
 
-int SymbolTableManager::enter(const std::string& id, int obj, int type, int ref, int nrm, int lev, int adr) {
+int SymbolTableManager::enter(const std::string &id, int obj, int type, int ref,
+                              int nrm, int lev, int adr) {
     int actualLev = (lev < 0) ? level : lev;
     int block = display[actualLev];
 
     int existing = lookupLocal(id, block);
     if (existing != -1) {
-        return -1; 
+        return -1;
     }
 
     TabEntry entry;
@@ -61,15 +62,17 @@ int SymbolTableManager::enter(const std::string& id, int obj, int type, int ref,
     return idx;
 }
 
-static bool ciEqual(const std::string& a, const std::string& b) {
-    if (a.size() != b.size()) return false;
+static bool ciEqual(const std::string &a, const std::string &b) {
+    if (a.size() != b.size())
+        return false;
     for (size_t i = 0; i < a.size(); ++i) {
-        if (std::tolower(a[i]) != std::tolower(b[i])) return false;
+        if (std::tolower(a[i]) != std::tolower(b[i]))
+            return false;
     }
     return true;
 }
 
-int SymbolTableManager::lookup(const std::string& id) const {
+int SymbolTableManager::lookup(const std::string &id) const {
     for (int l = level; l >= 0; --l) {
         int block = display[l];
         int idx = btab[block].last;
@@ -83,7 +86,7 @@ int SymbolTableManager::lookup(const std::string& id) const {
     return -1;
 }
 
-int SymbolTableManager::lookupLocal(const std::string& id, int block) const {
+int SymbolTableManager::lookupLocal(const std::string &id, int block) const {
     int idx = btab[block].last;
     while (idx > 0) {
         if (ciEqual(tab[idx].id, id)) {
@@ -94,17 +97,11 @@ int SymbolTableManager::lookupLocal(const std::string& id, int block) const {
     return -1;
 }
 
-const TabEntry& SymbolTableManager::getTab(int idx) const {
-    return tab[idx];
-}
+const TabEntry &SymbolTableManager::getTab(int idx) const { return tab[idx]; }
 
-TabEntry& SymbolTableManager::getTab(int idx) {
-    return tab[idx];
-}
+TabEntry &SymbolTableManager::getTab(int idx) { return tab[idx]; }
 
-int SymbolTableManager::tabSize() const {
-    return static_cast<int>(tab.size());
-}
+int SymbolTableManager::tabSize() const { return static_cast<int>(tab.size()); }
 
 int SymbolTableManager::enterBlock() {
     level++;
@@ -129,27 +126,22 @@ void SymbolTableManager::finalizeParameters() {
     btab[block].lpar = btab[block].last;
 }
 
-int SymbolTableManager::currentBlock() const {
-    return display[level];
-}
+int SymbolTableManager::currentBlock() const { return display[level]; }
 
-int SymbolTableManager::currentLevel() const {
-    return level;
-}
+int SymbolTableManager::currentLevel() const { return level; }
 
-const BTabEntry& SymbolTableManager::getBTab(int idx) const {
+const BTabEntry &SymbolTableManager::getBTab(int idx) const {
     return btab[idx];
 }
 
-BTabEntry& SymbolTableManager::getBTab(int idx) {
-    return btab[idx];
-}
+BTabEntry &SymbolTableManager::getBTab(int idx) { return btab[idx]; }
 
 int SymbolTableManager::btabSize() const {
     return static_cast<int>(btab.size());
 }
 
-int SymbolTableManager::enterArray(int xtyp, int etyp, int eref, int low, int high, int elsz, int size) {
+int SymbolTableManager::enterArray(int xtyp, int etyp, int eref, int low,
+                                   int high, int elsz, int size) {
     ATabEntry entry;
     entry.xtyp = xtyp;
     entry.etyp = etyp;
@@ -163,37 +155,27 @@ int SymbolTableManager::enterArray(int xtyp, int etyp, int eref, int low, int hi
     return idx;
 }
 
-const ATabEntry& SymbolTableManager::getATab(int idx) const {
+const ATabEntry &SymbolTableManager::getATab(int idx) const {
     return atab[idx];
 }
 
-ATabEntry& SymbolTableManager::getATab(int idx) {
-    return atab[idx];
-}
+ATabEntry &SymbolTableManager::getATab(int idx) { return atab[idx]; }
 
 int SymbolTableManager::atabSize() const {
     return static_cast<int>(atab.size());
 }
 
-int SymbolTableManager::getDisplay(int l) const {
-    return display[l];
-}
+int SymbolTableManager::getDisplay(int l) const { return display[l]; }
 
 void SymbolTableManager::printTab() const {
     std::cout << "\n=== tab ===\n";
     std::cout << "idx  id        obj  type  ref  nrm  lev  adr  link\n";
     std::cout << "---------------------------------------------------\n";
     for (size_t i = 0; i < tab.size(); ++i) {
-        const auto& e = tab[i];
-        std::cout << i << "    "
-                  << e.id << "  "
-                  << e.obj << "    "
-                  << e.type << "    "
-                  << e.ref << "    "
-                  << e.nrm << "    "
-                  << e.lev << "    "
-                  << e.adr << "    "
-                  << e.link << "\n";
+        const auto &e = tab[i];
+        std::cout << i << "    " << e.id << "  " << e.obj << "    " << e.type
+                  << "    " << e.ref << "    " << e.nrm << "    " << e.lev
+                  << "    " << e.adr << "    " << e.link << "\n";
     }
 }
 
@@ -202,12 +184,9 @@ void SymbolTableManager::printBTab() const {
     std::cout << "idx  last  lpar  psze  vsze\n";
     std::cout << "-----------------------------\n";
     for (size_t i = 0; i < btab.size(); ++i) {
-        const auto& e = btab[i];
-        std::cout << i << "    "
-                  << e.last << "    "
-                  << e.lpar << "    "
-                  << e.psze << "    "
-                  << e.vsze << "\n";
+        const auto &e = btab[i];
+        std::cout << i << "    " << e.last << "    " << e.lpar << "    "
+                  << e.psze << "    " << e.vsze << "\n";
     }
 }
 
@@ -216,14 +195,9 @@ void SymbolTableManager::printATab() const {
     std::cout << "idx  xtyp  etyp  eref  low  high  elsz  size\n";
     std::cout << "-----------------------------------------------\n";
     for (size_t i = 0; i < atab.size(); ++i) {
-        const auto& e = atab[i];
-        std::cout << i << "    "
-                  << e.xtyp << "    "
-                  << e.etyp << "    "
-                  << e.eref << "    "
-                  << e.low << "    "
-                  << e.high << "    "
-                  << e.elsz << "    "
-                  << e.size << "\n";
+        const auto &e = atab[i];
+        std::cout << i << "    " << e.xtyp << "    " << e.etyp << "    "
+                  << e.eref << "    " << e.low << "    " << e.high << "    "
+                  << e.elsz << "    " << e.size << "\n";
     }
 }
