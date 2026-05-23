@@ -1,0 +1,6 @@
+program TestNonSymbol;
+var
+  x2: integer;
+begin
+  x2 := 5e + 10;
+end.

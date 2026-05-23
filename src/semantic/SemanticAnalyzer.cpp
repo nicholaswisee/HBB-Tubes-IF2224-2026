@@ -4,9 +4,11 @@
 
 using namespace TypeSystem;
 
+// Constructor: initialize with symbol table reference
 SemanticAnalyzer::SemanticAnalyzer(SymbolTableManager &symTable)
     : symTable(symTable) {}
 
+// Entry point: start semantic analysis by visiting AST root
 void SemanticAnalyzer::analyze(std::shared_ptr<ASTNode> ast) {
     if (ast) {
         ast->accept(*this);
@@ -28,6 +30,7 @@ void SemanticAnalyzer::reportError(int line, const std::string &message) {
     errors.emplace_back(line, message);
 }
 
+// Helper: verify that a condition expression evaluates to Boolean type
 void SemanticAnalyzer::checkConditionType(std::shared_ptr<ASTNode> condition,
                                           const std::string &context) {
     if (!condition)
@@ -78,8 +81,10 @@ bool SemanticAnalyzer::checkAssignmentCompatibility(int targetType,
     return TypeSystem::isAssignmentCompatible(targetType, valueType);
 }
 
+// Infer result type of binary operation based on operand types and operator
 int SemanticAnalyzer::inferBinaryOpType(const std::string &op, int leftType,
                                         int rightType) {
+    // Arithmetic operators: result is Real if either operand is Real
     if (op == "+" || op == "-" || op == "*" || op == "/" || op == "div" ||
         op == "mod") {
         if (!isNumeric(leftType) || !isNumeric(rightType)) {
@@ -89,6 +94,7 @@ int SemanticAnalyzer::inferBinaryOpType(const std::string &op, int leftType,
             return TYPE_REAL;
         return TYPE_INTEGER;
     }
+    // Relational operators: always return Boolean
     if (op == "==" || op == "<>" || op == "<" || op == "<=" || op == ">" ||
         op == ">=") {
         if (!isCompatible(leftType, rightType) &&
@@ -97,6 +103,7 @@ int SemanticAnalyzer::inferBinaryOpType(const std::string &op, int leftType,
         }
         return TYPE_BOOLEAN;
     }
+    // Logical operators: require Boolean operands, return Boolean
     if (op == "and" || op == "or") {
         if (leftType != TYPE_BOOLEAN || rightType != TYPE_BOOLEAN) {
             return TYPE_UNKNOWN;
@@ -119,10 +126,6 @@ int SemanticAnalyzer::inferUnaryOpType(const std::string &op, int operandType) {
     }
     return TYPE_UNKNOWN;
 }
-
-// ============================================================================
-// Literal type detection helper
-// ============================================================================
 
 static int detectLiteralType(const std::string &val) {
     if (val == "true" || val == "false")
@@ -150,41 +153,36 @@ static int detectLiteralType(const std::string &val) {
     return TYPE_INTEGER;
 }
 
-// ============================================================================
-// Program
-// ============================================================================
-
+// Visit program node: register program and process declarations + body
 void SemanticAnalyzer::visit(ProgramNode &node) {
     currentLine = node.line;
-    // Register program name
+    // Register program name in symbol table
     symTable.enter(node.name, OBJ_TYPE, TYPE_UNKNOWN);
 
-    // Visit declarations in global scope
+    // Process all declarations in global scope
     for (auto &decl : node.declarations) {
         if (decl)
             decl->accept(*this);
     }
 
-    // Visit body
+    // Process program body
     if (node.body)
         node.body->accept(*this);
 }
 
-// ============================================================================
-// Declarations
-// ============================================================================
-
+// Visit variable declaration: resolve type and register in symbol table
 void SemanticAnalyzer::visit(VarDeclNode &node) {
     currentLine = node.line;
     int typeCode = resolveTypeName(node.typeName);
     int ref = 0;
 
+    // Handle composite types (array, record)
     if (node.typeNode) {
         node.typeNode->accept(*this);
         if (auto arr =
                 std::dynamic_pointer_cast<ArrayTypeNode>(node.typeNode)) {
             typeCode = TYPE_ARRAY;
-            // Register array type in atab
+            // Register array type in atab with bounds
             int etyp = resolveNodeType(arr->elementType);
             int xtyp = resolveNodeType(arr->indexType);
             int low = 0, high = 0;
@@ -324,10 +322,6 @@ void SemanticAnalyzer::visit(ParamNode &node) {
     }
 }
 
-// ============================================================================
-// Procedures and Functions
-// ============================================================================
-
 void SemanticAnalyzer::visit(ProcDeclNode &node) {
     currentLine = node.line;
     int idx = symTable.enter(node.name, OBJ_PROCEDURE, TYPE_UNKNOWN);
@@ -406,10 +400,7 @@ void SemanticAnalyzer::visit(FuncDeclNode &node) {
     symTable.exitBlock();
 }
 
-// ============================================================================
-// Statements
-// ============================================================================
-
+// Visit assignment: check type compatibility between target and value
 void SemanticAnalyzer::visit(AssignNode &node) {
     currentLine = node.line;
     if (node.target)
@@ -420,6 +411,7 @@ void SemanticAnalyzer::visit(AssignNode &node) {
     int targetType = node.target ? node.target->type : TYPE_UNKNOWN;
     int valueType = node.value ? node.value->type : TYPE_UNKNOWN;
 
+    // Validate assignment compatibility (e.g., Real := Integer is valid, reverse is not)
     if (!checkAssignmentCompatibility(targetType, valueType)) {
         reportError(node.line, "Type mismatch in assignment: expected " +
                                    codeToTypeName(targetType) + ", got " +
@@ -427,6 +419,7 @@ void SemanticAnalyzer::visit(AssignNode &node) {
     }
 }
 
+// Visit if statement: validate condition is Boolean, then process branches
 void SemanticAnalyzer::visit(IfNode &node) {
     currentLine = node.line;
     if (node.condition) {
@@ -439,6 +432,7 @@ void SemanticAnalyzer::visit(IfNode &node) {
         node.elseBranch->accept(*this);
 }
 
+// Visit while loop: validate condition is Boolean, then process body
 void SemanticAnalyzer::visit(WhileNode &node) {
     currentLine = node.line;
     if (node.condition) {
@@ -539,10 +533,6 @@ void SemanticAnalyzer::visit(CompoundNode &node) {
     }
 }
 
-// ============================================================================
-// Procedure / Function Calls
-// ============================================================================
-
 void SemanticAnalyzer::checkProcedureArgs(
     int procIdx, const std::vector<std::shared_ptr<ASTNode>> &args, int line) {
     const TabEntry &proc = symTable.getTab(procIdx);
@@ -613,10 +603,7 @@ void SemanticAnalyzer::visit(ProcCallNode &node) {
     }
 }
 
-// ============================================================================
-// Expressions
-// ============================================================================
-
+// Visit binary operation: validate operand types and infer result type
 void SemanticAnalyzer::visit(BinaryOpNode &node) {
     currentLine = node.line;
     if (node.left)
@@ -627,6 +614,7 @@ void SemanticAnalyzer::visit(BinaryOpNode &node) {
     int leftType = node.left ? node.left->type : TYPE_UNKNOWN;
     int rightType = node.right ? node.right->type : TYPE_UNKNOWN;
 
+    // Validate operator-operand type compatibility and set result type
     if (node.op == "+" || node.op == "-" || node.op == "*" || node.op == "/" ||
         node.op == "div" || node.op == "mod") {
         if (!isNumeric(leftType) || !isNumeric(rightType)) {
@@ -788,10 +776,6 @@ void SemanticAnalyzer::visit(FieldAccessNode &node) {
     node.type = TYPE_UNKNOWN;
 }
 
-// ============================================================================
-// Type nodes
-// ============================================================================
-
 void SemanticAnalyzer::visit(RangeNode &node) {
     currentLine = node.line;
     if (node.low)
@@ -858,5 +842,3 @@ void SemanticAnalyzer::visit(RecordTypeNode &node) {
     }
     node.type = TYPE_RECORD;
 }
-
-// DEBUG

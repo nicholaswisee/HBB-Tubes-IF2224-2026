@@ -105,7 +105,7 @@
 \newcommand{\CourseCode}{IF2224}
 \newcommand{\CourseName}{Teori Bahasa Formal dan Otomata}
 \newcommand{\AssignmentTitle}{Laporan Tugas Besar}
-\newcommand{\AssignmentSubtitle}{Milestone 2: Syntax Analysis}
+\newcommand{\AssignmentSubtitle}{Milestone 3: Semantic Analysis}
 \newcommand{\Semester}{Semester II / 2025--2026}
 
 % Team / group
@@ -162,49 +162,94 @@
 
 \section{Pendahuluan}
 
-Pada tahap sebelumnya, telah berhasil dibangun sebuah \textit{lexical analyzer} (lexer) yang mampu membaca kode sumber bahasa Arion dan mengubahnya menjadi daftar token. Setiap token merepresentasikan unit leksikal terkecil dari program, seperti kata kunci, identifier, konstanta, dan operator. Meskipun lexer telah berfungsi dengan baik dalam mengenali dan mengklasifikasikan token-token tersebut, lexer belum mampu memastikan apakah urutan token tersebut membentuk struktur program yang valid sesuai dengan aturan tata bahasa (\textit{grammar}) bahasa Arion.
+Pada tahap sebelumnya, telah berhasil dibangun sebuah \textit{syntax analyzer}
+(parser) yang mampu memeriksa urutan token dari \textit{lexical analyzer} dan
+membangun \textit{Parse Tree} sesuai dengan aturan \textit{grammar} bahasa
+Arion. Meskipun parser telah berfungsi dengan baik dalam memverifikasi struktur
+sintaks program, parser belum mampu memastikan apakah program tersebut memiliki
+makna (\textit{meaning}) yang benar sesuai dengan aturan semantik bahasa Arion.
 
-Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan beberapa tahap berurutan. Setelah analisis leksikal selesai, tahap berikutnya adalah analisis sintaktik (\textit{syntax analysis}) atau yang sering disebut \textit{parsing}. Pada tahap ini, parser menerima daftar token dari lexer dan memeriksa apakah urutan token tersebut sesuai dengan aturan grammar yang didefinisikan untuk bahasa Arion. Parser kemudian membangun sebuah struktur hierarkis yang disebut Parse Tree, yang merepresentasikan hubungan struktural antar-komponen program secara menyeluruh.
+Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan
+beberapa tahap berurutan. Setelah analisis sintaktik selesai, tahap berikutnya
+adalah analisis semantik (\textit{semantic analysis}). Pada tahap ini,
+\textit{semantic analyzer} menerima \textit{Parse Tree} dari parser dan
+melakukan pemeriksaan makna program, seperti kecocokan tipe data (\textit{type
+checking}), pengelolaan \textit{scope}, dan validasi penggunaan
+\textit{identifier} yang telah dideklarasikan. Hasil dari tahap ini adalah
+\textit{Decorated Abstract Syntax Tree} (Decorated AST) yang telah dianotasi
+dengan informasi tipe data dan referensi ke \textit{symbol table}.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.8\textwidth]{tipe-bahasa.png}
-\caption{Tahap-tahap kompilasi dalam compiler}
-\caption*{Sumber: Asisten IF2224}
+\includegraphics[height=10cm]{parse-ast.png}
+\caption{Tahapan transformasi dari Parse Tree ke Decorated AST}
+\caption*{Sumber: Spesifikasi Milestone 3 IF2224}
 \end{figure}
 
-Parse Tree adalah representasi lengkap dari struktur sintaks program sesuai dengan grammar bahasa yang digunakan. Setiap node dalam parse tree merepresentasikan simbol non-terminal atau terminal dari aturan produksi grammar. Berbeda dengan Abstract Syntax Tree (AST) yang menyederhanakan struktur dengan menghapus node-node informatif, Parse Tree memuat semua detail simbol seolah-olah seseorang menggambarkan semua langkah produksi secara lengkap. Parse Tree berguna untuk menunjukkan bagaimana token-token hasil lexical analysis membentuk struktur program yang sesuai dengan aturan grammar.
+\textit{Abstract Syntax Tree} (AST) adalah representasi ringkas dari
+\textit{Parse Tree} yang hanya menyimpan informasi esensial untuk tahap analisis
+semantik dan selanjutnya. Berbeda dengan \textit{Parse Tree} yang memuat semua
+detail sintaksis (termasuk tanda kurung, kata kunci, dan tanda baca), AST
+menghilangkan informasi yang sudah tidak diperlukan dan berfokus pada hubungan
+semantik antar operator dan operand. \textit{Decorated AST} merupakan AST yang
+telah dianotasi dengan informasi tambahan seperti tipe data, referensi
+\textit{symbol table}, dan tingkatan \textit{scope}.
 
 \subsection{Latar Belakang}
+
 Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang
 saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}),
-analisis sintaktik, analisis semantik, hingga pembangkitan kode (\textit{code
-generation}). Setelah lexer berhasil mengonversi kode sumber menjadi deretan
-token, tahap analisis sintaktik menjadi penting untuk memverifikasi apakah
-urutan token tersebut memenuhi aturan tata bahasa yang telah didefinisikan.
+analisis sintaktik (\textit{syntax analysis}), analisis semantik
+(\textit{semantic analysis}), hingga pembangkitan kode (\textit{code
+generation}). Setelah parser berhasil memverifikasi struktur sintaks program dan
+membangun \textit{Parse Tree}, tahap analisis semantik menjadi penting untuk
+memastikan bahwa program tidak hanya benar secara sintaksis, tetapi juga
+memiliki makna yang valid.
 
-Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone kedua ini berfokus pada pembangunan \textit{syntax analyzer} (parser) yang mampu memeriksa urutan token dari lexer dan membangun Parse Tree sesuai dengan aturan grammar bahasa Arion. Parser yang dibangun menggunakan algoritma \textit{Recursive Descent} yang mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi-fungsi rekursif.
+Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa
+diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa
+pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone ketiga ini berfokus
+pada pembangunan \textit{semantic analyzer} yang mampu mengkonversi
+\textit{Parse Tree} menjadi \textit{AST}, melakukan pengecekan semantik
+menggunakan \textit{Attributed Grammar}, mengelola \textit{symbol table} untuk
+menyimpan informasi \textit{identifier}, dan menghasilkan \textit{Decorated AST}
+yang teranotasi.
 
 \subsection{Rumusan Masalah}
-Bagaimana merancang dan mengimplementasikan sebuah \textit{syntax analyzer} berbasis \textit{Recursive Descent Parser} yang mampu:
+
+Bagaimana merancang dan mengimplementasikan sebuah \textit{semantic analyzer} berbasis \textit{Attributed Grammar} dan \textit{Visitor Pattern} yang mampu:
+
 \begin{enumerate}[label=\arabic*.]
-  \item Membaca daftar token dari keluaran \textit{lexical analyzer}.
-  \item Memeriksa apakah urutan token sesuai dengan aturan tata bahasa (\textit{grammar}) bahasa Arion.
-  \item Mendeteksi dan melaporkan kesalahan sintaks (\textit{syntax error}) dengan informasi lokasi yang akurat.
-  \item Membangun Parse Tree yang merepresentasikan struktur hierarkis program sumber.
+  \item Mengkonversi \textit{Parse Tree} menjadi \textit{Abstract Syntax Tree} (AST) yang ringkas.
+  \item Membangun dan mengelola \textit{symbol table} (\texttt{tab}, \texttt{btab}, \texttt{atab}) untuk menyimpan informasi \textit{identifier}.
+  \item Melakukan pengecekan tipe data (\textit{type checking}) dan kompatibilitas antar tipe.
+  \item Mengelola \textit{scope} dan memastikan setiap \textit{identifier} telah dideklarasikan sebelum digunakan.
+  \item Menghasilkan \textit{Decorated AST} yang teranotasi dengan informasi semantik.
 \end{enumerate}
 
 \subsection{Gambaran Umum Sistem}
-Sistem yang dibangun merupakan sebuah \textit{syntax analyzer} untuk bahasa Arion yang diimplementasikan dalam bahasa C++20. Parser ini menerima daftar token dari lexer (berupa berkas teks yang berisi token-token), memproses setiap token menggunakan algoritma Recursive Descent, dan menghasilkan Parse Tree sebagai keluaran. Sistem terdiri atas beberapa komponen utama: Parser (mesin Recursive Descent), Node (struktur data node pada Parse Tree), TreeBuilder (konstruktor Parse Tree), dan ErrorHandler (pelaporan kesalahan sintaks).
+
+Sistem yang dibangun merupakan sebuah \textit{semantic analyzer} untuk bahasa Arion yang diimplementasikan dalam bahasa C++20. \textit{Semantic analyzer} ini menerima \textit{Parse Tree} dari tahap \textit{syntax analysis}, mengkonversinya menjadi \textit{AST}, melakukan penelusuran \textit{depth-first search} (DFS) menggunakan \textit{visitor functions}, mengelola \textit{symbol table}, melakukan \textit{type checking}, dan menghasilkan \textit{Decorated AST} beserta informasi \textit{symbol table} sebagai keluaran.
+
+Sistem terdiri atas beberapa komponen utama:
+
+\begin{itemize}
+  \item \textbf{ParseTreeToAST}: Konverter dari \textit{Parse Tree} ke \textit{AST} menggunakan \textit{Syntax-Directed Translation}.
+  \item \textbf{ASTNode}: Struktur data \textit{node} pada \textit{AST} yang merepresentasikan hubungan semantik antar operator dan operand.
+  \item \textbf{SymbolTableManager}: Pengelola \textit{symbol table} (\texttt{tab}, \texttt{btab}, \texttt{atab}) untuk penyimpanan dan pencarian \textit{identifier}.
+  \item \textbf{SemanticAnalyzer}: Mesin analisis semantik menggunakan \textit{Visitor Pattern} untuk melakukan \textit{type checking} dan \textit{scope resolution}.
+  \item \textbf{TypeSystem}: Sistem tipe data dan aturan kompatibilitas tipe.
+\end{itemize}
 
 \subsection{Spesifikasi Umum}
+
 \begin{enumerate}[label=\arabic*.]
-  \item Menggunakan algoritma \textit{Recursive Descent} dengan grammar yang
-      dispesifikasikan dalam program.
-  \item Mendukung seluruh node Parse Tree sesuai spesifikasi: program, program-header, declaration-part, compound-statement, statement, expression, dan lainnya.
-  \item Melaporkan kesalahan sintaks dengan pesan yang informatif dan akurat.
-  \item Menghasilkan Parse Tree yang terformat dengan jelas, ditampilkan ke terminal dan disimpan ke dalam berkas teks.
-  \item Menerima masukan berupa berkas daftar token hasil dari lexer milestone pertama.
+  \item Menggunakan \textit{Attributed Grammar} dengan \textit{semantic actions} pada aturan produksi grammar.
+  \item Mengimplementasikan \textit{symbol table} dengan struktur \texttt{tab}, \texttt{btab}, dan \texttt{atab} sesuai spesifikasi.
+  \item Mendukung \textit{scope resolution} dengan mekanisme \textit{push} dan \textit{pop} pada \textit{symbol table}.
+  \item Melakukan \textit{type checking} dan \textit{type inference} sesuai aturan kompatibilitas tipe bahasa Arion.
+  \item Menghasilkan \textit{Decorated AST} yang teranotasi dengan informasi tipe data dan referensi \textit{symbol table}.
+  \item Melaporkan kesalahan semantik (\textit{semantic error}) dengan pesan yang informatif dan akurat.
 \end{enumerate}
 
 
@@ -217,7 +262,7 @@ memiliki kata kunci dan aturannya masing-masing serta makna dari kata-kata itu
 yang disebut sintaks(\textit{syntax}) dan semantik (\textit{semantics}).
 Input yang terdapat kesalahan pada tingkat sintaks berarti input tersebut tidak
 valid untuk bahasa pemrograman tersebut, sedangkan kesalahan pada tingkat
-semantik umumnya berbentuk kesalahan logika.
+semantik umumnya berbentuk kesalahan logika atau ketidakcocokan tipe data.
 
 \subsubsection{Hierarki Bahasa Pemrograman}
 Berdasarkan tingkat abstraksinya, bahasa pemrograman diklasifikasikan menjadi dua kategori utama:
@@ -243,7 +288,7 @@ Generation}. Karakteristik utama \textit{compiler} adalah jika terdeteksi adanya
 kesalahan (\textit{error}) di dalam \textit{source code}, maka seluruh proses
 kompilasi akan gagal dan program tidak dapat dijalankan.
 
-\item \textbf{\textit{Interpreter}}: 
+\item \textbf{\textit{Interpreter}}:
 Berbeda dengan \textit{compiler}, \textit{interpreter} memproses kode sumber
 baris demi baris secara langsung. \textit{Interpreter} membaca,
 menerjemahkan, dan langsung mengeksekusi kode mesin tersebut baris demi baris.
@@ -261,238 +306,198 @@ Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja
 
 \begin{enumerate}
     \item \textbf{\textit{Lexical Analysis}}: Fase pertama yang bekerja sebagai
-        pemindai teks (\textit{text scanner}) pada kode sumber. Penjelasan lebih detail mengenai fase ini dibahas pada sub-bab tersendiri di bawah.
+        pemindai teks (\textit{text scanner}) pada kode sumber.
     \item \textbf{\textit{Syntax Analysis} (\textit{Parsing})}: Mengambil
         \textit{token} yang dihasilkan oleh \textit{lexical analysis} dan
-        membangun pohon sintaksis (\textit{parse tree}). Fase ini memeriksa
-        kebenaran susunan \textit{token} berdasarkan aturan tata bahasa
-        (\textit{grammar}) kode sumber.
+        membangun pohon sintaksis (\textit{parse tree}).
     \item \textbf{\textit{Semantic Analysis}}: Memeriksa apakah pohon sintaksis
         yang dibangun mengikuti aturan semantik bahasa, seperti kecocokan
         operasi tipe data dan memastikan \textit{identifier} telah
         dideklarasikan sebelum digunakan. Fase ini menghasilkan keluaran berupa
-        pohon sintaksis yang dianotasi.
+        pohon sintaksis yang dianotasi (\textit{Decorated AST}).
     \item \textbf{\textit{Intermediate Code Generation}}: Menghasilkan
-        representasi kode perantara untuk mesin abstrak, yang posisinya
-        menjembatani antara bahasa tingkat tinggi dan bahasa mesin.
+        representasi kode perantara untuk mesin abstrak.
     \item \textbf{\textit{Code Optimization}}: Mengoptimalkan kode perantara
         dengan menghapus baris kode yang tidak perlu dan mengatur ulang urutan
-        instruksi. Tujuannya adalah untuk mempercepat eksekusi program tanpa
-        membuang sumber daya (\textit{CPU}, memori).
+        instruksi.
     \item \textbf{\textit{Target Code Generation}}: Merupakan fase sintesis
     akhir (\textit{back-end}) yang menggunakan representasi kode perantara dan
     tabel simbol untuk menghasilkan program target atau bahasa mesin.
 \end{enumerate}
 
-\subsubsection{Analisis Sintaksis (\textit{Syntax Analysis})}
-Sebagai fokus utama pada \textit{milestone} ini, Analisis Sintaksis atau
-\textit{parser} adalah tahapan atau fase kedua dari sebuah kompilator. Fase ini
-bertugas untuk memeriksa urutan \textit{token} yang dihasilkan oleh
-\textit{lexical analyzer} agar sesuai dengan aturan tata bahasa
-(\textit{grammar}) dari bahasa pemrograman yang dikompilasi.  Dalam
-mendefinisikan dan melakukan evaluasi aturan sintaks, \textit{parser} secara
-umum mengadopsi format tata bahasa bebas konteks atau \textit{Context-Free
-Grammar} (CFG).
+\subsubsection{Analisis Semantik (\textit{Semantic Analysis})}
 
-Berdasarkan prinsip desain kompilator, mekanisme kerja dan tahapan \textit{parser} bertujuan untuk:
+Sebagai fokus utama pada \textit{milestone} ini, Analisis Semantik atau
+\textit{semantic analyzer} adalah tahapan atau fase ketiga dari sebuah kompilator. Fase ini bertugas untuk memeriksa makna (\textit{meaning}) dari program yang telah berhasil melewati tahap analisis sintaktik. \textit{Semantic analyzer} menerima \textit{Parse Tree} dari parser dan melakukan berbagai pemeriksaan semantik, antara lain:
+
 \begin{itemize}
-    \item \textbf{Memvalidasi Struktur Sintaks}: Memastikan urutan
-        \textit{token} membentuk struktur sintaks yang valid.
-    \item \textbf{Penanganan Kesalahan Sintaks (\textit{Syntax Error})}:
-        Mendeteksi dan melaporkan kesalahan sintaks (\textit{syntax error})
-        apabila ditemukan ketidaksesuaiaan.
-    \item \textbf{Membangun Representasi Program}: Mempersiapkan representasi
-        program untuk tahap kompilasi berikutnya. \textit{Parser} akan membangun
-        struktur sintaks hierarkis seperti \textit{Parse Tree} atau
-        \textit{Abstract Syntax Tree} (AST).
+    \item \textbf{\textit{Type Checking}}: Memastikan operator dan operand memiliki tipe yang kompatibel. Contohnya: tidak menjumlahkan \textit{string} dengan \textit{integer}, atau memastikan kondisi pada \textit{if-statement} bertipe \textit{Boolean}.
+    \item \textbf{\textit{Symbol Table Management}}: Memastikan setiap \textit{identifier} (variabel, fungsi, prosedur) telah dideklarasikan sebelum digunakan dan tidak dideklarasikan ulang dalam \textit{scope} yang sama.
+    \item \textbf{\textit{Scope Resolution}}: Menentukan validitas akses variabel berdasarkan hierarki blok kode (\textit{scope} global vs \textit{scope} lokal).
+    \item \textbf{\textit{Control Flow Validation}}: Memastikan struktur alur kontrol yang logis, seperti memastikan instruksi \texttt{break}/\texttt{continue} hanya berada dalam \textit{loop}, atau fungsi memiliki \texttt{return} pada semua cabang kontrol.
 \end{itemize}
 
+\textit{Semantic analyzer} akan melakukan anotasi terhadap \textit{Parse Tree} untuk menghasilkan \textit{Decorated Abstract Syntax Tree} (Decorated AST). Anotasi berupa penambahan informasi seperti tipe data dan referensi \textit{identifier} ke \textit{symbol table}.
 
-\textit{Parse Tree} adalah representasi lengkap dari struktur sintaks program sesuai dengan \textit{grammar} bahasa yang digunakan. Karena merepresentasikan hierarki secara utuh, setiap \textit{node} di dalam pohon ini memuat semua simbol terminal dan non-terminal. \textit{Parse tree} berguna untuk menunjukkan bagaimana \textit{token-token} hasil \textit{lexical analysis} membentuk struktur program yang sesuai dengan aturan \textit{grammar}.
-
-Secara garis besar, pendekatan \textit{syntax analyzer} dapat diklasifikasikan ke dalam dua jenis \textit{parsing}:
-\begin{itemize}
-    \item \textbf{\textit{Top-Down Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul akar (\textit{root}) dan diturunkan ke arah simpul daun (\textit{leaves}). Implementasi yang umum digunakan pada pendekatan ini adalah algoritma \textit{Recursive Descent}.
-    \item \textbf{\textit{Bottom-Up Parsing}}: Pendekatan konstruksi \textit{parse tree} yang dimulai dari simpul daun (\textit{leaves}) dan dikompresi perlahan menuju simpul akar (\textit{root}). Contoh algoritma dari kategori ini adalah \textit{LR Parser}.
-\end{itemize}
 \subsection{Teori Bahasa Formal dan Otomata}
 
-Berbeda dengan tahap analisis leksikal yang menggunakan \textit{Regular
-Expression} dan \textit{Finite Automata} untuk mengenali pola token, tahap
-analisis sintaktik menggunakan konsep (\textit{Context-Free Grammar}) sebagai
-dasar untuk memeriksa dan membangun struktur program.
+Setelah tahap analisis sintaktik menggunakan \textit{Context-Free Grammar} (CFG) untuk memeriksa struktur program, tahap analisis semantik menggunakan konsep \textit{Attributed Grammar} sebagai dasar untuk melakukan pengecekan makna program.
 
-\subsubsection{Context-Free Grammar (CFG)}
+\subsubsection{Abstract Syntax Tree (AST)}
 
-\textit{Context-Free Grammar} (CFG) adalah formalisme matematis yang digunakan
-untuk mendefinisikan sintaks dari bahasa pemrograman. CFG terdiri dari himpunan
-simbol terminal, himpunan simbol non-terminal, himpunan aturan produksi, dan
-simbol awal. Aturan produksi menentukan bagaimana simbol non-terminal dapat
-diturunkan menjadi rangkaian simbol terminal dan non-terminal lainnya.
+\textit{Abstract Syntax Tree} (AST) pada dasarnya adalah bentuk ringkas dari \textit{Parse Tree}, dimana hanya informasi yang diperlukan untuk tahapan selanjutnya yang disimpan dan informasi yang sudah tidak lagi diperlukan untuk tahap analisis dibuang. Struktur dasar sebuah \textit{Parse Tree} didasarkan pada aturan \textit{Grammar} untuk melakukan pengecekan \textit{syntax}. Namun pada tahap \textit{Semantic Analysis} dan selanjutnya, konteks sintaksis tersebut tidak lagi diperlukan.
 
-Secara formal, sebuah CFG didefinisikan sebagai \textit{4-tuple} $(V, T, P, S)$,
-yang terdiri dari:
+Pada \textit{AST}, fokus berpindah menuju aturan semantik, yaitu mengenai hubungan antar operator dan operand. Aturan tersebut menjadi penting untuk pengecekan semantik dan tahapan selanjutnya. Sebagai ilustrasi, untuk potongan kode:
+
+\begin{lstlisting}
+while (i > 0) {
+    x = x + z * 5;
+}
+\end{lstlisting}
+
+\textit{Parse Tree} akan memuat semua detail sintaksis (termasuk tanda kurung, kurung kurawal, dan semicolon), sedangkan \textit{AST} akan menyederhanakan representasi tersebut menjadi struktur yang hanya memuat informasi esensial: sebuah \textit{node} \texttt{While} dengan kondisi \texttt{i > 0} dan tubuh berupa penugasan \texttt{x = x + (z * 5)}.
+
+\subsubsection{Decorated Abstract Syntax Tree (Decorated AST)}
+
+\textit{Semantic Analysis} akan melakukan anotasi terhadap \textit{AST} hasil konversi dari \textit{Parse Tree} untuk menghasilkan sebuah \textit{Decorated AST}. Anotasi yang dilakukan bertujuan memberikan konteks untuk pengecekan semantik, seperti penambahan \textit{symbol table}, tipe data, penambahan \textit{reserved keywords}, pelacakan \textit{identifier}, penanda tingkatan \textit{scope}, dan sebagainya.
+
+Implementasi \textit{Decorated AST} memang beragam, namun dalam tugas ini, berbasis tiga \textit{symbol table} utama: \texttt{tab}, \texttt{btab}, dan \texttt{atab}. Jadi \textit{Decorated AST} merupakan hasil dari proses pengecekan semantik pada \textit{Semantic Analysis}.
+
+Beberapa istilah penting yang perlu dipahami:
+
 \begin{itemize}
-    \item $V$ : Himpunan hingga simbol non-terminal (variabel).
-    \item $T$ : Himpunan hingga simbol terminal (token dari lexer).
-    \item $P$ : Himpunan aturan produksi yang mendefinisikan bagaimana simbol
-        diturunkan.
-    \item $S$ : Simbol awal (\textit{start symbol}), di mana $S \in V$.
+    \item \textbf{\textit{Attributed Grammar}}: Grammar yang dilengkapi dengan atribut dan aturan semantik. Setiap aturan produksi memiliki \textit{semantic actions} yang dieksekusi saat aturan tersebut diterapkan.
+    \item \textbf{\textit{Symbol Table}}: Struktur data yang minimal menyimpan informasi nama \textit{identifier}, tipe datanya, dan \textit{scope}-nya. \textit{Symbol table} menggunakan struktur data \textit{stack} untuk mengelola \textit{scope}.
+    \item \textbf{\textit{Visitor} / \textit{Visit Functions}}: Untuk setiap jenis \textit{node} akan memiliki fungsi \texttt{visit\_\textless{}node\textgreater{}} yang akan memanggil \textit{visit} pada \textit{child}-nya, mengakses atau memperbarui \textit{symbol table}, menghitung atribut/tipe semantik, dan menambahkan anotasi pada \textit{node}.
 \end{itemize}
 
-Dalam konteks compiler, simbol terminal berasal dari hasil analisis leksikal (token), sedangkan simbol non-terminal merepresentasikan struktur sintaks program seperti \texttt{<program>}, \texttt{<statement>}, \texttt{<expression>}, dan lainnya.
+\subsubsection{Symbol Table}
 
-Sebagai contoh, grammar sederhana untuk ekspresi aritmatika dapat didefinisikan sebagai:
-\begin{align*}
-E &\rightarrow E + T \mid T \\
-T &\rightarrow T \times F \mid F \\
-F &\rightarrow (E) \mid \texttt{intcon}
-\end{align*}
+\textit{Symbol Table} adalah struktur data yang digunakan oleh \textit{semantic analyzer} untuk menyimpan informasi tentang \textit{identifier} yang ditemui dalam program. Informasi yang disimpan meliputi nama \textit{identifier}, jenis objek (konstanta, variabel, tipe, prosedur, fungsi), tipe data, tingkat \textit{scope} (\textit{lexical level}), dan alamat memori.
 
-Aturan produksi ini menunjukkan bahwa sebuah ekspresi $E$ dapat berupa $E + T$ atau simplemente $T$, dan seterusnya.
+Dalam implementasi bahasa Arion, terdapat tiga jenis \textit{symbol table}:
 
-\subsubsection{Derivasi dan Parse Tree}
-
-Proses penerapan aturan produksi untuk mengubah simbol awal menjadi deretan simbol terminal disebut \textit{derivasi}. Terdapat dua strategi derivasi utama:
-\begin{itemize}
-    \item \textbf{\textit{Leftmost Derivation}}: Simbol non-terminal paling kiri dikembangkan terlebih dahulu pada setiap langkah.
-    \item \textbf{\textit{Rightmost Derivation}}: Simbol non-terminal paling kanan dikembangkan terlebih dahulu pada setiap langkah.
-\end{itemize}
-
-Parse Tree adalah representasi visual dari proses derivasi. Setiap node dalam
-parse tree merepresentasikan simbol (terminal atau non-terminal), dan setiap
-edge merepresentasikan penerapan aturan produksi. Parse Tree memuat seluruh
-simbol yang muncul selama derivasi, berbeda dengan Abstract Syntax Tree (AST)
-yang menghilangkan node-node informatif.
-
-\subsubsection{Recursive Descent Parser}
-
-\textit{Recursive Descent} adalah algoritma \textit{top-down parsing} yang
-mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi
-rekursif. Setiap fungsi bertanggung jawab untuk mengenali simbol non-terminal
-tertentu dan semua turunannya.
-
-Prinsip kerja Recursive Descent adalah:
 \begin{enumerate}
-    \item Setiap simbol non-terminal diimplementasikan sebagai satu fungsi.
-    \item Fungsi membaca token dari input dan memeriksa apakah token tersebut
-        sesuai dengan ekspektasi berdasarkan aturan produksi.
-    \item Jika ditemukan simbol non-terminal di ruas kanan produksi, fungsi
-        memanggil fungsi lain yang berhubungan dengannya.
-    \item Jika token yang dibaca tidak sesuai, parser melaporkan kesalahan sintaks.
+    \item \textbf{\texttt{tab} (Identifier Table)}: Menyimpan informasi mengenai \textit{identifier} termasuk konstanta, variabel, prosedur, atau fungsi. Setiap entri memiliki atribut: \texttt{id} (nama), \texttt{link} (pointer ke \textit{identifier} sebelumnya dalam \textit{scope} yang sama), \texttt{obj} (jenis objek), \texttt{type} (tipe data), \texttt{ref} (pointer ke tabel lain jika tipe komposit), \texttt{nrm} (penanda variabel normal atau \textit{var parameter}), \texttt{lev} (tingkat \textit{lexical level}), dan \texttt{adr} (alamat/offset).
+
+    \item \textbf{\texttt{btab} (Block Table)}: Menyimpan informasi blok prosedur dan definisi tipe rekord. Setiap entri memiliki atribut: \texttt{last} (pointer ke \textit{identifier} terakhir), \texttt{lpar} (pointer ke parameter terakhir), \texttt{psze} (total ukuran parameter), dan \texttt{vsze} (total ukuran variabel lokal).
+
+    \item \textbf{\texttt{atab} (Array Table)}: Menyimpan informasi \textit{array} seperti tipe \textit{index}, batasan \textit{index}, tipe elemen, dan ukuran \textit{array}. Setiap entri memiliki atribut: \texttt{xtyp} (tipe \textit{index}), \texttt{etyp} (tipe elemen), \texttt{eref} (pointer ke detail tipe elemen), \texttt{low} (batas bawah), \texttt{high} (batas atas), \texttt{elsz} (ukuran satu elemen), dan \texttt{size} (total ukuran \textit{array}).
 \end{enumerate}
 
-Keunggulan Recursive Descent adalah kesederhanaan implementasinya dan kemudahan dalam memahami alur parsing. Namun, kelemahannya adalah ketidakmampuan untuk menangani \textit{left recursion} (produk seperti $A \rightarrow A \alpha$) yang dapat menyebabkan infinite recursion.
+\subsubsection{Type Checking dan Type Compatibility}
 
-\section{Perancangan Syntax Analyzer}
+\textit{Type Checking} adalah proses memastikan bahwa setiap operasi dalam program menggunakan tipe data yang kompatibel. Aturan kompatibilitas tipe (\textit{Type Compatibility Rules}) menentukan bagaimana tipe dapat digunakan dalam ekspresi, \textit{statement} (misalnya penugasan), dan lainnya.
 
-Perancangan \textit{syntax analyzer} untuk bahasa Arion didasarkan pada aturan tata bahasa bebas konteks (\textit{Context-Free Grammar}) yang mendefinisikan struktur sintaks bahasa secara hierarkis. Parser yang dibangun menggunakan algoritma \textit{Recursive Descent} dengan pendekatan \textit{top-down parsing}. Pada bagian ini, dijelaskan rancangan grammar bahasa Arion, perancangan Parse Tree, algoritma Recursive Descent, strategi penanganan kesalahan, dan alur kerja program.
+Dalam bahasa Arion, terdapat beberapa aturan dasar kompatibilitas tipe:
 
-\subsection{Grammar Bahasa Arion}
+\begin{itemize}
+    \item \textbf{Compatible Types}: Dua tipe dikatakan \textit{compatible} jika memiliki tipe yang sama, atau salah satu adalah \textit{subrange} dari yang lain.
+    \item \textbf{Assignment Compatible}: Tipe \texttt{T2} adalah \textit{assignment-compatible} dengan \texttt{T1} jika \texttt{T1} adalah \texttt{Real} dan \texttt{T2} adalah \texttt{Integer}, atau keduanya \textit{compatible} dengan nilai \texttt{T2} merupakan \textit{subset} dari nilai \texttt{T1}.
+    \item \textbf{Operator Rules}: Operator aritmatika (\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{div}, \texttt{mod}) memerlukan operand numerik (\texttt{Integer} atau \texttt{Real}). Operator relasional (\texttt{=}, \texttt{<>}, \texttt{<}, \texttt{<=}, \texttt{>}, \texttt{>=}) memerlukan operand yang dapat dibandingkan. Operator logika (\texttt{and}, \texttt{or}, \texttt{not}) memerlukan operand \texttt{Boolean}.
+\end{itemize}
 
-Grammar bahasa Arion didefinisikan dalam bentuk aturan produksi (\textit{production rules}) yang terdiri atas simbol non-terminal (struktur sintaks) dan simbol terminal (token hasil lexer). Simbol awal (\textit{start symbol}) dari grammar ini adalah \texttt{<program>}. Berikut adalah seluruh aturan produksi yang digunakan dalam perancangan parser.
+\section{Perancangan Semantic Analyzer}
 
-\subsubsection{Struktur Program}
-\begin{align*}
-\langle \text{program} \rangle &\rightarrow \langle \text{program-header} \rangle \; \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle \; \texttt{period} \\
-\langle \text{program-header} \rangle &\rightarrow \texttt{programsy} \; \texttt{ident} \; \texttt{semicolon} \\
-\langle \text{block} \rangle &\rightarrow \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle
-\end{align*}
+Perancangan \textit{semantic analyzer} untuk bahasa Arion didasarkan pada konsep \textit{Attributed Grammar} dengan pendekatan \textit{Syntax-Directed Translation} untuk mengkonversi \textit{Parse Tree} menjadi \textit{AST}, serta \textit{Visitor Pattern} untuk melakukan penelusuran \textit{AST} dan pengecekan semantik. Pada bagian ini, dijelaskan rancangan konversi \textit{Parse Tree} ke \textit{AST}, perancangan \textit{symbol table}, perancangan \textit{visitor functions}, dan alur kerja program.
 
-\subsubsection{Deklarasi}
-\begin{align*}
-\langle \text{declaration-part} \rangle &\rightarrow ( \langle \text{const-declaration} \rangle )^* \; ( \langle \text{type-declaration} \rangle )^* \\
-&\quad\; ( \langle \text{var-declaration} \rangle )^* \; ( \langle \text{subprogram-declaration} \rangle )^* \\
-\langle \text{const-declaration} \rangle &\rightarrow \texttt{constsy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{constant} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{constant} \rangle &\rightarrow \texttt{charcon} \;|\; \texttt{string} \;|\; [ \texttt{plus} \;|\; \texttt{minus} ] \; ( \texttt{ident} \;|\; \texttt{intcon} \;|\; \texttt{realcon} ) \\
-\langle \text{type-declaration} \rangle &\rightarrow \texttt{typesy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{type} \rangle &\rightarrow \texttt{ident} \;|\; \langle \text{array-type} \rangle \;|\; \langle \text{range} \rangle \;|\; \langle \text{enumerated} \rangle \;|\; \langle \text{record-type} \rangle \\
-\langle \text{array-type} \rangle &\rightarrow \texttt{arraysy} \; \texttt{lbrack} \; ( \langle \text{range} \rangle \;|\; \texttt{ident} ) \; \texttt{rbrack} \; \texttt{ofsy} \; \langle \text{type} \rangle \\
-\langle \text{range} \rangle &\rightarrow \langle \text{expression} \rangle \; \texttt{period} \; \texttt{period} \; \langle \text{expression} \rangle \\
-\langle \text{enumerated} \rangle &\rightarrow \texttt{lparent} \; \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^* \; \texttt{rparent} \\
-\langle \text{record-type} \rangle &\rightarrow \texttt{recordsy} \; \langle \text{field-list} \rangle \; \texttt{endsy} \\
-\langle \text{field-list} \rangle &\rightarrow \langle \text{field-part} \rangle \; ( \texttt{semicolon} \; \langle \text{field-part} \rangle )^* \\
-\langle \text{field-part} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \\
-\langle \text{var-declaration} \rangle &\rightarrow \texttt{varsy} \; ( \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{identifier-list} \rangle &\rightarrow \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^*
-\end{align*}
+\subsection{Konversi Parse Tree ke AST}
 
-\subsubsection{Subprogram}
-\begin{align*}
-\langle \text{subprogram-declaration} \rangle &\rightarrow \langle \text{procedure-declaration} \rangle \;|\; \langle \text{function-declaration} \rangle \\
-\langle \text{procedure-declaration} \rangle &\rightarrow \texttt{proceduresy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{semicolon} \\
-&\quad\; \langle \text{block} \rangle \; \texttt{semicolon} \\
-\langle \text{function-declaration} \rangle &\rightarrow \texttt{functionsy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{colon} \; \texttt{ident} \\
-&\quad\; \texttt{semicolon} \; \langle \text{block} \rangle \; \texttt{semicolon} \\
-\langle \text{formal-parameter-list} \rangle &\rightarrow \texttt{lparent} \; \langle \text{parameter-group} \rangle \; ( \texttt{semicolon} \; \langle \text{parameter-group} \rangle )^* \; \texttt{rparent} \\
-\langle \text{parameter-group} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; ( \texttt{ident} \;|\; \langle \text{array-type} \rangle )
-\end{align*}
+Konversi dari \textit{Parse Tree} ke \textit{AST} dilakukan menggunakan pendekatan \textit{Syntax-Directed Translation} (SDT). Pada setiap aturan produksi \textit{grammar}, disisipkan \textit{semantic actions} yang menentukan bagaimana \textit{node-node} dari \textit{Parse Tree} dikonversi menjadi \textit{node-node} \textit{AST}.
 
-\subsubsection{Statement}
-\begin{align*}
-\langle \text{compound-statement} \rangle &\rightarrow \texttt{beginsy} \; \langle \text{statement-list} \rangle \; \texttt{endsy} \\
-\langle \text{statement-list} \rangle &\rightarrow \langle \text{statement} \rangle \; ( \texttt{semicolon} \; \langle \text{statement} \rangle )^* \\
-\langle \text{statement} \rangle &\rightarrow \langle \text{assignment-statement} \rangle \;|\; \langle \text{if-statement} \rangle \;|\; \langle \text{case-statement} \rangle \\
-&\quad\;|\; \langle \text{while-statement} \rangle \;|\; \langle \text{repeat-statement} \rangle \;|\; \langle \text{for-statement} \rangle \\
-&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; \langle \text{compound-statement} \rangle \;|\; \epsilon \\
-\langle \text{assignment-statement} \rangle &\rightarrow \langle \text{variable} \rangle \; \texttt{becomes} \; \langle \text{expression} \rangle \\
-\langle \text{if-statement} \rangle &\rightarrow \texttt{ifsy} \; \langle \text{expression} \rangle \; \texttt{thensy} \; \langle \text{statement} \rangle \\
-&\quad\;[ \texttt{elsesy} \; \langle \text{statement} \rangle ] \\
-\langle \text{case-statement} \rangle &\rightarrow \texttt{casesy} \; \langle \text{expression} \rangle \; \texttt{ofsy} \; \langle \text{case-block} \rangle \; \texttt{endsy} \\
-\langle \text{case-block} \rangle &\rightarrow \langle \text{constant} \rangle \; ( \texttt{comma} \; \langle \text{constant} \rangle )^* \; \texttt{colon} \; \langle \text{statement} \rangle \\
-&\quad\; ( \texttt{semicolon} \; \langle \text{case-block} \rangle )^* \\
-\langle \text{while-statement} \rangle &\rightarrow \texttt{whilesy} \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
-\langle \text{repeat-statement} \rangle &\rightarrow \texttt{repeatsy} \; \langle \text{statement-list} \rangle \; \texttt{untilsy} \; \langle \text{expression} \rangle \\
-\langle \text{for-statement} \rangle &\rightarrow \texttt{forsy} \; \texttt{ident} \; \texttt{becomes} \; \langle \text{expression} \rangle \\
-&\quad\; ( \texttt{tosy} \;|\; \texttt{downtosy} ) \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
-\langle \text{procedure/function-call} \rangle &\rightarrow \texttt{ident} \; [ \texttt{lparent} \; \langle \text{parameter-list} \rangle \; \texttt{rparent} ] \\
-\langle \text{parameter-list} \rangle &\rightarrow \langle \text{expression} \rangle \; ( \texttt{comma} \; \langle \text{expression} \rangle )^*
-\end{align*}
-
-\subsubsection{Ekspresi}
-\begin{align*}
-\langle \text{expression} \rangle &\rightarrow \langle \text{simple-expression} \rangle \\
-&\quad\;[ ( \texttt{eql} \;|\; \texttt{neq} \;|\; \texttt{gtr} \;|\; \texttt{geq} \;|\; \texttt{lss} \;|\; \texttt{leq} ) \; \langle \text{simple-expression} \rangle ] \\
-\langle \text{simple-expression} \rangle &\rightarrow [ \texttt{plus} \;|\; \texttt{minus} ] \; \langle \text{term} \rangle \\
-&\quad\; ( ( \texttt{plus} \;|\; \texttt{minus} \;|\; \texttt{orsy} ) \; \langle \text{term} \rangle )^* \\
-\langle \text{term} \rangle &\rightarrow \langle \text{factor} \rangle \; ( ( \texttt{times} \;|\; \texttt{rdiv} \;|\; \texttt{idiv} \;|\; \texttt{imod} \;|\; \texttt{andsy} ) \; \langle \text{factor} \rangle )^* \\
-\langle \text{factor} \rangle &\rightarrow \texttt{intcon} \;|\; \texttt{realcon} \;|\; \texttt{charcon} \;|\; \texttt{string} \;|\; \langle \text{variable} \rangle \\
-&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; ( \langle \text{expression} \rangle ) \;|\; \texttt{notsy} \; \langle \text{factor} \rangle
-\end{align*}
-
-\subsubsection{Variable}
-\begin{align*}
-\langle \text{variable} \rangle &\rightarrow \texttt{ident} \; ( \langle \text{component-variable} \rangle )^* \\
-\langle \text{component-variable} \rangle &\rightarrow \texttt{lbrack} \; \langle \text{index-list} \rangle \; \texttt{rbrack} \;|\; \texttt{period} \; \texttt{ident} \\
-\langle \text{index-list} \rangle &\rightarrow ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) \; ( \texttt{comma} \; ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) )^*
-\end{align*}
-
-\subsection{Perancangan Parse Tree}
-
-Parse Tree yang dihasilkan oleh parser merupakan representasi hierarkis dari
-struktur sintaks program. Setiap simpul (\textit{node}) dalam Parse Tree memuat
-label yang menunjukkan simbol terminal atau non-terminal yang direpresentasikan.
-Simpul non-terminal diberi label dengan nama aturan produksi dalam tanda kurung
-sudut (misalnya \texttt{<program>}, \texttt{<expression>}), sedangkan simpul
-terminal diberi label sesuai representasi token dari lexer (misalnya
-\texttt{programsy}, \texttt{ident(Hello)}, \texttt{semicolon}).
-
-Struktur data yang digunakan untuk merepresentasikan Parse Tree terdiri
-dari label string yang mengidentifikasi node (terminal atau non-terminal dan
-daftar anak (sub-pohon) yang terurut sesuai urutan dalam aturan
-produksi. Setiap node non-terminal dibuat dengan menciptakan node baru, kemudian
-menambahkan node-node anak sesuai dengan aturan produksi yang sedang diproses.
-Node terminal dibuat dengan membungkus token yang telah dikonsumsi dari aliran
-masukan.
-
-\subsection{Perancangan Algoritma Recursive Descent}
-
-Algoritma Recursive Descent dirancang dengan mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi rekursif. Setiap fungsi:
+\textit{Semantic actions} berfungsi untuk mengevaluasi nilai atribut dari masing-masing \textit{node}. Proses konversi dilakukan dengan:
 \begin{enumerate}
-    \item Membuat node Parse Tree baru dengan label non-terminal yang sesuai.
-    \item Memeriksa token saat ini (\textit{lookahead}) untuk menentukan cabang produksi yang akan diambil.
-    \item Mengonsumsi token terminal yang sesuai atau memanggil fungsi non-terminal lain secara rekursif.
-    \item Mengembalikan node yang telah terisi lengkap dengan anak-anaknya.
+    \item Membentuk \textit{node} baru untuk \textit{AST} (seperti \texttt{AssignNode}, \texttt{BinOpNode}) yang merepresentasikan hubungan semantik antar operator dan operand.
+    \item Menghilangkan informasi sintaksis yang sudah tidak diperlukan untuk tahap analisis (seperti tanda kurung berlebih, kata kunci terminal \texttt{BEGIN}, \texttt{END}, dan \texttt{SEMICOLON}).
+    \item Menggabungkan potongan \textit{node} dari bawah ke atas dengan \textit{node} level bawah akan diserahkan ke \textit{node} induknya untuk dirakit menjadi satu kesatuan \textit{AST} yang utuh.
+\end{enumerate}
+
+Berikut adalah contoh aturan konversi untuk beberapa konstruksi bahasa:
+
+\begin{table}[H]
+\centering
+\caption{Aturan Konversi Parse Tree ke AST}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Production Rule} & \textbf{Semantic Action} \\
+\hline
+$\langle\text{assignment}\rangle \rightarrow \text{ID} \; \texttt{becomes} \; \langle\text{expr}\rangle$ & assign.node = \texttt{AssignNode}(ID.name, expr.node) \\
+\hline
+$\langle\text{expr}\rangle \rightarrow \langle\text{expr}\rangle \; \texttt{+} \; \langle\text{term}\rangle$ & expr.node = \texttt{BinOpNode}('+', expr.node, term.node) \\
+\hline
+$\langle\text{factor}\rangle \rightarrow \text{INTCON}$ & factor.node = \texttt{LiteralNode}(INTCON.value, Integer) \\
+\hline
+$\langle\text{factor}\rangle \rightarrow \text{ID}$ & factor.node = \texttt{VarNode}(ID.name) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Perancangan Symbol Table}
+
+\textit{Symbol table} dirancang dengan tiga struktur data utama sesuai spesifikasi:
+
+\begin{itemize}
+    \item \textbf{\texttt{tab}}: \textit{Vector} dari \texttt{TabEntry} untuk menyimpan informasi \textit{identifier}. Indeks 0--32 dicadangkan untuk \textit{reserved words} dan tipe predefined. \textit{Identifier} yang didefinisikan pengguna dimulai dari indeks 33.
+    \item \textbf{\texttt{btab}}: \textit{Vector} dari \texttt{BTabEntry} untuk menyimpan informasi blok. Indeks 0 merupakan blok global (program utama).
+    \item \textbf{\texttt{atab}}: \textit{Vector} dari \texttt{ATabEntry} untuk menyimpan informasi \textit{array}.
+\end{itemize}
+
+Pengelolaan \textit{scope} dilakukan dengan mekanisme \textit{display} yang menyimpan indeks \texttt{btab} untuk setiap tingkat \textit{lexical level}. Saat memasuki blok baru (fungsi, prosedur, atau rekord), dilakukan \textit{push} pada \textit{symbol table}, dan saat keluar dari blok, dilakukan \textit{pop}.
+
+\subsection{Perancangan Semantic Visitor}
+
+\textit{Semantic analyzer} dirancang menggunakan \textit{Visitor Pattern} dengan fungsi-fungsi \texttt{visit} untuk setiap jenis \textit{node} \textit{AST}:
+
+\begin{itemize}
+    \item \textbf{Visit Declarations}: Melakukan registrasi \textit{identifier} ke \textit{symbol table} (\texttt{tab}) setiap kali ditemukan deklarasi konstanta, variabel, tipe, prosedur, atau fungsi.
+    \item \textbf{Visit Statements}: Melakukan \textit{lookup} pada \textit{symbol table} untuk memastikan \textit{identifier} telah dideklarasikan, serta melakukan \textit{type checking} pada setiap operasi dan penugasan.
+    \item \textbf{Visit Expressions}: Melakukan inferensi tipe data hasil dari setiap operasi pada \textit{node} (misalnya, operasi dua operand \texttt{Integer} menghasilkan tipe \texttt{Integer}).
+\end{itemize}
+
+Setiap fungsi \texttt{visit} akan melakukan anotasi pada \textit{node} dengan informasi tambahan seperti tipe data akhir dari ekspresi, referensi atau indeks yang mengarah pada entri yang tepat di \textit{symbol table}, dan tingkatan \textit{lexical level} atau \textit{scope} tempat \textit{node} tersebut berada.
+
+\subsection{Perancangan Type System}
+
+\textit{Type system} dirancang untuk mengelola tipe data dan aturan kompatibilitas dalam bahasa Arion. Tipe dasar yang didukung meliputi:
+
+\begin{itemize}
+    \item \texttt{Integer} untuk bilangan bulat
+    \item \texttt{Real} untuk bilangan riil
+    \item \texttt{Char} untuk karakter tunggal
+    \item \texttt{Boolean} untuk nilai logika
+    \item \texttt{String} untuk rangkaian karakter
+\end{itemize}
+
+Tipe \textit{structured} yang didukung meliputi \textit{array} dan \textit{record}. Aturan kompatibilitas tipe mencakup:
+\begin{itemize}
+    \item Dua tipe \textit{compatible} jika memiliki tipe yang sama.
+    \item \texttt{Real} dapat menerima \texttt{Integer} dalam penugasan (\textit{assignment-compatible}).
+    \item Operator aritmatika menghasilkan \texttt{Real} jika salah satu operand adalah \texttt{Real}, dan \texttt{Integer} jika keduanya \texttt{Integer}.
+    \item Operator relasional selalu menghasilkan \texttt{Boolean}.
+\end{itemize}
+
+\subsection{Strategi Penanganan Kesalahan}
+
+\textit{Semantic analyzer} dirancang untuk menangani berbagai jenis kesalahan semantik:
+
+\begin{itemize}
+    \item \textbf{Undeclared Identifier}: \textit{Identifier} yang digunakan tetapi belum dideklarasikan dalam \textit{scope} yang berlaku.
+    \item \textbf{Redeclaration}: \textit{Identifier} yang dideklarasikan lebih dari satu kali dalam \textit{scope} yang sama.
+    \item \textbf{Type Mismatch}: Penugasan atau operasi antara dua tipe yang tidak \textit{compatible}.
+    \item \textbf{Invalid Operation}: Penggunaan operator pada tipe yang tidak didukung (misalnya aritmatika pada \texttt{Boolean}).
+    \item \textbf{Scope Error}: Akses \textit{identifier} yang tidak valid dalam \textit{scope} saat ini.
+\end{itemize}
+
+Pesan kesalahan dirancang untuk memberikan informasi yang informatif, mencakup nomor baris dan deskripsi masalah yang jelas, tanpa menyebabkan \textit{crash} pada program.
+
+\subsection{Alur Program}
+
+Program bekerja dalam tiga fase utama:
+
+\begin{enumerate}
+    \item \textbf{Fase 1 -- Lexical Analysis}: \textit{Scanner} membaca kode sumber dan menghasilkan daftar \textit{token}.
+    \item \textbf{Fase 2 -- Syntax Analysis}: \textit{Parser} menerima daftar \textit{token} dan membangun \textit{Parse Tree} menggunakan algoritma \textit{Recursive Descent}.
+    \item \textbf{Fase 3 -- Semantic Analysis}: \textit{Semantic analyzer} mengkonversi \textit{Parse Tree} menjadi \textit{AST}, melakukan penelusuran menggunakan \textit{visitor functions}, mengelola \textit{symbol table}, melakukan \textit{type checking}, dan menghasilkan \textit{Decorated AST} beserta informasi \textit{symbol table}.
 \end{enumerate}
 
 Dalam perancangan ini, terdapat beberapa strategi disambiguasi untuk menangani kasus di mana satu token dapat mengawali beberapa aturan produksi berbeda:
@@ -522,9 +527,9 @@ Alur kerja program secara keseluruhan adalah sebagai berikut:
     \item Parse Tree yang dihasilkan ditampilkan ke terminal dengan format hierarkis dan disimpan ke dalam berkas teks di direktori \texttt{test/output/}.
 \end{enumerate}
 
-\section{Implementasi Parser}
+\section{Implementasi Semantic Analyzer}
 
-Parser pada compiler Arion diimplementasikan menggunakan algoritma Recursive Descent dalam bahasa C++20. Setiap aturan produksi dalam grammar bahasa Arion direpresentasikan sebagai satu fungsi yang mengembalikan node Parse Tree. Implementasi ini terletak pada direktori \texttt{src/syntax/} dengan struktur kelas yang terdefinisi dengan baik.
+\textit{Semantic analyzer} pada compiler Arion diimplementasikan menggunakan bahasa C++20 dengan pendekatan \textit{Visitor Pattern} dan \textit{Attributed Grammar}. Implementasi ini terletak pada direktori \texttt{src/semantic/} dengan struktur kelas yang terdefinisi dengan baik. Bagian ini menjelaskan implementasi konversi \textit{Parse Tree} ke \textit{AST}, pengelolaan \textit{symbol table}, dan mekanisme \textit{type checking}.
 
 \subsection{Struktur Kelas Parser}
 

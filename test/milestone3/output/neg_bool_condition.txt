@@ -1,45 +1,84 @@
-﻿=== Semantic Analysis ===
-
-=== Abstract Syntax Tree (AST) ===
-ProgramNode(BoolCondTest)
-    |-- declaration[0]: VarDeclNode(i : integer)
-    |   +-- typeNode: VariableNode(integer)
-    +-- body: CompoundNode
-        |-- statement[0]: AssignNode
-        |   |-- target: VariableNode(i)
-        |   +-- value: LiteralNode(1)
-        |-- statement[1]: IfNode
-        |   |-- condition: VariableNode(i)
-        |   +-- thenBranch: AssignNode
-        |       |-- target: VariableNode(i)
-        |       +-- value: LiteralNode(2)
-        +-- statement[2]: WhileNode
-            +-- condition: VariableNode(i)
-
-Semantic error on line 6: If condition must be Boolean, got Integer
-Semantic error on line 8: While condition must be Boolean, got Integer
-
-=== Symbol Tables ===
-
-=== tab ===
-idx  id        obj  type  ref  nrm  lev  adr  link
----------------------------------------------------
-0      0    0    0    1    0    0    0
-1    integer  3    1    0    1    0    0    0
-2    real  3    2    0    1    0    0    1
-3    char  3    3    0    1    0    0    2
-4    boolean  3    4    0    1    0    0    3
-5    string  3    5    0    1    0    0    4
-6    true  1    4    0    1    0    1    5
-7    false  1    4    0    1    0    0    6
-8    writeln  4    0    0    1    0    0    7
-9    readln  4    0    0    1    0    0    8
-10    write  4    0    0    1    0    0    9
-11    read  4    0    0    1    0    0    10
-12    BoolCondTest  3    0    0    1    0    0    11
-13    i  2    1    0    1    0    0    12
-
-=== btab ===
-idx  last  lpar  psze  vsze
------------------------------
-0    13    0    0    0
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(BoolCondTest)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(i)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(i)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(1)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <if-statement>
+|   |   |       |-- ifsy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- thensy
+|   |   |       +-- <statement>
+|   |   |           +-- <assignment-statement>
+|   |   |               |-- <variable>
+|   |   |               |   +-- ident(i)
+|   |   |               |-- becomes
+|   |   |               +-- <expression>
+|   |   |                   +-- <simple-expression>
+|   |   |                       +-- <term>
+|   |   |                           +-- <factor>
+|   |   |                               +-- intcon(2)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <while-statement>
+|   |   |       |-- whilesy
+|   |   |       |-- <expression>
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- <variable>
+|   |   |       |                   +-- ident(i)
+|   |   |       |-- dosy
+|   |   |       +-- <compound-statement>
+|   |   |           |-- beginsy
+|   |   |           |-- <statement-list>
+|   |   |           |   |-- <statement>
+|   |   |           |   |   +-- <assignment-statement>
+|   |   |           |   |       |-- <variable>
+|   |   |           |   |       |   +-- ident(i)
+|   |   |           |   |       |-- becomes
+|   |   |           |   |       +-- <expression>
+|   |   |           |   |           +-- <simple-expression>
+|   |   |           |   |               |-- <term>
+|   |   |           |   |               |   +-- <factor>
+|   |   |           |   |               |       +-- <variable>
+|   |   |           |   |               |           +-- ident(i)
+|   |   |           |   |               |-- plus
+|   |   |           |   |               +-- <term>
+|   |   |           |   |                   +-- <factor>
+|   |   |           |   |                       +-- intcon(1)
+|   |   |           |   |-- semicolon
+|   |   |           |   +-- <statement>
+|   |   |           +-- endsy
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
