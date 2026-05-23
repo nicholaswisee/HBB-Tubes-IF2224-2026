@@ -21,17 +21,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::cout << "=== Lexical Analysis ===\n";
     Scanner scanner(filePath.string());
     std::vector<Token> tokens = scanner.scanTokens();
 
-    for (const auto &tok : tokens) {
-        if (tok.type != TokenType::eof_token) {
-            std::cout << tok.toString() << "\n";
-        }
-    }
-
-    std::cout << "\n=== Syntax Analysis (Parse Tree) ===\n";
     try {
         Parser parser(tokens);
         auto tree = parser.parse();
@@ -43,11 +35,9 @@ int main(int argc, char *argv[]) {
         fs::path outFile = outputDir / fileName;
         outFile.replace_extension(".txt");
         tree->saveToFile(outFile.string());
-        std::cout << "\nParse tree saved to: " << outFile << "\n";
-        std::cout << "\nSyntax analysis completed successfully.\n";
 
     } catch (const SyntaxError &e) {
-        std::cerr << "\n" << e.what() << "\n";
+        std::cerr << e.what() << "\n";
         return 1;
     }
 

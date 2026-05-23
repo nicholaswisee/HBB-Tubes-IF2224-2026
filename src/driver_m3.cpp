@@ -23,27 +23,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::cout << "=== Lexical Analysis ===\n";
     Scanner scanner(filePath.string());
     std::vector<Token> tokens = scanner.scanTokens();
 
-    for (const auto &tok : tokens) {
-        if (tok.type != TokenType::eof_token) {
-            std::cout << tok.toString() << "\n";
-        }
-    }
-
-    std::cout << "\n=== Syntax Analysis ===\n";
     std::shared_ptr<ParseTreeNode> tree;
     try {
         Parser parser(tokens);
         tree = parser.parse();
     } catch (const SyntaxError &e) {
-        std::cerr << "\n" << e.what() << "\n";
+        std::cerr << e.what() << "\n";
         return 1;
     }
 
-    std::cout << "\n=== Semantic Analysis ===\n";
     try {
         ParseTreeToAST converter;
         auto ast = converter.convert(tree);
@@ -53,7 +44,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        std::cout << "\n=== Abstract Syntax Tree ===\n";
+        std::cout << "=== Abstract Syntax Tree ===\n";
         ast->print(std::cout);
         std::cout << "\n";
 
@@ -61,7 +52,7 @@ int main(int argc, char *argv[]) {
         SemanticAnalyzer analyzer(symTable);
         analyzer.analyze(ast);
 
-        std::cout << "\n=== Symbol Tables ===\n";
+        std::cout << "=== Symbol Tables ===\n";
         symTable.printTab();
         symTable.printBTab();
         if (symTable.atabSize() > 0) {

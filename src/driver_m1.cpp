@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::cout << "=== Lexical Analysis ===\n";
     Scanner scanner(filePath.string());
     std::vector<Token> tokens = scanner.scanTokens();
 
@@ -28,7 +27,5 @@ int main(int argc, char *argv[]) {
             std::cout << tok.toString() << "\n";
         }
     }
-
-    std::cout << "\nTotal tokens: " << tokens.size() - 1 << "\n";
     return 0;
 }
