@@ -889,6 +889,10 @@ HBB-Tubes-IF2224-2026/
 
 Pengujian dilakukan terhadap berbagai kasus masukan untuk memverifikasi kebenaran semantic analyzer dalam melakukan analisis semantik dan pembangunan tabel simbol. Setiap kasus uji dijalankan dengan perintah \texttt{./bin/compiler <nama\_berkas> 3}. Keluaran berupa AST, pesan kesalahan semantik (jika ada), dan tabel simbol dibandingkan dengan hasil yang diharapkan.
 
+\begin{warnbox}[Catatan Output]
+Output bagian pengujian ditampilkan sebagai screenshot terminal. Untuk menghasilkan screenshot, jalankan perintah yang tertera untuk setiap kasus uji dan capture output dari terminal. File screenshot disimpan di folder \texttt{doc/m3/} dengan nama \texttt{test\#\_output.png} sesuai dengan nomor kasus uji.
+\end{warnbox}
+
 \subsection{Kasus Uji 1: Pengujian Tipe Dasar dan Assignment Valid}
 \textbf{Berkas:} \texttt{pos\_basic\_assign.txt}
 
@@ -902,20 +906,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran yang diharapkan:}
-\begin{lstlisting}[style=default]
-<program>
-|-- <program-header>
-|   |-- programsy
-|   |-- ident(Minimal)
-|   +-- semicolon
-|-- <declaration-part>
-|-- <compound-statement>
-|   |-- beginsy
-|   |-- <statement-list>
-|   |   +-- <statement>
-|   +-- endsy
-+-- period
-\end{lstlisting}
+
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/pos\_basic\_assign.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test1\_output.png]}
 
 \textbf{Analisis:} Parser membangun pohon parse dengan tiga anak dari \texttt{<program>}: \texttt{<program-header>}, \texttt{<declaration-part>} kosong, dan \texttt{<compound-statement>}. Node \texttt{<statement>} tanpa anak merepresentasikan produksi epsilon (pernyataan kosong).
 
@@ -945,19 +943,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-=== Symbol Tables ===
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/pos\_scope.txt 3}
 
-=== btab ===
-idx  last  lpar  psze  vsze
------------------------------
-0    15    0    0    0
-1    14    0    0    0
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
 
-Semantic analysis completed successfully.
-\end{lstlisting}
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test2\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer membuat dua blok dalam btab: blok global (idx=0) dan blok prosedur Inner (idx=1). Variabel x terdaftar pada blok global (lev=0), sedangkan y terdaftar pada blok Inner (lev=1). Mekanisme display dan level memastikan bahwa y hanya terlihat dalam scope Inner.
 
@@ -980,18 +973,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-=== Symbol Tables ===
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/pos\_array\_record.txt 3}
 
-=== atab ===
-idx  xtyp  etyp  eref  low  high  elsz  size
------------------------------------------------
-0    1     1     0     1    10    1     10
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
 
-Semantic analysis completed successfully.
-\end{lstlisting}
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test3\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer mendaftarkan array arr dalam tabel atab dengan xtyp=1 (index type integer), etyp=1 (element type integer), low=1, high=10, size=10. Record rec mengakses field x dengan tipe integer. Array subscripting dan field access secara semantik valid karena arr[1] dan arr[i] menggunakan integer index, serta rec.x mengakses field yang ada.
 
@@ -1017,23 +1006,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-=== Symbol Tables ===
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/pos\_predefined.txt 3}
 
-=== tab (predefined portion) ===
-1    integer   3    1    0    1    0    0    0
-2    real      3    2    0    1    0    0    1
-...
-6    true      1    4    0    1    0    1    5
-7    false     1    4    0    1    0    0    6
-8    writeln   4    0    0    1    0    0    7
-9    readln    4    0    0    1    0    0    8
-...
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
 
-Semantic analysis completed successfully.
-\end{lstlisting}
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test4\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer mengenali true dan false sebagai predefined constants dengan tipe boolean (obj=1, type=4). Prosedur writeln dan readln terdaftar sebagai obj=4 (procedure). Penggunaan true dan false dalam assignment ke boolean variable b diterima karena tipe sesuai.
 
@@ -1058,20 +1038,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-=== Symbol Tables ===
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/pos\_func\_return.txt 3}
 
-=== tab (portion) ===
-...
-12    FuncReturn 3    0    0    1    0    0    11
-13    result   2    1    0    1    0    0    12
-14    Square   5    1    0    1    0    0    13
-15    n        2    1    0    1    1    1    14
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
 
-Semantic analysis completed successfully.
-\end{lstlisting}
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test5\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer mendaftarkan Square sebagai OBJ\_FUNCTION (obj=5) dengan return type integer (type=1). Parameter n terdaftar dalam blok Square dengan lev=1 (nested level) dan nrm=1 (parameter). Assignment Square := n * n diterima karena n * n menghasilkan integer yang sesuai dengan return type fungsi.
 
@@ -1094,12 +1068,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-Semantic error on line 8: Type mismatch in assignment:
-  expected Integer, got Real
-\end{lstlisting}
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/edge\_real\_int\_compat.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test6\_output.png]}
 
 \textbf{Analisis:} Assignment r := 5 dan r := i diterima karena Real assignment-compatible dengan Integer. Namun i := r ditolak dengan pesan "Type mismatch" karena Integer tidak assignment-compatible dengan Real. Ini mendemonstrasikan asymmetric compatibility rules di Arion.
 
@@ -1128,11 +1104,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-Semantic analysis completed successfully.
-\end{lstlisting}
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/edge\_scope\_shadow.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test7\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer memungkinkan dua variable x di level berbeda: satu di global (lev=0), satu di Proc (lev=1). Mekanisme lookup() menggunakan approach "dari level terdalam ke luar", sehingga x di Proc akan menampilkan x lokal, bukan global. Ini adalah shadowing yang valid.
 
@@ -1154,16 +1133,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-Semantic error on line 5: Undeclared identifier 'z'
-Semantic error on line 5: Type mismatch in assignment:
-  expected Integer, got Unknown
-Semantic error on line 6: Undeclared identifier 'y'
-Semantic error on line 6: Type mismatch in assignment:
-  expected Unknown, got Integer
-\end{lstlisting}
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/neg\_undeclared.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test8\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer mendeteksi z dan y sebagai identifier yang tidak dideklarasikan (lookup() mengembalikan -1). Karena z dan y memiliki type=TYPE_UNKNOWN, assignment juga dilaporkan error karena type mismatch. Error berlapis ini membantu user mengidentifikasi masalah utama (undeclared) sekaligus menunjukkan konsekuensi tipe.
 
@@ -1189,12 +1166,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-Semantic error on line 6: If condition must be Boolean, got Integer
-Semantic error on line 8: While condition must be Boolean, got Integer
-\end{lstlisting}
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/neg\_bool\_condition.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test9\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer memanggil checkConditionType() untuk setiap kondisi. Karena i bertipe integer (type=1, bukan TYPE_BOOLEAN=4), pesan error dilaporkan dengan jelas. Pesan menunjukkan context (if/while) dan actual type yang diterima.
 
@@ -1217,15 +1196,14 @@ end.
 \end{lstlisting}
 
 \textbf{Keluaran:}
-\begin{lstlisting}[style=default]
-=== Semantic Analysis ===
 
-Semantic error on line 6: 'not' requires Boolean operand, got Integer
-Semantic error on line 7: Logical operator 'and' requires Boolean operands,
-  got Integer and Boolean
-Semantic error on line 8: Logical operator 'or' requires Boolean operands,
-  got Boolean and Integer
-\end{lstlisting}
+\begin{infobox}[Output Screenshot]
+Jalankan: \texttt{./bin/compiler test/input/neg\_type\_mismatch.txt 3}
+
+Hasil output akan ditampilkan di terminal.
+\end{infobox}
+
+\textit{[Screenshot of terminal output will be inserted here - doc/m3/test10\_output.png]}
 
 \textbf{Analisis:} Semantic analyzer memanggil inferUnaryOpType() dan inferBinaryOpType() untuk setiap operator. Operator unary not mensyaratkan operand boolean. Operator binary and dan or mensyaratkan kedua operand bertipe boolean. Pesan error menunjukkan operator, jumlah operand yang diperlukan, dan tipe actual yang diterima untuk membantu user mengidentifikasi kesalahan.
 
