@@ -19,7 +19,10 @@ DEPS     := $(OBJECTS:.o=.d)
 # Target executable name
 TARGET   := $(BIN_DIR)/compiler
 
-.PHONY: all clean run test setup
+# Driver executables
+DRIVERS  := $(BIN_DIR)/driver_m1 $(BIN_DIR)/driver_m2 $(BIN_DIR)/driver_m3
+
+.PHONY: all clean run test setup drivers
 
 # Default rule
 all: setup $(TARGET)
@@ -70,3 +73,44 @@ test-symbol-table:
 test: all
 	@echo "Running tests..."
 	@# Add your test execution command here
+
+# Build all milestone drivers
+drivers: setup $(DRIVERS)
+	@echo "All drivers built successfully"
+
+# Driver M1: Lexical Analysis only
+$(BIN_DIR)/driver_m1: $(SRC_DIR)/driver_m1.cpp $(OBJ_DIR)/lexical/Scanner.o $(OBJ_DIR)/lexical/Token.o $(OBJ_DIR)/lexical/SourceBuffer.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Built: $@"
+
+# Driver M2: Syntax Analysis
+$(BIN_DIR)/driver_m2: $(SRC_DIR)/driver_m2.cpp $(OBJ_DIR)/lexical/Scanner.o $(OBJ_DIR)/lexical/Token.o $(OBJ_DIR)/lexical/SourceBuffer.o $(OBJ_DIR)/syntax/Parser.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Built: $@"
+
+# Driver M3: Semantic Analysis
+$(BIN_DIR)/driver_m3: $(SRC_DIR)/driver_m3.cpp $(OBJ_DIR)/lexical/Scanner.o $(OBJ_DIR)/lexical/Token.o $(OBJ_DIR)/lexical/SourceBuffer.o $(OBJ_DIR)/syntax/Parser.o $(OBJ_DIR)/semantic/ParseTreeToAST.o $(OBJ_DIR)/semantic/SymbolTableManager.o $(OBJ_DIR)/semantic/TypeSystem.o $(OBJ_DIR)/semantic/SemanticAnalyzer.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Built: $@"
+
+# Run individual drivers
+test-m1: drivers
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make test-m1 FILE=<filename>"; \
+		exit 1; \
+	fi
+	./$(BIN_DIR)/driver_m1 $(FILE)
+
+test-m2: drivers
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make test-m2 FILE=<filename>"; \
+		exit 1; \
+	fi
+	./$(BIN_DIR)/driver_m2 $(FILE)
+
+test-m3: drivers
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make test-m3 FILE=<filename>"; \
+		exit 1; \
+	fi
+	./$(BIN_DIR)/driver_m3 $(FILE)
