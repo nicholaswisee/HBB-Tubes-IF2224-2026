@@ -181,7 +181,7 @@ dengan informasi tipe data dan referensi ke \textit{symbol table}.
 
 \begin{figure}[H]
 \centering
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{2cm}Ilustrasi hubungan antara Parse Tree, AST, dan Decorated AST\vspace{2cm}}}
+\includegraphics[height=10cm]{parse-ast.png}
 \caption{Tahapan transformasi dari Parse Tree ke Decorated AST}
 \caption*{Sumber: Spesifikasi Milestone 3 IF2224}
 \end{figure}
@@ -399,113 +399,105 @@ Dalam bahasa Arion, terdapat beberapa aturan dasar kompatibilitas tipe:
 
 \section{Perancangan Semantic Analyzer}
 
-Perancangan \textit{syntax analyzer} untuk bahasa Arion didasarkan pada aturan tata bahasa bebas konteks (\textit{Context-Free Grammar}) yang mendefinisikan struktur sintaks bahasa secara hierarkis. Parser yang dibangun menggunakan algoritma \textit{Recursive Descent} dengan pendekatan \textit{top-down parsing}. Pada bagian ini, dijelaskan rancangan grammar bahasa Arion, perancangan Parse Tree, algoritma Recursive Descent, strategi penanganan kesalahan, dan alur kerja program.
+Perancangan \textit{semantic analyzer} untuk bahasa Arion didasarkan pada konsep \textit{Attributed Grammar} dengan pendekatan \textit{Syntax-Directed Translation} untuk mengkonversi \textit{Parse Tree} menjadi \textit{AST}, serta \textit{Visitor Pattern} untuk melakukan penelusuran \textit{AST} dan pengecekan semantik. Pada bagian ini, dijelaskan rancangan konversi \textit{Parse Tree} ke \textit{AST}, perancangan \textit{symbol table}, perancangan \textit{visitor functions}, dan alur kerja program.
 
-\subsection{Grammar Bahasa Arion}
+\subsection{Konversi Parse Tree ke AST}
 
-Grammar bahasa Arion didefinisikan dalam bentuk aturan produksi (\textit{production rules}) yang terdiri atas simbol non-terminal (struktur sintaks) dan simbol terminal (token hasil lexer). Simbol awal (\textit{start symbol}) dari grammar ini adalah \texttt{<program>}. Berikut adalah seluruh aturan produksi yang digunakan dalam perancangan parser.
+Konversi dari \textit{Parse Tree} ke \textit{AST} dilakukan menggunakan pendekatan \textit{Syntax-Directed Translation} (SDT). Pada setiap aturan produksi \textit{grammar}, disisipkan \textit{semantic actions} yang menentukan bagaimana \textit{node-node} dari \textit{Parse Tree} dikonversi menjadi \textit{node-node} \textit{AST}.
 
-\subsubsection{Struktur Program}
-\begin{align*}
-\langle \text{program} \rangle &\rightarrow \langle \text{program-header} \rangle \; \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle \; \texttt{period} \\
-\langle \text{program-header} \rangle &\rightarrow \texttt{programsy} \; \texttt{ident} \; \texttt{semicolon} \\
-\langle \text{block} \rangle &\rightarrow \langle \text{declaration-part} \rangle \; \langle \text{compound-statement} \rangle
-\end{align*}
-
-\subsubsection{Deklarasi}
-\begin{align*}
-\langle \text{declaration-part} \rangle &\rightarrow ( \langle \text{const-declaration} \rangle )^* \; ( \langle \text{type-declaration} \rangle )^* \\
-&\quad\; ( \langle \text{var-declaration} \rangle )^* \; ( \langle \text{subprogram-declaration} \rangle )^* \\
-\langle \text{const-declaration} \rangle &\rightarrow \texttt{constsy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{constant} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{constant} \rangle &\rightarrow \texttt{charcon} \;|\; \texttt{string} \;|\; [ \texttt{plus} \;|\; \texttt{minus} ] \; ( \texttt{ident} \;|\; \texttt{intcon} \;|\; \texttt{realcon} ) \\
-\langle \text{type-declaration} \rangle &\rightarrow \texttt{typesy} \; ( \texttt{ident} \; \texttt{eql} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{type} \rangle &\rightarrow \texttt{ident} \;|\; \langle \text{array-type} \rangle \;|\; \langle \text{range} \rangle \;|\; \langle \text{enumerated} \rangle \;|\; \langle \text{record-type} \rangle \\
-\langle \text{array-type} \rangle &\rightarrow \texttt{arraysy} \; \texttt{lbrack} \; ( \langle \text{range} \rangle \;|\; \texttt{ident} ) \; \texttt{rbrack} \; \texttt{ofsy} \; \langle \text{type} \rangle \\
-\langle \text{range} \rangle &\rightarrow \langle \text{expression} \rangle \; \texttt{period} \; \texttt{period} \; \langle \text{expression} \rangle \\
-\langle \text{enumerated} \rangle &\rightarrow \texttt{lparent} \; \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^* \; \texttt{rparent} \\
-\langle \text{record-type} \rangle &\rightarrow \texttt{recordsy} \; \langle \text{field-list} \rangle \; \texttt{endsy} \\
-\langle \text{field-list} \rangle &\rightarrow \langle \text{field-part} \rangle \; ( \texttt{semicolon} \; \langle \text{field-part} \rangle )^* \\
-\langle \text{field-part} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \\
-\langle \text{var-declaration} \rangle &\rightarrow \texttt{varsy} \; ( \langle \text{identifier-list} \rangle \; \texttt{colon} \; \langle \text{type} \rangle \; \texttt{semicolon} )^+ \\
-\langle \text{identifier-list} \rangle &\rightarrow \texttt{ident} \; ( \texttt{comma} \; \texttt{ident} )^*
-\end{align*}
-
-\subsubsection{Subprogram}
-\begin{align*}
-\langle \text{subprogram-declaration} \rangle &\rightarrow \langle \text{procedure-declaration} \rangle \;|\; \langle \text{function-declaration} \rangle \\
-\langle \text{procedure-declaration} \rangle &\rightarrow \texttt{proceduresy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{semicolon} \\
-&\quad\; \langle \text{block} \rangle \; \texttt{semicolon} \\
-\langle \text{function-declaration} \rangle &\rightarrow \texttt{functionsy} \; \texttt{ident} \; [ \langle \text{formal-parameter-list} \rangle ] \; \texttt{colon} \; \texttt{ident} \\
-&\quad\; \texttt{semicolon} \; \langle \text{block} \rangle \; \texttt{semicolon} \\
-\langle \text{formal-parameter-list} \rangle &\rightarrow \texttt{lparent} \; \langle \text{parameter-group} \rangle \; ( \texttt{semicolon} \; \langle \text{parameter-group} \rangle )^* \; \texttt{rparent} \\
-\langle \text{parameter-group} \rangle &\rightarrow \langle \text{identifier-list} \rangle \; \texttt{colon} \; ( \texttt{ident} \;|\; \langle \text{array-type} \rangle )
-\end{align*}
-
-\subsubsection{Statement}
-\begin{align*}
-\langle \text{compound-statement} \rangle &\rightarrow \texttt{beginsy} \; \langle \text{statement-list} \rangle \; \texttt{endsy} \\
-\langle \text{statement-list} \rangle &\rightarrow \langle \text{statement} \rangle \; ( \texttt{semicolon} \; \langle \text{statement} \rangle )^* \\
-\langle \text{statement} \rangle &\rightarrow \langle \text{assignment-statement} \rangle \;|\; \langle \text{if-statement} \rangle \;|\; \langle \text{case-statement} \rangle \\
-&\quad\;|\; \langle \text{while-statement} \rangle \;|\; \langle \text{repeat-statement} \rangle \;|\; \langle \text{for-statement} \rangle \\
-&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; \langle \text{compound-statement} \rangle \;|\; \epsilon \\
-\langle \text{assignment-statement} \rangle &\rightarrow \langle \text{variable} \rangle \; \texttt{becomes} \; \langle \text{expression} \rangle \\
-\langle \text{if-statement} \rangle &\rightarrow \texttt{ifsy} \; \langle \text{expression} \rangle \; \texttt{thensy} \; \langle \text{statement} \rangle \\
-&\quad\;[ \texttt{elsesy} \; \langle \text{statement} \rangle ] \\
-\langle \text{case-statement} \rangle &\rightarrow \texttt{casesy} \; \langle \text{expression} \rangle \; \texttt{ofsy} \; \langle \text{case-block} \rangle \; \texttt{endsy} \\
-\langle \text{case-block} \rangle &\rightarrow \langle \text{constant} \rangle \; ( \texttt{comma} \; \langle \text{constant} \rangle )^* \; \texttt{colon} \; \langle \text{statement} \rangle \\
-&\quad\; ( \texttt{semicolon} \; \langle \text{case-block} \rangle )^* \\
-\langle \text{while-statement} \rangle &\rightarrow \texttt{whilesy} \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
-\langle \text{repeat-statement} \rangle &\rightarrow \texttt{repeatsy} \; \langle \text{statement-list} \rangle \; \texttt{untilsy} \; \langle \text{expression} \rangle \\
-\langle \text{for-statement} \rangle &\rightarrow \texttt{forsy} \; \texttt{ident} \; \texttt{becomes} \; \langle \text{expression} \rangle \\
-&\quad\; ( \texttt{tosy} \;|\; \texttt{downtosy} ) \; \langle \text{expression} \rangle \; \texttt{dosy} \; \langle \text{statement} \rangle \\
-\langle \text{procedure/function-call} \rangle &\rightarrow \texttt{ident} \; [ \texttt{lparent} \; \langle \text{parameter-list} \rangle \; \texttt{rparent} ] \\
-\langle \text{parameter-list} \rangle &\rightarrow \langle \text{expression} \rangle \; ( \texttt{comma} \; \langle \text{expression} \rangle )^*
-\end{align*}
-
-\subsubsection{Ekspresi}
-\begin{align*}
-\langle \text{expression} \rangle &\rightarrow \langle \text{simple-expression} \rangle \\
-&\quad\;[ ( \texttt{eql} \;|\; \texttt{neq} \;|\; \texttt{gtr} \;|\; \texttt{geq} \;|\; \texttt{lss} \;|\; \texttt{leq} ) \; \langle \text{simple-expression} \rangle ] \\
-\langle \text{simple-expression} \rangle &\rightarrow [ \texttt{plus} \;|\; \texttt{minus} ] \; \langle \text{term} \rangle \\
-&\quad\; ( ( \texttt{plus} \;|\; \texttt{minus} \;|\; \texttt{orsy} ) \; \langle \text{term} \rangle )^* \\
-\langle \text{term} \rangle &\rightarrow \langle \text{factor} \rangle \; ( ( \texttt{times} \;|\; \texttt{rdiv} \;|\; \texttt{idiv} \;|\; \texttt{imod} \;|\; \texttt{andsy} ) \; \langle \text{factor} \rangle )^* \\
-\langle \text{factor} \rangle &\rightarrow \texttt{intcon} \;|\; \texttt{realcon} \;|\; \texttt{charcon} \;|\; \texttt{string} \;|\; \langle \text{variable} \rangle \\
-&\quad\;|\; \langle \text{procedure/function-call} \rangle \;|\; ( \langle \text{expression} \rangle ) \;|\; \texttt{notsy} \; \langle \text{factor} \rangle
-\end{align*}
-
-\subsubsection{Variable}
-\begin{align*}
-\langle \text{variable} \rangle &\rightarrow \texttt{ident} \; ( \langle \text{component-variable} \rangle )^* \\
-\langle \text{component-variable} \rangle &\rightarrow \texttt{lbrack} \; \langle \text{index-list} \rangle \; \texttt{rbrack} \;|\; \texttt{period} \; \texttt{ident} \\
-\langle \text{index-list} \rangle &\rightarrow ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) \; ( \texttt{comma} \; ( \texttt{intcon} \;|\; \texttt{charcon} \;|\; \texttt{ident} ) )^*
-\end{align*}
-
-\subsection{Perancangan Parse Tree}
-
-Parse Tree yang dihasilkan oleh parser merupakan representasi hierarkis dari
-struktur sintaks program. Setiap simpul (\textit{node}) dalam Parse Tree memuat
-label yang menunjukkan simbol terminal atau non-terminal yang direpresentasikan.
-Simpul non-terminal diberi label dengan nama aturan produksi dalam tanda kurung
-sudut (misalnya \texttt{<program>}, \texttt{<expression>}), sedangkan simpul
-terminal diberi label sesuai representasi token dari lexer (misalnya
-\texttt{programsy}, \texttt{ident(Hello)}, \texttt{semicolon}).
-
-Struktur data yang digunakan untuk merepresentasikan Parse Tree terdiri
-dari label string yang mengidentifikasi node (terminal atau non-terminal dan
-daftar anak (sub-pohon) yang terurut sesuai urutan dalam aturan
-produksi. Setiap node non-terminal dibuat dengan menciptakan node baru, kemudian
-menambahkan node-node anak sesuai dengan aturan produksi yang sedang diproses.
-Node terminal dibuat dengan membungkus token yang telah dikonsumsi dari aliran
-masukan.
-
-\subsection{Perancangan Algoritma Recursive Descent}
-
-Algoritma Recursive Descent dirancang dengan mengimplementasikan setiap aturan produksi dalam grammar sebagai fungsi rekursif. Setiap fungsi:
+\textit{Semantic actions} berfungsi untuk mengevaluasi nilai atribut dari masing-masing \textit{node}. Proses konversi dilakukan dengan:
 \begin{enumerate}
-    \item Membuat node Parse Tree baru dengan label non-terminal yang sesuai.
-    \item Memeriksa token saat ini (\textit{lookahead}) untuk menentukan cabang produksi yang akan diambil.
-    \item Mengonsumsi token terminal yang sesuai atau memanggil fungsi non-terminal lain secara rekursif.
-    \item Mengembalikan node yang telah terisi lengkap dengan anak-anaknya.
+    \item Membentuk \textit{node} baru untuk \textit{AST} (seperti \texttt{AssignNode}, \texttt{BinOpNode}) yang merepresentasikan hubungan semantik antar operator dan operand.
+    \item Menghilangkan informasi sintaksis yang sudah tidak diperlukan untuk tahap analisis (seperti tanda kurung berlebih, kata kunci terminal \texttt{BEGIN}, \texttt{END}, dan \texttt{SEMICOLON}).
+    \item Menggabungkan potongan \textit{node} dari bawah ke atas dengan \textit{node} level bawah akan diserahkan ke \textit{node} induknya untuk dirakit menjadi satu kesatuan \textit{AST} yang utuh.
+\end{enumerate}
+
+Berikut adalah contoh aturan konversi untuk beberapa konstruksi bahasa:
+
+\begin{table}[H]
+\centering
+\caption{Aturan Konversi Parse Tree ke AST}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Production Rule} & \textbf{Semantic Action} \\
+\hline
+$\langle\text{assignment}\rangle \rightarrow \text{ID} \; \texttt{becomes} \; \langle\text{expr}\rangle$ & assign.node = \texttt{AssignNode}(ID.name, expr.node) \\
+\hline
+$\langle\text{expr}\rangle \rightarrow \langle\text{expr}\rangle \; \texttt{+} \; \langle\text{term}\rangle$ & expr.node = \texttt{BinOpNode}('+', expr.node, term.node) \\
+\hline
+$\langle\text{factor}\rangle \rightarrow \text{INTCON}$ & factor.node = \texttt{LiteralNode}(INTCON.value, Integer) \\
+\hline
+$\langle\text{factor}\rangle \rightarrow \text{ID}$ & factor.node = \texttt{VarNode}(ID.name) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Perancangan Symbol Table}
+
+\textit{Symbol table} dirancang dengan tiga struktur data utama sesuai spesifikasi:
+
+\begin{itemize}
+    \item \textbf{\texttt{tab}}: \textit{Vector} dari \texttt{TabEntry} untuk menyimpan informasi \textit{identifier}. Indeks 0--32 dicadangkan untuk \textit{reserved words} dan tipe predefined. \textit{Identifier} yang didefinisikan pengguna dimulai dari indeks 33.
+    \item \textbf{\texttt{btab}}: \textit{Vector} dari \texttt{BTabEntry} untuk menyimpan informasi blok. Indeks 0 merupakan blok global (program utama).
+    \item \textbf{\texttt{atab}}: \textit{Vector} dari \texttt{ATabEntry} untuk menyimpan informasi \textit{array}.
+\end{itemize}
+
+Pengelolaan \textit{scope} dilakukan dengan mekanisme \textit{display} yang menyimpan indeks \texttt{btab} untuk setiap tingkat \textit{lexical level}. Saat memasuki blok baru (fungsi, prosedur, atau rekord), dilakukan \textit{push} pada \textit{symbol table}, dan saat keluar dari blok, dilakukan \textit{pop}.
+
+\subsection{Perancangan Semantic Visitor}
+
+\textit{Semantic analyzer} dirancang menggunakan \textit{Visitor Pattern} dengan fungsi-fungsi \texttt{visit} untuk setiap jenis \textit{node} \textit{AST}:
+
+\begin{itemize}
+    \item \textbf{Visit Declarations}: Melakukan registrasi \textit{identifier} ke \textit{symbol table} (\texttt{tab}) setiap kali ditemukan deklarasi konstanta, variabel, tipe, prosedur, atau fungsi.
+    \item \textbf{Visit Statements}: Melakukan \textit{lookup} pada \textit{symbol table} untuk memastikan \textit{identifier} telah dideklarasikan, serta melakukan \textit{type checking} pada setiap operasi dan penugasan.
+    \item \textbf{Visit Expressions}: Melakukan inferensi tipe data hasil dari setiap operasi pada \textit{node} (misalnya, operasi dua operand \texttt{Integer} menghasilkan tipe \texttt{Integer}).
+\end{itemize}
+
+Setiap fungsi \texttt{visit} akan melakukan anotasi pada \textit{node} dengan informasi tambahan seperti tipe data akhir dari ekspresi, referensi atau indeks yang mengarah pada entri yang tepat di \textit{symbol table}, dan tingkatan \textit{lexical level} atau \textit{scope} tempat \textit{node} tersebut berada.
+
+\subsection{Perancangan Type System}
+
+\textit{Type system} dirancang untuk mengelola tipe data dan aturan kompatibilitas dalam bahasa Arion. Tipe dasar yang didukung meliputi:
+
+\begin{itemize}
+    \item \texttt{Integer} untuk bilangan bulat
+    \item \texttt{Real} untuk bilangan riil
+    \item \texttt{Char} untuk karakter tunggal
+    \item \texttt{Boolean} untuk nilai logika
+    \item \texttt{String} untuk rangkaian karakter
+\end{itemize}
+
+Tipe \textit{structured} yang didukung meliputi \textit{array} dan \textit{record}. Aturan kompatibilitas tipe mencakup:
+\begin{itemize}
+    \item Dua tipe \textit{compatible} jika memiliki tipe yang sama.
+    \item \texttt{Real} dapat menerima \texttt{Integer} dalam penugasan (\textit{assignment-compatible}).
+    \item Operator aritmatika menghasilkan \texttt{Real} jika salah satu operand adalah \texttt{Real}, dan \texttt{Integer} jika keduanya \texttt{Integer}.
+    \item Operator relasional selalu menghasilkan \texttt{Boolean}.
+\end{itemize}
+
+\subsection{Strategi Penanganan Kesalahan}
+
+\textit{Semantic analyzer} dirancang untuk menangani berbagai jenis kesalahan semantik:
+
+\begin{itemize}
+    \item \textbf{Undeclared Identifier}: \textit{Identifier} yang digunakan tetapi belum dideklarasikan dalam \textit{scope} yang berlaku.
+    \item \textbf{Redeclaration}: \textit{Identifier} yang dideklarasikan lebih dari satu kali dalam \textit{scope} yang sama.
+    \item \textbf{Type Mismatch}: Penugasan atau operasi antara dua tipe yang tidak \textit{compatible}.
+    \item \textbf{Invalid Operation}: Penggunaan operator pada tipe yang tidak didukung (misalnya aritmatika pada \texttt{Boolean}).
+    \item \textbf{Scope Error}: Akses \textit{identifier} yang tidak valid dalam \textit{scope} saat ini.
+\end{itemize}
+
+Pesan kesalahan dirancang untuk memberikan informasi yang informatif, mencakup nomor baris dan deskripsi masalah yang jelas, tanpa menyebabkan \textit{crash} pada program.
+
+\subsection{Alur Program}
+
+Program bekerja dalam tiga fase utama:
+
+\begin{enumerate}
+    \item \textbf{Fase 1 -- Lexical Analysis}: \textit{Scanner} membaca kode sumber dan menghasilkan daftar \textit{token}.
+    \item \textbf{Fase 2 -- Syntax Analysis}: \textit{Parser} menerima daftar \textit{token} dan membangun \textit{Parse Tree} menggunakan algoritma \textit{Recursive Descent}.
+    \item \textbf{Fase 3 -- Semantic Analysis}: \textit{Semantic analyzer} mengkonversi \textit{Parse Tree} menjadi \textit{AST}, melakukan penelusuran menggunakan \textit{visitor functions}, mengelola \textit{symbol table}, melakukan \textit{type checking}, dan menghasilkan \textit{Decorated AST} beserta informasi \textit{symbol table}.
 \end{enumerate}
 
 Dalam perancangan ini, terdapat beberapa strategi disambiguasi untuk menangani kasus di mana satu token dapat mengawali beberapa aturan produksi berbeda:
