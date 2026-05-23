@@ -39,7 +39,7 @@ class SymbolTableManager {
   public:
     SymbolTableManager();
 
-    // --- tab management ---
+    // tab management
     int enter(const std::string &id, int obj, int type, int ref = 0,
               int nrm = 1, int lev = -1, int adr = 0);
     int lookup(const std::string &id) const;
@@ -48,7 +48,7 @@ class SymbolTableManager {
     TabEntry &getTab(int idx);
     int tabSize() const;
 
-    // --- btab management ---
+    // btab management
     int enterBlock();
     void exitBlock();
     int currentBlock() const;
@@ -58,17 +58,17 @@ class SymbolTableManager {
     BTabEntry &getBTab(int idx);
     int btabSize() const;
 
-    // --- atab management ---
+    //  atab management
     int enterArray(int xtyp, int etyp, int eref, int low, int high, int elsz,
                    int size);
     const ATabEntry &getATab(int idx) const;
     ATabEntry &getATab(int idx);
     int atabSize() const;
 
-    // --- display ---
+    //  display
     int getDisplay(int level) const;
 
-    // --- helpers ---
+    //  helpers
     void printTab() const;
     void printBTab() const;
     void printATab() const;
