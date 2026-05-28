@@ -1,8 +1,8 @@
 #include "lexical/Scanner.hpp"
-#include "syntax/Parser.hpp"
 #include "semantic/ParseTreeToAST.hpp"
-#include "semantic/SymbolTableManager.hpp"
 #include "semantic/SemanticAnalyzer.hpp"
+#include "semantic/SymbolTableManager.hpp"
+#include "syntax/Parser.hpp"
 #include <filesystem>
 #include <iostream>
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
         std::cout << "\nSemantic analysis completed successfully.\n";
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;
     }
