@@ -72,6 +72,16 @@ test-symbol-table:
 	@echo "Running symbol table test..."
 	./$(BIN_DIR)/test_symbol_table
 
+# Role 3 unit test
+test-role3:
+	$(CXX) $(CXXFLAGS) test/test_role3.cpp \
+		src/runtime/StackMachine.cpp \
+		src/runtime/Interpreter.cpp \
+		src/intermediate/Instruction.cpp \
+		-o $(BIN_DIR)/test_role3
+	@echo "Running Role 3 unit tests..."
+	$(BIN_DIR)/test_role3
+
 # Basic placeholder for tests
 test: all
 	@echo "Running tests..."
