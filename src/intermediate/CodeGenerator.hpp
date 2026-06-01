@@ -20,6 +20,9 @@ class CodeGenerator : public ASTVisitor {
     // Get generated instructions
     const std::vector<Instruction> &getInstructions() const;
 
+    // Address Assignment untuk semua variabel (Role 2)
+    void assignAddresses();
+
     // Visitor implementations (expression & statement)
     void visit(LiteralNode &node) override;
     void visit(VariableNode &node) override;
