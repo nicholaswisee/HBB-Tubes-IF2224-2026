@@ -1,6 +1,7 @@
 #include "../intermediate/CodeGenerator.hpp"
 #include "../semantic/ASTNode.hpp"
 #include "../semantic/TypeSystem.hpp"
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -121,8 +122,10 @@ void CodeGenerator::visit(BinaryOpNode &node) {
 void CodeGenerator::visit(UnaryOpNode &node) {
     if (node.operand)
         node.operand->accept(*this);
-    if (node.op == "-" || node.op == "not") {
+    if (node.op == "-") {
         emit(Opcode::OPR, 0, 1); // NEG
+    } else if (node.op == "not") {
+        emit(Opcode::OPR, 0, 16); // NOT
     }
 }
 
@@ -157,46 +160,67 @@ void CodeGenerator::visit(ProcCallNode &node) {
         for (auto &arg : node.arguments) {
             if (arg && arg->tabIndex >= 0) {
                 const TabEntry &entry = symTable.getTab(arg->tabIndex);
-                emit(Opcode::OPR, 0, 15); // READ (bonus)
+                emit(Opcode::OPR, 0, 15); // READ
                 emit(Opcode::STO, entry.lev, entry.adr);
             }
+        }
+    } else {
+        // User-defined procedure/function call
+        int calleeIdx = symTable.lookup(node.name);
+        if (calleeIdx >= 0) {
+            const TabEntry &entry = symTable.getTab(calleeIdx);
+            for (auto &arg : node.arguments) {
+                if (arg) arg->accept(*this);
+            }
+            emit(Opcode::CAL, entry.lev, entry.adr);
         }
     }
 }
 
 // Stubs for Role 2 implementation
 void CodeGenerator::assignAddresses() {
-    // Iterasi semua block (btab)
     for (int b = 0; b < symTable.btabSize(); b++) {
         BTabEntry &block = symTable.getBTab(b);
-        int addr = 3;  // mulai setelah SL(0), DL(1), RA(2)
 
-        // Parameter dulu (jika ada)
-        int paramIdx = block.lpar;
-        // Parameter disimpan dengan adr negatif (relatif dari RA)
-        // atau positif setelah RA, tergantung konvensi
+        // Collect all entries belonging to this block via linked list
+        std::vector<int> indices;
+        int idx = block.last;
+        while (idx > 0) {
+            const TabEntry &entry = symTable.getTab(idx);
+            indices.push_back(idx);
+            idx = entry.link;
+        }
+        // Reverse to get declaration order
+        std::reverse(indices.begin(), indices.end());
 
-        // Variabel lokal
-        int varIdx = symTable.getTab(block.last).link;
-        while (varIdx > 0) {
-            TabEntry &entry = symTable.getTab(varIdx);
+        int paramAddr = 3;
+        int varAddr = 3 + block.psze;
+
+        for (int tabIdx : indices) {
+            TabEntry &entry = symTable.getTab(tabIdx);
             if (entry.obj == TypeSystem::OBJ_VARIABLE) {
-                entry.adr = addr++;
+                if (entry.nrm == 0) {
+                    entry.adr = paramAddr++;
+                } else {
+                    entry.adr = varAddr++;
+                }
             }
-            varIdx = entry.link;
         }
     }
 }
 
 void CodeGenerator::visit(ProgramNode &node) {
+    // Ensure all variables have addresses before generating code
+    assignAddresses();
+
     // Hitung frame size dari btab level 0
     int blockIdx = symTable.getDisplay(0);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    int frameSize = 3 + block.vsze;  // 3 untuk SL/DL/RA + variabel
+    int frameSize = 3 + block.psze + block.vsze;  // 3 untuk SL/DL/RA + parameter + variabel
 
     emit(Opcode::INT, 0, frameSize);
 
-    // Proses deklarasi (hanya untuk side-effect address assignment)
+    // Proses deklarasi
     for (auto &decl : node.declarations) {
         if (decl) decl->accept(*this);
     }
@@ -220,10 +244,10 @@ void CodeGenerator::visit(ProcDeclNode &node) {
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // Frame initialization
+    // Frame initialization using correct lexical level
     int blockIdx = symTable.getDisplay(entry.lev);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    emit(Opcode::INT, 0, 3 + block.psze + block.vsze);
+    emit(Opcode::INT, entry.lev, 3 + block.psze + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {
@@ -241,10 +265,10 @@ void CodeGenerator::visit(FuncDeclNode &node) {
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // Frame initialization
+    // Frame initialization using correct lexical level
     int blockIdx = symTable.getDisplay(entry.lev);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    emit(Opcode::INT, 0, 3 + block.psze + block.vsze);
+    emit(Opcode::INT, entry.lev, 3 + block.psze + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {
@@ -260,13 +284,15 @@ void CodeGenerator::visit(FuncDeclNode &node) {
 }
 
 void CodeGenerator::visit(IfNode &node) {
+    int elseLabel = newLabel();
+    int endLabel = newLabel();
+
     // Condition
     if (node.condition) node.condition->accept(*this);
 
     // Conditional jump to else
-    // Backpatch: simpan index instruksi untuk diisi nanti
     int jpcIdx = instructions.size();
-    emit(Opcode::JPC, 0, 0);  // operand 0 sementara
+    emit(Opcode::JPC, 0, 0);  // backpatched to elseLabel
 
     // Then branch
     if (node.thenBranch) node.thenBranch->accept(*this);
@@ -275,67 +301,71 @@ void CodeGenerator::visit(IfNode &node) {
     int jmpIdx = -1;
     if (node.elseBranch) {
         jmpIdx = instructions.size();
-        emit(Opcode::JMP, 0, 0);  // operand 0 sementara
+        emit(Opcode::JMP, 0, 0);  // backpatched to endLabel
     }
 
-    // Else label → backpatch JPC
-    int elseLine = instructions.size();
-    instructions[jpcIdx].operand = elseLine;
+    // Else label
+    placeLabel(elseLabel);
+    backpatch(jpcIdx, getLabelLine(elseLabel));
 
     // Else branch
     if (node.elseBranch) node.elseBranch->accept(*this);
 
-    // End label → backpatch JMP
-    int endLine = instructions.size();
-    if (jmpIdx >= 0) instructions[jmpIdx].operand = endLine;
+    // End label
+    placeLabel(endLabel);
+    if (jmpIdx >= 0) backpatch(jmpIdx, getLabelLine(endLabel));
 }
 
 void CodeGenerator::visit(WhileNode &node) {
+    int startLabel = newLabel();
+    int endLabel = newLabel();
+
     // Start label
-    int startLine = instructions.size();
+    placeLabel(startLabel);
 
     // Condition
     if (node.condition) node.condition->accept(*this);
 
     // Conditional jump to end
     int jpcIdx = instructions.size();
-    emit(Opcode::JPC, 0, 0);  // operand 0 sementara
+    emit(Opcode::JPC, 0, 0);  // backpatched to endLabel
 
     // Body
     if (node.body) node.body->accept(*this);
 
     // Jump back to start
-    emit(Opcode::JMP, 0, startLine);
+    emit(Opcode::JMP, 0, getLabelLine(startLabel));
 
-    // End label → backpatch JPC
-    int endLine = instructions.size();
-    instructions[jpcIdx].operand = endLine;
+    // End label
+    placeLabel(endLabel);
+    backpatch(jpcIdx, getLabelLine(endLabel));
 }
 
 void CodeGenerator::visit(ForNode &node) {
+    int startLabel = newLabel();
+    int endLabel = newLabel();
+
     // Init: assign initial value to loop variable
     if (node.initExpr) node.initExpr->accept(*this);
-    TabEntry &varEntry = symTable.getTab(symTable.lookup(node.varName));
+    int varIdx = symTable.lookup(node.varName);
+    if (varIdx < 0) return; // variable not found
+    TabEntry &varEntry = symTable.getTab(varIdx);
     emit(Opcode::STO, varEntry.lev, varEntry.adr);
 
     // Start label
-    int startLine = instructions.size();
+    placeLabel(startLabel);
 
     // Check condition
     emit(Opcode::LOD, varEntry.lev, varEntry.adr);
     if (node.finalExpr) node.finalExpr->accept(*this);
 
     if (node.direction == "to") {
-        // counter <= final? → LEQ → if false, jump to end
-        // Asumsi OPR LEQ direpresentasikan oleh instruksi OPR dengan M=12 berdasarkan opToCode()
-        emit(Opcode::OPR, 0, 12);
+        emit(Opcode::OPR, 0, 12); // LEQ
     } else {
-        // counter >= final? → GEQ → if false, jump to end
-        // Asumsi OPR GEQ direpresentasikan oleh instruksi OPR dengan M=10 berdasarkan opToCode()
-        emit(Opcode::OPR, 0, 10);
+        emit(Opcode::OPR, 0, 10); // GEQ
     }
     int jpcIdx = instructions.size();
-    emit(Opcode::JPC, 0, 0);
+    emit(Opcode::JPC, 0, 0);  // backpatched to endLabel
 
     // Body
     if (node.body) node.body->accept(*this);
@@ -351,15 +381,17 @@ void CodeGenerator::visit(ForNode &node) {
     emit(Opcode::STO, varEntry.lev, varEntry.adr);
 
     // Jump back to condition check
-    emit(Opcode::JMP, 0, startLine);
+    emit(Opcode::JMP, 0, getLabelLine(startLabel));
 
     // End label
-    int endLine = instructions.size();
-    instructions[jpcIdx].operand = endLine;
+    placeLabel(endLabel);
+    backpatch(jpcIdx, getLabelLine(endLabel));
 }
 
 void CodeGenerator::visit(RepeatNode &node) {
-    int startLine = instructions.size();
+    int startLabel = newLabel();
+    placeLabel(startLabel);
+    int startLine = getLabelLine(startLabel);
 
     // Statements
     for (auto &stmt : node.statements) {

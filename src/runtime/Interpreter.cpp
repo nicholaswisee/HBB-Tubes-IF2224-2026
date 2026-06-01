@@ -1,4 +1,5 @@
 #include "Interpreter.hpp"
+#include <limits>
 
 using Intermediate::Opcode;
 using Intermediate::Instruction;
@@ -115,20 +116,110 @@ void Interpreter::handleCAL(const Instruction &inst) {
 
 void Interpreter::handleOPR(const Instruction &inst) {
     switch (inst.operand) {
-        case 1:  // NEG
-        case 2:  // ADD
-        case 3:  // SUB
-        case 4:  // MUL
-        case 5:  // DIV
-        case 6:  // MOD
-        case 7:  // EQL
-        case 8:  // NEQ
-        case 9:  // LSS
-        case 10: // GEQ
-        case 11: // GTR
-        case 12: // LEQ
-        case 13: // WRT
-        case 14: // WRTLN
+        case 1: { // NEG
+            int a = stack.pop();
+            stack.push(-a);
+            break;
+        }
+        case 2: { // ADD
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a + b);
+            break;
+        }
+        case 3: { // SUB
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a - b);
+            break;
+        }
+        case 4: { // MUL
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a * b);
+            break;
+        }
+        case 5: { // DIV
+            int b = stack.pop();
+            int a = stack.pop();
+            if (b == 0) {
+                throw RuntimeError(RuntimeError::DIVISION_BY_ZERO,
+                    "Division by zero", ip);
+            }
+            stack.push(a / b);
+            break;
+        }
+        case 6: { // MOD
+            int b = stack.pop();
+            int a = stack.pop();
+            if (b == 0) {
+                throw RuntimeError(RuntimeError::DIVISION_BY_ZERO,
+                    "Modulo by zero", ip);
+            }
+            stack.push(a % b);
+            break;
+        }
+        case 7: { // EQL
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a == b ? 1 : 0);
+            break;
+        }
+        case 8: { // NEQ
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a != b ? 1 : 0);
+            break;
+        }
+        case 9: { // LSS
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a < b ? 1 : 0);
+            break;
+        }
+        case 10: { // GEQ
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a >= b ? 1 : 0);
+            break;
+        }
+        case 11: { // GTR
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a > b ? 1 : 0);
+            break;
+        }
+        case 12: { // LEQ
+            int b = stack.pop();
+            int a = stack.pop();
+            stack.push(a <= b ? 1 : 0);
+            break;
+        }
+        case 13: { // WRT
+            int a = stack.pop();
+            std::cout << a;
+            break;
+        }
+        case 14: { // WRTLN
+            int a = stack.pop();
+            std::cout << a << std::endl;
+            break;
+        }
+        case 15: { // READ
+            int val = 0;
+            if (!(std::cin >> val)) {
+                val = 0;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+            stack.push(val);
+            break;
+        }
+        case 16: { // NOT
+            int a = stack.pop();
+            stack.push(a == 0 ? 1 : 0);
+            break;
+        }
         default:
             throw RuntimeError(RuntimeError::UNKNOWN_INSTRUCTION,
                 "Unknown OPR operation: " + std::to_string(inst.operand), ip);
