@@ -206,6 +206,11 @@ void CodeGenerator::assignAddresses() {
                 }
             }
         }
+
+        int computedVsze = varAddr - (3 + block.psze);
+        if (computedVsze > block.vsze) {
+            block.vsze = computedVsze;
+        }
     }
 }
 
