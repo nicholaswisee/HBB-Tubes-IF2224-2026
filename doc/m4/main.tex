@@ -1,0 +1,387 @@
+\documentclass[12pt,a4paper]{article}
+
+% === Geometry & spacing ==================================================
+\usepackage[margin=2.5cm]{geometry}
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0pt}
+
+% === Encoding & language ================================================
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[indonesian]{babel}
+
+% === Font ================================================================
+\usepackage{lmodern}
+
+% === Math ================================================================
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% === Graphics & figures =================================================
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\graphicspath{{./}}
+
+% === Tables ==============================================================
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+
+% === Lists ===============================================================
+\usepackage{enumitem}
+
+% === Code listings =======================================================
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codeframe}{RGB}{200,200,200}
+\definecolor{codekw}{RGB}{0,0,180}
+\definecolor{codecomment}{RGB}{60,128,49}
+\definecolor{codestring}{RGB}{163,21,21}
+
+\lstdefinestyle{default}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  tabsize=2,
+  showstringspaces=false,
+  frame=single,
+  rulecolor=\color{codeframe},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  xleftmargin=2.5em,
+  framexleftmargin=2em,
+  keywordstyle=\color{codekw}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+}
+\lstdefinestyle{pascal}{style=default, language=Pascal}
+\lstdefinestyle{bash}{style=default, language=bash}
+\lstset{style=default}
+
+% === Boxes ===============================================================
+\usepackage{tcolorbox}
+\tcbuselibrary{listings, skins, breakable}
+
+\newtcolorbox{infobox}[1][Note]{
+  colback=blue!5!white, colframe=blue!50!black,
+  fonttitle=\bfseries, title=#1,
+  breakable
+}
+\newtcolorbox{warnbox}[1][Warning]{
+  colback=orange!10!white, colframe=orange!80!black,
+  fonttitle=\bfseries, title=#1,
+  breakable
+}
+
+\usepackage{hyperref}
+\usepackage{xurl}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\CourseCode{} -- \CourseName}
+\rhead{\thepage}
+
+\usepackage{indentfirst}
+
+\newcommand{\CourseCode}{IF2224}
+\newcommand{\CourseName}{Teori Bahasa Formal dan Otomata}
+\newcommand{\AssignmentTitle}{Laporan Tugas Besar}
+\newcommand{\AssignmentSubtitle}{Milestone 4: Intermediate Code Generator}
+\newcommand{\Semester}{Semester II / 2025--2026}
+
+\newcommand{\GroupName}{GTFOTBFO (HBB)}
+\newcommand{\MemberA}{Nathanael Imandatua Manurung - 13524021}
+\newcommand{\MemberB}{Nicholas Wise Saragih Sumbayak - 13524037}
+\newcommand{\MemberC}{Kurt Mikhael Purba - 13524065}
+\newcommand{\MemberD}{Rava Khoman Tuah Saragih - 13524107}
+
+\newcommand{\Lab}{Laboratorium Ilmu dan Rekayasa Komputasi}
+\newcommand{\Program}{Teknik Informatika}
+\newcommand{\Faculty}{Sekolah Teknik Elektro dan Informatika}
+\newcommand{\University}{Institut Teknologi Bandung}
+
+\newcommand{\RepoURL}{https://github.com/nicholaswisee/HBB-Tubes-IF2224-2026}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\Large \textbf{\University}}\\[0.3cm]
+    {\large \Faculty}\\[0.2cm]
+    {\large \Program}\\[2cm]
+    \rule{\linewidth}{0.5mm}\\[0.6cm]
+    {\LARGE \bfseries \AssignmentTitle}\\[0.3cm]
+    {\large \AssignmentSubtitle}\\[0.2cm]
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+    {\Large \GroupName}\\[1cm]
+    \begin{tabular}{rl}
+        \MemberA\\
+        \MemberB\\
+        \MemberC\\
+        \MemberD\\
+    \end{tabular}\\[2cm]
+    {\large \Semester}\\[1cm]
+    {\Lab}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Ringkasan Pengerjaan Milestone 4}
+
+Milestone 4 merupakan tahap akhir kompilasi bahasa Pascal sederhana, yaitu pembangkitan kode perantara (intermediate code) dan eksekusinya menggunakan interpreter stack-based. Kelompok kami mengimplementasikan generator kode P-Code untuk AST yang dibangun pada Milestone 3, dan interpreter yang mengeksekusi instruksi P-Code tersebut. Seluruh pipeline lengkapnya adalah:
+
+\begin{enumerate}
+    \item \textbf{Lexical Analysis} (Scanner) --- tokenisasi sumber Pascal
+    \item \textbf{Syntax Analysis} (Parser) --- pembangunan Parse Tree
+    \item \textbf{Semantic Analysis} (SemanticAnalyzer + SymbolTableManager) --- pemeriksaan tipe dan tabel simbol
+    \item \textbf{Intermediate Code Generation} (CodeGenerator) --- pembangkitan instruksi P-Code
+    \item \textbf{Execution} (Interpreter + StackMachine) --- eksekusi P-Code
+\end{enumerate}
+
+\subsection{Struktur File Milestone 4}
+
+Berikut file-file baru dan modifikasi yang dilakukan pada milestone ini:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Path} & \textbf{Peran} & \textbf{Deskripsi Singkat} \\
+\midrule
+\texttt{src/intermediate/CodeGenerator.hpp} & Role 4 & Header CodeGenerator \\
+\texttt{src/intermediate/CodeGenerator.cpp} & Role 4 & Visitor AST untuk emit P-Code \\
+\texttt{src/intermediate/Instruction.hpp} & Role 4 & Definisi kelas \texttt{Instruction} \\
+\texttt{src/intermediate/Instruction.cpp} & Role 4 & Implementasi \texttt{Instruction::toString()} \\
+\texttt{src/runtime/StackMachine.hpp} & Role 3 & Header mesin stack \\
+\texttt{src/runtime/StackMachine.cpp} & Role 3 & Operasi stack dan frame \\
+\texttt{src/runtime/Interpreter.hpp} & Role 3 & Header interpreter P-Code \\
+\texttt{src/runtime/Interpreter.cpp} & Role 3 & Implementasi interpreter \\
+\texttt{src/driver\_m4.cpp} & Role 4 & Driver end-to-end M4 \\
+\bottomrule
+\end{tabular}
+\caption{File-file kunci Milestone 4}
+\end{table}
+
+\newpage
+\section{Implementasi Intermediate Code Generator}
+
+\subsection{Kelas \texttt{Instruction}}
+
+Setiap instruksi P-Code direpresentasikan dengan tiga field: \texttt{f} (fungsi), \texttt{l} (level), dan \texttt{a} (argumen). Fungsi-fungsi yang diimplementasikan adalah:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clp{8cm}}
+\toprule
+\textbf{Kode} & \textbf{Nama} & \textbf{Deskripsi} \\
+\midrule
+0 & \texttt{LIT} & Push literal \texttt{a} ke stack \\
+1 & \texttt{OPR} & Operasi aritmatika/perbandingan (dikodekan di \texttt{a}) \\
+2 & \texttt{LOD} & Load variabel (level \texttt{l}, alamat \texttt{a}) \\
+3 & \texttt{STO} & Store ke variabel (level \texttt{l}, alamat \texttt{a}) \\
+4 & \texttt{CAL} & Panggil prosedur (level \texttt{l}, alamat \texttt{a}) \\
+5 & \texttt{INT} & Alokasi frame (level \texttt{l}, ukuran \texttt{a}) \\
+6 & \texttt{JMP} & Loncat tak-bersyarat ke alamat \texttt{a} \\
+7 & \texttt{JPC} & Loncat ke \texttt{a} jika top-of-stack = 0 \\
+8 & \texttt{RET} & Return dari prosedur/fungsi \\
+\bottomrule
+\end{tabular}
+\caption{Instruksi P-Code yang diimplementasikan}
+\end{table}
+
+\subsection{CodeGenerator sebagai AST Visitor}
+
+\texttt{CodeGenerator} melakukan traversal AST secara rekursif dan mengisi vektor instruksi. Strategi alokasi alamat yang digunakan:
+
+\begin{itemize}
+    \item \textbf{Parameter}: mendapat alamat negatif, mulai dari \texttt{-psze} sampai \texttt{-1}, dihitung dari kiri ke kanan.
+    \item \textbf{Variabel lokal}: mendapat alamat positif mulai dari \texttt{3} (setelah frame header SL, DL, RA) sampai \texttt{3 + vsze - 1}.
+    \item \textbf{Konstanta}: di-inline sebagai \texttt{LIT}, tidak dialokasikan di memori.
+\end{itemize}
+
+Untuk memastikan eksekusi tidak jatuh ke tubuh prosedur, \texttt{visit(ProgramNode)} memancarkan \texttt{JMP} di awal program yang melewati seluruh deklarasi subprogram menuju badan utama program.
+
+\newpage
+\section{Implementasi Interpreter dan Stack Machine}
+
+\subsection{Stack Machine}
+
+\texttt{StackMachine} mengelola stack eksekusi dan frame aktivasi. Setiap frame memiliki:
+
+\begin{itemize}
+    \item \texttt{bp} (base pointer) --- awal frame
+    \item \texttt{sp} (stack pointer) --- elemen teratas stack
+    \item \texttt{ip} (instruction pointer) --- indeks instruksi berikutnya
+    \item \texttt{Display} --- array alamat frame untuk tiap level leksikal
+\end{itemize}
+
+Fungsi \texttt{pushFrame} mendorong \texttt{SL}, \texttt{DL}, \texttt{RA}, lalu \texttt{frameSize - 3} elemen nol. Argumen yang didorong pemanggil sebelum \texttt{CAL} berada tepat di bawah base pointer frame baru, sehingga parameter diakses dengan offset negatif.
+
+\subsection{Interpreter}
+
+\texttt{Interpreter} mengeksekusi instruksi satu per satu menggunakan dispatcher \texttt{switch} pada field \texttt{f}. Penanganan instruksi kunci:
+
+\begin{itemize}
+    \item \texttt{handleCAL}: menyimpan \texttt{RA = ip + 1}, membuat frame baru, dan melompat ke alamat target.
+    \item \texttt{handleINT}: mengalokasikan ruang frame (menambah \texttt{sp}) dan memperbarui \texttt{display[level]}.
+    \item \texttt{handleRET}: memulihkan \texttt{ip}, \texttt{bp}, dan \texttt{display} dari frame saat ini.
+\end{itemize}
+
+Error handling mencakup: stack underflow/overflow, division by zero, integer overflow, invalid jump, dan out-of-bounds memory access.
+
+\newpage
+\section{Pengujian}
+
+Berikut hasil pengujian untuk lima kasus uji wajib. Semua pengujian berhasil menghasilkan output yang sesuai.
+
+\subsection{Kasus 1: Program Dasar (\texttt{pos\_basic.txt})}
+
+Program paling sederhana: inisialisasi variabel, lalu cetak nilainya.
+
+\begin{lstlisting}[style=pascal]
+program Basic;
+var x: integer;
+begin
+    x := 42;
+    writeln(x);
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+42
+\end{lstlisting}
+
+\subsection{Kasus 2: Aritmatika (\texttt{pos\_arith.txt})}
+
+Menguji urutan operasi: perkalian lebih tinggi prioritas dari penjumlahan.
+
+\begin{lstlisting}[style=pascal]
+program Arith;
+var x: integer;
+begin
+    x := 10 + 20 * 3;
+    writeln(x);
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+70
+\end{lstlisting}
+
+\subsection{Kasus 3: If-Else (\texttt{pos\_if\_else.txt})}
+
+Percabangan dengan kondisi \texttt{>}.
+
+\begin{lstlisting}[style=pascal]
+program IfElse;
+var x, y: integer;
+begin
+    x := 10;
+    if x > 5 then
+        y := 1
+    else
+        y := 0;
+    writeln(y);
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+1
+\end{lstlisting}
+
+\subsection{Kasus 4: While Loop (\texttt{pos\_while.txt})}
+
+Perulangan \texttt{while} dengan pencetakan nilai menurun.
+
+\begin{lstlisting}[style=pascal]
+program WhileLoop;
+var i: integer;
+begin
+    i := 5;
+    while i > 0 do
+    begin
+        writeln(i);
+        i := i - 1;
+    end;
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+5
+4
+3
+2
+1
+\end{lstlisting}
+
+\subsection{Kasus 5: For Loop (\texttt{pos\_for.txt})}
+
+Perulangan \texttt{for} dengan pencetakan nilai 1 sampai 5.
+
+\begin{lstlisting}[style=pascal]
+program ForLoop;
+var i: integer;
+begin
+    for i := 1 to 5 do
+    begin
+        writeln(i);
+    end;
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+1
+2
+3
+4
+5
+\end{lstlisting}
+
+\subsection{Kasus Tambahan: Prosedur dengan Parameter}
+
+Menguji pemanggilan prosedur dengan satu parameter \texttt{integer}.
+
+\begin{lstlisting}[style=pascal]
+program ProcParam;
+
+var x: integer;
+
+procedure printNum(n: integer);
+begin
+    writeln(n);
+end;
+
+begin
+    x := 42;
+    printNum(x);
+end.
+\end{lstlisting}
+
+\textbf{Output:}
+\begin{lstlisting}[style=bash]
+42
+\end{lstlisting}
+
+\newpage
+\section{Kesimpulan}
+
+Milestone 4 berhasil mengimplementasikan seluruh rantai kompilasi dari analisis leksikal hingga eksekusi kode perantara. Pemecahan masalah parameter passing menjadi hasil penting: dengan menggunakan alamat negatif untuk parameter (karena argumen sudah berada di stack sebelum \texttt{CAL}) dan memancarkan \texttt{INT} hanya untuk variabel lokal, pemanggilan prosedur dan fungsi dapat berjalan dengan benar. Semua lima kasus uji wajib serta kasus tambahan berhasil dilalui tanpa regresi pada fitur-fitur sebelumnya.
+
+\end{document}
