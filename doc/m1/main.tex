@@ -524,7 +524,7 @@ Salah satu keputusan desain yang paling krusial pada DFA ini adalah menyatukan p
 \begin{itemize}
     \item \textbf{Kesamaan Leksikal dan Ekspresi Reguler:} Baik \textit{keyword} maupun \textit{identifier} dibentuk oleh pola ekspresi reguler yang ekuivalen sepenuhnya, yaitu \texttt{[a-z,A-Z][a-z,A-Z,0-9\_]*}. Keduanya wajib diawali oleh alfabet dan bebas diikuti oleh rentetan alfanumerik.
     \item \textbf{Mencegah Fenomena \textit{State Explosion}:} Apabila ke-52 token \textit{keyword} pada spesifikasi Arion dipetakan secara eksplisit huruf demi huruf membentuk sebuah graf berarah (seperti pada struktur data \textit{Trie}), diagram transisi akan menjadi terlampau masif dan tidak proporsional. Hal ini juga memicu kerentanan ambiguitas saat membedakan awalan sebuah variabel (contoh: variabel \texttt{integerKu}) dengan \textit{keyword} yang beririsan (\texttt{integer}).
-    \item \textbf{Efisiensi Resolusi Pascakomputasi:} Melalui penggabungan jalur ini, tugas murni mesin DFA disederhanakan hanya untuk mengekstrak satu rentetan kata yang valid secara leksikal. Setelah *accepting state* tercapai, proses validasi dilimpahkan pada kode program. Algoritma akan melakukan pencarian (\textit{lookup}) nilai \textit{lexeme} tersebut pada Tabel \textit{Keyword} terpusat (\textit{Hash Map}). Jika ditemukan kesamaan, maka token secara spesifik diklasifikasikan sebagai \textit{keyword} (misal: \texttt{varsy}). Sebaliknya jika hasil nihil, secara *default* token tersebut diresmikan sebagai \texttt{ident} reguler.
+    \item \textbf{Efisiensi Resolusi Pascakomputasi:} Melalui penggabungan jalur ini, tugas murni mesin DFA disederhanakan hanya untuk mengekstrak satu rentetan kata yang valid secara leksikal. Setelah \textit{accepting state} tercapai, proses validasi dilimpahkan pada kode program. Algoritma akan melakukan pencarian (\textit{lookup}) nilai \textit{lexeme} tersebut pada Tabel \textit{Keyword} terpusat (\textit{Hash Map}). Jika ditemukan kesamaan, maka token secara spesifik diklasifikasikan sebagai \textit{keyword} (misal: \texttt{varsy}). Sebaliknya jika hasil nihil, secara \textit{default} token tersebut diresmikan sebagai \texttt{ident} reguler.
 \end{itemize}
 
 \subsection{Struktur Program \textit{Lexical Analyzer}}
@@ -539,33 +539,33 @@ Struktur implementasi untuk \textit{lexical analyzer} pada proyek ini berfokus p
   \item \texttt{Scanner.hpp} \& \texttt{.cpp}: deklarasi dan implementasi kelas \texttt{Scanner} yang menjadi jantung dari mesin \textit{lexical analyzer}.
   \item \texttt{Token.hpp}: representasi unit objek token beserta atribut esensialnya (jenis terminal, nilai \textit{lexeme}, dan metadata penunjuk baris).
   \item \texttt{TokenType.hpp}: definisi enumerasi dari seluruh simpul terminal (52 tipe token) yang dikenali dan dipersyaratkan oleh spesifikasi bahasa Arion.
-  \item \texttt{Logger.hpp}: utilitas sistem pelaporan untuk memunculkan pesan peringatan diagnostik selama tahap kompilasi (*lexical errors*).
+  \item \texttt{Logger.hpp}: utilitas sistem pelaporan untuk memunculkan pesan peringatan diagnostik selama tahap kompilasi (\textit{lexical errors}).
 \end{itemize}
 
 \subsubsection{Klasifikasi Implementasi Alur DFA dalam Program}
 
-Siklus mesin direpresentasikan oleh perulangan \texttt{scanToken()}. Saat fungsi ini dipanggil, ia bertindak seolah-olah mesin me-reset kembali ke \textit{Start State} ($q_0$). Percabangan logika implementasi didasarkan pada pembacaan karakter awal \texttt{advance()} dengan *switch-case* atau percabangan if, membentuk modul sebagai berikut:
+Siklus mesin direpresentasikan oleh perulangan \texttt{scanToken()}. Saat fungsi ini dipanggil, ia bertindak seolah-olah mesin me-reset kembali ke \textit{Start State} ($q_0$). Percabangan logika implementasi didasarkan pada pembacaan karakter awal \texttt{advance()} dengan \texttt{switch-case} atau percabangan if, membentuk modul sebagai berikut:
 
 \begin{itemize}
     \item \textbf{Modul 1: Identifier \& Keywords (\texttt{q\_ident/keyword})}\\
-    Jika evaluasi mengembalikan fungsi valid \texttt{isAlpha()}, siklus memanggil \texttt{Scanner::identifier()}. Dalam metode ini, program membaca karakter selanjutnya (\textit{looping}) secara kontinu selama fungsi \texttt{isAlphaNumeric()} masih bernilai *true*. Saat bertemu karakter asing, iterasi diputus. Teks \textit{lexeme} yang terakumulasi lantas diekstrak dan dicocokkan dengan kontainer tabel konstanta \textit{keyword} (\texttt{unordered\_map}). Kecocokan berbuah \textit{Token Keyword} (\texttt{programsy}, \texttt{forsy}, dll); jika tidak, instansiasi mengembalikan \textit{Token} \texttt{ident}.
+    Jika evaluasi mengembalikan fungsi valid \texttt{isAlpha()}, siklus memanggil \texttt{Scanner::identifier()}. Dalam metode ini, program membaca karakter selanjutnya (\textit{looping}) secara kontinu selama fungsi \texttt{isAlphaNumeric()} masih bernilai \texttt{true}. Saat bertemu karakter asing, iterasi diputus. Teks \textit{lexeme} yang terakumulasi lantas diekstrak dan dicocokkan dengan kontainer tabel konstanta \textit{keyword} (\texttt{unordered\_map}). Kecocokan berbuah \textit{Token Keyword} (\texttt{programsy}, \texttt{forsy}, dll); jika tidak, instansiasi mengembalikan \textit{Token} \texttt{ident}.
 
     \item \textbf{Modul 2: Numbers - intcon \& realcon (\texttt{q\_number\_int, q\_real\_number})}\\
-    Menemukan awalan digit angka mendelegasikan alur ke \texttt{Scanner::number()}. Blok perulangan primitif mengekstrak deret murni bilangan bulat. Melalui pendekatan *look-ahead*, mesin kemudian menguji validitas karakter titik `\texttt{.}' di depannya. Konformitas \textit{match} (titik diikuti digit) memicu program mengakumulasi komposit tipe nilai primitif bilangan riil (berujung \textit{Token} \texttt{realcon}). Tanpa validasi tersebut, nilai default yang diteruskan secara presisi adalah \textit{Token} \texttt{intcon}.
+    Menemukan awalan digit angka mendelegasikan alur ke \texttt{Scanner::number()}. Blok perulangan primitif mengekstrak deret murni bilangan bulat. Melalui pendekatan \textit{look-ahead}, mesin kemudian menguji validitas karakter titik `\texttt{.}' di depannya. Konformitas \textit{match} (titik diikuti digit) memicu program mengakumulasi komposit tipe nilai primitif bilangan riil (berujung \textit{Token} \texttt{realcon}). Tanpa validasi tersebut, nilai default yang diteruskan secara presisi adalah \textit{Token} \texttt{intcon}.
 
     \item \textbf{Modul 3: Strings \& Chars (\texttt{q\_string\_char})}\\
-    Pemicu petik tunggal `\texttt{'}' melompat ke rutinitas \texttt{Scanner::stringLiteral()}. Secara sederhana program mengolah teks bebas di dalamnya hingga blok penutup kutip terkalibrasi. Selesai memindai, evaluasi dihitung: panjang tepat 1 karakter menyuntikkan kategori \texttt{charcon}, sedangkan lebih dari itu bermuara sebagai \texttt{string}. Modul ini dibekali dengan interupsi \textit{error handling} seandainya baris berakhir gantung (*Unterminated string*).
+    Pemicu petik tunggal `\texttt{'}' melompat ke rutinitas \texttt{Scanner::stringLiteral()}. Secara sederhana program mengolah teks bebas di dalamnya hingga blok penutup kutip terkalibrasi. Selesai memindai, evaluasi dihitung: panjang tepat 1 karakter menyuntikkan kategori \texttt{charcon}, sedangkan lebih dari itu bermuara sebagai \texttt{string}. Modul ini dibekali dengan interupsi \textit{error handling} seandainya baris berakhir gantung (\textit{Unterminated string}).
 
     \item \textbf{Modul 4: Operators \& Delimiters}\\
-    Karakter tunggal terminal absolut (spt: \texttt{+}, \texttt{*}, \texttt{;}, \texttt{,}) memiliki *node accepting state* permanen dan langsung diregister menjadi simbol terminal. Tipe multi-operator memanfaatkan delegasi pergeseran via fungsi \texttt{match()}:
+    Karakter tunggal terminal absolut (spt: \texttt{+}, \texttt{*}, \texttt{;}, \texttt{,}) memiliki \textit{node accepting state} permanen dan langsung diregister menjadi simbol terminal. Tipe multi-operator memanfaatkan delegasi pergeseran via fungsi \texttt{match()}:
     \begin{itemize}
         \item Simbol \texttt{:} akan menguji metode \texttt{match('=')}. Retur presisi mencetak \texttt{becomes} (\texttt{:=}). Ketiadaan retur berbuah terminal tunggal \texttt{colon} (\texttt{:}).
-        \item Skema ekuivalen membentengi karakter \texttt{<} yang sanggup bercabang ke \texttt{leq} (\texttt{<=}), \texttt{neq} (\texttt{<>}), hingga *fallback* tunggal \texttt{lss} (\texttt{<}). Serta pada \texttt{>} yang mencakup \texttt{geq} (\texttt{>=}) atau \texttt{gtr} (\texttt{>}).
+        \item Skema ekuivalen membentengi karakter \texttt{<} yang sanggup bercabang ke \texttt{leq} (\texttt{<=}), \texttt{neq} (\texttt{<>}), hingga \textit{fallback} tunggal \texttt{lss} (\texttt{<}). Serta pada \texttt{>} yang mencakup \texttt{geq} (\texttt{>=}) atau \texttt{gtr} (\texttt{>}).
     \end{itemize}
 
     \item \textbf{Modul 5: Penanganan Whitespace \& Comments}\\
-    \textit{Whitespace} murni layaknya spasi, tabulasi (\texttt{\char`\\t}), dan \textit{carriage return} (\texttt{\char`\\r}) secara utuh digugurkan eksistensinya tanpa mencetak token (lompatan balik siklik pada DFA). Transisi *newline* (\texttt{\char`\\n}) dimanfaatkan pasif sebagai *tracker* eskalasi baris.
-    Di ranah *comments*, insiden identifikasi pembuka blok (spt \texttt{\{} atau \texttt{(*} ) mengaktivasikan pengurasan karakter \textit{dummy loop} (*trap state*) ke dalam *buffer* kosong hingga mendeteksi entitas kutub pasangannya masing-masing.
+    \textit{Whitespace} murni layaknya spasi, tabulasi (\texttt{\char`\\t}), dan \textit{carriage return} (\texttt{\char`\\r}) secara utuh digugurkan eksistensinya tanpa mencetak token (lompatan balik siklik pada DFA). Transisi \texttt{newline} (\texttt{\char`\\n}) dimanfaatkan pasif sebagai \textit{tracker} eskalasi baris.
+    Di ranah \textit{comments}, insiden identifikasi pembuka blok (spt \texttt{\{} atau \texttt{(*} ) mengaktivasikan pengurasan karakter \textit{dummy loop} (\textit{trap state}) ke dalam \textit{buffer} kosong hingga mendeteksi entitas kutub pasangannya masing-masing.
 \end{itemize}
 
 Seluruh mekanisme program berpedoman pada manuver pergeseran \textit{pointer} alami yang mencerminkan topologi transisi diagram. Kompilasi unit valid tersebut akan diteruskan secara konsisten menuju inisialisasi pada \textit{constructor} statis dari kelas \texttt{Token}.
@@ -605,10 +605,6 @@ Setiap jenis token dalam suatu bahasa pemrograman dapat dideskripsikan oleh sebu
 
 Berdasarkan teorema Kleene, setiap bahasa yang dapat dideskripsikan oleh ekspresi reguler merupakan bahasa reguler dan dapat dikenali oleh DFA. Oleh karena itu, pendekatan berbasis DFA memberikan jaminan teoritis bahwa semua pola token dapat dikenali secara efisien dan deterministik.
 
-% ============================================================
-%   SECTION 3 — PERANCANGAN DAN IMPLEMENTASI
-% ============================================================
-
 \section{Implementasi}
 
 \subsection{Pendekatan Modular pada DFA}
@@ -621,7 +617,7 @@ DFA lexer Arion dirancang dengan pendekatan \textit{modular}: state awal $q_0$ b
 
 Berikut adalah modul-modul utama dalam DFA:
 
-\subsubsection{Modul Identifier dan Kata Kunci (\textit{q\_identifyModule})}
+\subsubsection{Modul Identifier dan Kata Kunci (\textit{identifyModule})}
 Modul ini dimasuki ketika karakter pertama adalah huruf atau \textit{underscore}. Scanner terus membaca karakter alfanumerik hingga menemukan karakter non-alfanumerik, lalu melakukan \textit{retract} (tidak mengonsumsi karakter terakhir). Leksem yang terkumpul dikonversi ke huruf kecil dan dicari dalam tabel kata kunci. Jika ditemukan, token kata kunci yang sesuai dihasilkan; jika tidak, token \texttt{ident} dihasilkan dengan leksem asli (mempertahankan huruf besar/kecil asli).
 
 \begin{lstlisting}[style=cpp, caption={Penanganan identifier dan kata kunci}]
@@ -638,7 +634,7 @@ void Scanner::identifier() {
 }
 \end{lstlisting}
 
-\subsubsection{Modul Bilangan (\textit{q\_number\_module})}
+\subsubsection{Modul Bilangan (\textit{number})}
 Modul ini dimasuki ketika karakter pertama adalah digit. Scanner membaca digit berturut-turut. Jika setelah titik (\texttt{.}) terdapat digit lagi, maka bilangan diklasifikasikan sebagai \texttt{realcon}; jika tidak, bilangan menjadi \texttt{intcon} dan titik diperlakukan sebagai token \texttt{period} terpisah.
 
 \begin{lstlisting}[style=cpp, caption={Penanganan bilangan bulat dan riil}]
