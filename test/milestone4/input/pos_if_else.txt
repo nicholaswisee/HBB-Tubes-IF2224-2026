@@ -1,12 +1,10 @@
-program IfElseTest;
-var
-  x: integer;
-  y: integer;
+program IfElse;
+var x, y: integer;
 begin
-  x := 10;
-  if x > 5 then
-    y := x * 2
-  else
-    y := x div 2;
-  writeln(y);
+    x := 10;
+    if x > 5 then
+        y := 1
+    else
+        y := 0;
+    writeln(y);
 end.
