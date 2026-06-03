@@ -1,0 +1,6 @@
+program Arith;
+var x: integer;
+begin
+    x := 10 + 20 * 3;
+    writeln(x);
+end.

@@ -1,0 +1,17 @@
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 6
+2 INT 1 4
+3 LOD 1 -1
+4 OPR 0 14
+5 RET 0 0
+6 LIT 0 42
+7 STO 0 3
+8 LOD 0 3
+9 CAL 0 2
+10 RET 0 0
+
+=== Program Output ===
+42
+
+Execution completed successfully.

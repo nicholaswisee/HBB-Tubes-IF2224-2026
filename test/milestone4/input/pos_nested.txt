@@ -1,0 +1,12 @@
+program NestedTest;
+var
+  i: integer;
+begin
+  i := 10;
+  while i > 0 do
+  begin
+    if i mod 2 == 0 then
+      writeln(i);
+    i := i - 1;
+  end;
+end.

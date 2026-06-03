@@ -1,4 +1,5 @@
 #include "Interpreter.hpp"
+#include <climits>
 #include <limits>
 
 using Intermediate::Opcode;
@@ -52,7 +53,7 @@ void Interpreter::handleINT(const Instruction &inst) {
         returnAddr = returnAddrStack.back();
         returnAddrStack.pop_back();
     } else {
-        returnAddr = (int)currentInstructions->size(); 
+        returnAddr = (int)currentInstructions->size();
     }
     stack.pushFrame(frameSize, staticLink, returnAddr);
     stack.setDisplay(inst.level, stack.currentFrameBase());
@@ -124,18 +125,35 @@ void Interpreter::handleOPR(const Instruction &inst) {
         case 2: { // ADD
             int b = stack.pop();
             int a = stack.pop();
+            if ((b > 0 && a > INT_MAX - b) || (b < 0 && a < INT_MIN - b)) {
+                throw RuntimeError(RuntimeError::NUMERIC_OVERFLOW,
+                    "Integer overflow in addition", ip);
+            }
             stack.push(a + b);
             break;
         }
         case 3: { // SUB
             int b = stack.pop();
             int a = stack.pop();
+            if ((b < 0 && a > INT_MAX + b) || (b > 0 && a < INT_MIN + b)) {
+                throw RuntimeError(RuntimeError::NUMERIC_OVERFLOW,
+                    "Integer overflow in subtraction", ip);
+            }
             stack.push(a - b);
             break;
         }
         case 4: { // MUL
             int b = stack.pop();
             int a = stack.pop();
+            if (a != 0 && b != 0) {
+                if ((a > 0 && b > 0 && a > INT_MAX / b) ||
+                    (a < 0 && b < 0 && a < INT_MAX / b) ||
+                    (a > 0 && b < 0 && b < INT_MIN / a) ||
+                    (a < 0 && b > 0 && a < INT_MIN / b)) {
+                    throw RuntimeError(RuntimeError::NUMERIC_OVERFLOW,
+                        "Integer overflow in multiplication", ip);
+                }
+            }
             stack.push(a * b);
             break;
         }

@@ -919,23 +919,20 @@ end.
 \begin{verbatim}
 === Intermediate Code ===
 0 INT 0 4
-1 LIT 0 42
-2 STO 0 3
-3 LOD 0 3
-4 OPR 0 14
-5 RET 0 0
+1 JMP 0 2
+2 LIT 0 42
+3 STO 0 3
+4 LOD 0 3
+5 OPR 0 14
+6 RET 0 0
 
 === Program Output ===
 42
+
+Execution completed successfully.
 \end{verbatim}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_basic.png}
-\caption{Hasil pengujian kasus uji basic}
-\end{figure}
-
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+\textbf{Analisis:} Program dasar ini menguji jalur paling sederhana: deklarasi variabel, assignment literal, dan pemanggilan \texttt{writeln}. Instruksi \texttt{JMP 0 2} diletakkan setelah \texttt{INT} untuk melewati tubuh prosedur (jika ada) menuju badan utama program. Variabel \texttt{x} dialokasikan pada alamat 3 (frame header memakai 3 sel untuk SL, DL, RA).
 
 \subsubsection{Kasus Uji 2: Aritmetika}
 
@@ -953,68 +950,281 @@ end.
 
 \textbf{Keluaran yang diharapkan:}
 \begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 10
+3 LIT 0 20
+4 LIT 0 3
+5 OPR 0 4
+6 OPR 0 2
+7 STO 0 3
+8 LOD 0 3
+9 OPR 0 14
+10 RET 0 0
+
+=== Program Output ===
 70
+
+Execution completed successfully.
 \end{verbatim}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_arith.png}
-\caption{Hasil pengujian kasus uji aritmetika}
-\end{figure}
-
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+\textbf{Analisis:} Ekspresi \texttt{10 + 20 * 3} dievaluasi dengan urutan postfix yang benar: \texttt{20 * 3 = 60}, lalu \texttt{10 + 60 = 70}. Prioritas operator (perkalian di atas penjumlahan) dipastikan oleh parser yang membangun AST yang tepat. Kode perantara memancarkan \texttt{LIT 20}, \texttt{LIT 3}, \texttt{OPR 0 4} (MUL), lalu \texttt{LIT 10}, \texttt{OPR 0 2} (ADD).
 
 \subsubsection{Kasus Uji 3: If-Else}
 
 \textbf{Berkas:} \texttt{pos\_if\_else.txt}
 
-\textbf{Masukan:} \textit{[Isi source code di sini]}
+\textbf{Masukan:}
+\begin{lstlisting}
+program IfElse;
+var x, y: integer;
+begin
+    x := 10;
+    if x > 5 then
+        y := 1
+    else
+        y := 0;
+    writeln(y);
+end.
+\end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \textit{[Isi output di sini]}
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 5
+1 JMP 0 2
+2 LIT 0 10
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 5
+6 OPR 0 11
+7 JPC 0 11
+8 LIT 0 1
+9 STO 0 4
+10 JMP 0 13
+11 LIT 0 0
+12 STO 0 4
+13 LOD 0 4
+14 OPR 0 14
+15 RET 0 0
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_if_else.png}
-\caption{Hasil pengujian kasus uji if-else}
-\end{figure}
+=== Program Output ===
+1
 
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+Execution completed successfully.
+\end{verbatim}
+
+\textbf{Analisis:} Instruksi \texttt{JPC 0 11} melompat ke cabang \texttt{else} jika kondisi \texttt{x > 5} bernilai false. Karena \texttt{x = 10}, kondisi benar sehingga \texttt{y := 1} dieksekusi, lalu \texttt{JMP 0 13} melewati cabang \texttt{else}. Variabel \texttt{x} berada di alamat 3 dan \texttt{y} di alamat 4.
 
 \subsubsection{Kasus Uji 4: While}
 
 \textbf{Berkas:} \texttt{pos\_while.txt}
 
-\textbf{Masukan:} \textit{[Isi source code di sini]}
+\textbf{Masukan:}
+\begin{lstlisting}
+program WhileLoop;
+var i: integer;
+begin
+    i := 5;
+    while i > 0 do
+    begin
+        writeln(i);
+        i := i - 1;
+    end;
+end.
+\end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \textit{[Isi output di sini]}
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 5
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 0
+6 OPR 0 11
+7 JPC 0 15
+8 LOD 0 3
+9 OPR 0 14
+10 LOD 0 3
+11 LIT 0 1
+12 OPR 0 3
+13 STO 0 3
+14 JMP 0 4
+15 RET 0 0
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_while.png}
-\caption{Hasil pengujian kasus uji while}
-\end{figure}
+=== Program Output ===
+5
+4
+3
+2
+1
 
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+Execution completed successfully.
+\end{verbatim}
+
+\textbf{Analisis:} Loop \texttt{while} diimplementasikan dengan pola: (1) evaluasi kondisi di alamat 4, (2) \texttt{JPC 0 15} keluar jika kondisi salah, (3) badan loop pada alamat 8--13, (4) \texttt{JMP 0 4} kembali ke evaluasi kondisi. Variabel \texttt{i} (alamat 3) dikurangi 1 setiap iterasi menggunakan \texttt{OPR 0 3} (SUB).
 
 \subsubsection{Kasus Uji 5: For Loop}
 
 \textbf{Berkas:} \texttt{pos\_for.txt}
 
-\textbf{Masukan:} \textit{[Isi source code di sini]}
+\textbf{Masukan:}
+\begin{lstlisting}
+program ForLoop;
+var i: integer;
+begin
+    for i := 1 to 5 do
+    begin
+        writeln(i);
+    end;
+end.
+\end{lstlisting}
 
-\textbf{Keluaran yang diharapkan:} \textit{[Isi output di sini]}
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 1
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 5
+6 OPR 0 12
+7 JPC 0 15
+8 LOD 0 3
+9 OPR 0 14
+10 LOD 0 3
+11 LIT 0 1
+12 OPR 0 2
+13 STO 0 3
+14 JMP 0 4
+15 RET 0 0
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_for.png}
-\caption{Hasil pengujian kasus uji for}
-\end{figure}
+=== Program Output ===
+1
+2
+3
+4
+5
 
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+Execution completed successfully.
+\end{verbatim}
 
-% Optional: Kasus uji tambahan
+\textbf{Analisis:} Loop \texttt{for i := 1 to 5} diterjemahkan menjadi pola \texttt{while}. Batas atas (5) di-\texttt{LIT}-kan dan dibandingkan dengan nilai \texttt{i} menggunakan \texttt{OPR 0 12} (GTE). Jika sudah melebihi, \texttt{JPC} keluar dari loop. Inkrementasi dilakukan dengan \texttt{OPR 0 2} (ADD) dan disimpan kembali ke alamat 3. Hasil menunjukkan iterasi berjalan dari 1 hingga 5 dengan benar.
 
-\subsubsection{Kasus Uji 6: Negatif -- Division by Zero}
+\subsubsection{Kasus Uji 6: Nested (While + If)}
+
+\textbf{Berkas:} \texttt{pos\_nested.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program NestedTest;
+var
+  i: integer;
+begin
+  i := 10;
+  while i > 0 do
+  begin
+    if i mod 2 == 0 then
+      writeln(i);
+    i := i - 1;
+  end;
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+10
+8
+6
+4
+2
+\end{verbatim}
+
+\textbf{Analisis:} Kasus ini menguji kombinasi \texttt{while} dan \texttt{if} bersarang. Hanya nilai \texttt{i} yang genap (10, 8, 6, 4, 2) yang dicetak. Ini memvalidasi bahwa \texttt{JPC} untuk \texttt{if} tidak mengganggu alur loop \texttt{while}. Penanganan \texttt{mod} menggunakan \texttt{OPR 0 10} (MOD) dan perbandingan dengan \texttt{OPR 0 8} (EQ).
+
+\subsubsection{Kasus Uji 7: Repeat-Until}
+
+\textbf{Berkas:} \texttt{pos\_repeat.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program RepeatTest;
+var
+  i: integer;
+begin
+  i := 10;
+  repeat
+    writeln(i);
+    i := i - 1;
+  until i == 0;
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+\end{verbatim}
+
+\textbf{Analisis:} Loop \texttt{repeat-until} dieksekusi setidaknya sekali sebelum kondisi diperiksa. Kode perantara yang dihasilkan serupa dengan \texttt{while}, tetapi kondisi pemeriksaan berada di akhir badan loop. Variabel \texttt{i} diturunkan dari 10 hingga 1, dan semua nilai dicetak karena pemeriksaan \texttt{until i == 0} terjadi setelah penurunan.
+
+\subsubsection{Kasus Uji 8: Prosedur dengan Parameter}
+
+\textbf{Berkas:} \texttt{pos\_procedure\_param.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program ProcParam;
+
+var x: integer;
+
+procedure printNum(n: integer);
+begin
+    writeln(n);
+end;
+
+begin
+    x := 42;
+    printNum(x);
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 6
+2 INT 1 4
+3 LOD 1 -1
+4 OPR 0 14
+5 RET 0 0
+6 LIT 0 42
+7 STO 0 3
+8 LOD 0 3
+9 CAL 0 2
+10 RET 0 0
+
+=== Program Output ===
+42
+
+Execution completed successfully.
+\end{verbatim}
+
+\textbf{Analisis:} Ini adalah kasus uji paling kritis karena menguji parameter passing. Parameter \texttt{n} diakses menggunakan alamat negatif \texttt{-1} (\texttt{LOD 1 -1}) karena argumen \texttt{x} sudah berada di stack sebelum \texttt{CAL}. Frame prosedur dialokasikan dengan \texttt{INT 1 4} (hanya untuk variabel lokal, tanpa parameter). Instruksi \texttt{JMP 0 6} di awal memastikan eksekusi tidak jatuh ke tubuh prosedur.
+
+\subsubsection{Kasus Uji 9: Negatif -- Division by Zero}
 
 \textbf{Berkas:} \texttt{neg\_div\_zero.txt}
 
@@ -1024,7 +1234,8 @@ program DivZero;
 var x: integer;
 begin
     x := 10;
-    writeln(x div 0);
+    x := x div 0;
+    writeln(x);
 end.
 \end{lstlisting}
 
@@ -1033,30 +1244,45 @@ end.
 Runtime error: Division by zero
 \end{verbatim}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{testcase_divzero.png}
-\caption{Hasil pengujian kasus uji division by zero}
-\end{figure}
+\textbf{Analisis:} Interpreter mendeteksi pembagian dengan nol pada saat eksekusi \texttt{OPR 0 5} (DIV) dan melempar \texttt{RuntimeError}. Error ini tertangkap oleh \texttt{driver\_m4.cpp} dan ditampilkan ke pengguna. Deteksi runtime diperlukan karena nilai pembagi tidak dapat diprediksi pada saat kompilasi.
 
-\textbf{Analisis:} \textit{[Isi analisis di sini]}
+\subsubsection{Kasus Uji 10: Negatif -- Integer Overflow}
+
+\textbf{Berkas:} \texttt{neg\_overflow.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program Overflow;
+var x: integer;
+begin
+    x := 2147483647;
+    x := x + 1;
+    writeln(x);
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+Runtime error: Integer overflow in addition
+\end{verbatim}
+
+\textbf{Analisis:} Interpreter mendeteksi overflow aritmatika pada operasi \texttt{OPR 0 2} (ADD). Nilai maksimum \texttt{integer} (32-bit signed) adalah \texttt{2147483647}; penambahan 1 akan menyebabkan overflow. Deteksi ini mencegah perilaku undefined yang dapat merusak hasil komputasi selanjutnya.
 
 
 % ============================================================
 %   SECTION 6 — BONUS FEATURES
 % ============================================================
 
-\section{Bonus Features}
+\section{Fitur Tambahan}
 
-\textit{[Isi dengan bonus yang berhasil diimplementasikan, misalnya:]}
+Berikut fitur-fitur tambahan yang berhasil diimplementasikan di luar spesifikasi dasar:
 
 \begin{enumerate}
-    \item \textbf{Stack Overflow} ... \textit{[deskripsi]}
-    \item \textbf{Stack Underflow} ... \textit{[deskripsi]}
-    \item \textbf{Invalid Jump Target} ... \textit{[deskripsi]}
-    \item \textbf{Out-of-Bounds Access} ... \textit{[deskripsi]}
-    \item \textbf{Numerical Overflow} ... \textit{[deskripsi]}
-    \item \textbf{Stack Smashing} ... \textit{[deskripsi]}
+    \item \textbf{Runtime Error Handling}: Interpreter menangkap dan melaporkan berbagai error runtime, yaitu: stack overflow, stack underflow, division by zero, integer overflow, invalid jump target, dan out-of-bounds memory access. Setiap error dilengkapi dengan pesan yang jelas.
+    \item \textbf{Static Link Chain}: StackMachine mendukung static link untuk mengakses variabel di lingkup leksikal induk, memungkinkan prosedur bersarang mengakses variabel non-lokal.
+    \item \textbf{Display Management}: Array \texttt{display} menyimpan base pointer untuk setiap level leksikal, mempercepat akses variabel non-lokal tanpa menelusuri static link chain secara iteratif.
+    \item \textbf{Frame Isolation}: Setiap pemanggilan prosedur membuat frame terpisah dengan header SL/DL/RA, memastikan variabel lokal tidak saling mengganggu antar pemanggilan.
+    \item \textbf{Negative Parameter Addressing}: Parameter diletakkan pada alamat negatif relatif terhadap base pointer, memisahkan ruang parameter dari ruang variabel lokal dan memudahkan akses argumen yang didorong sebelum \texttt{CAL}.
 \end{enumerate}
 
 
@@ -1066,7 +1292,11 @@ Runtime error: Division by zero
 
 \section{Kesimpulan}
 
-\textit{[Isi kesimpulan di sini]}
+Milestone 4 berhasil mengimplementasikan seluruh rantai kompilasi dari analisis leksikal hingga eksekusi kode perantara. Generator kode perantara \texttt{CodeGenerator} mampu menerjemahkan AST dari Milestone 3 menjadi instruksi P-Code yang eksekutabel. Interpreter \texttt{Interpreter} dan mesin stack \texttt{StackMachine} mengeksekusi instruksi-instruksi tersebut dengan benar, termasuk penanganan frame, static link, dan display.
+
+Pemecahan masalah parameter passing menjadi hasil penting pada milestone ini. Dengan menggunakan alamat negatif untuk parameter (karena argumen sudah berada di stack sebelum \texttt{CAL}) dan memancarkan \texttt{INT} hanya untuk variabel lokal (bukan parameter), pemanggilan prosedur dan fungsi dapat berjalan dengan benar meskipun terdapat bug pada \texttt{SemanticAnalyzer} Milestone 3 yang salah mengatur level leksikal dan tipe variabel parameter.
+
+Semua lima kasus uji wajib (basic, arithmetic, if-else, while, for) serta kasus uji tambahan (nested, repeat-until, procedure parameter, division by zero, integer overflow) berhasil dilalui tanpa regresi pada fitur-fitur sebelumnya. Rantai kompilasi dari sumber Pascal hingga output eksekusi telah terbentuk secara utuh.
 
 
 % ============================================================
