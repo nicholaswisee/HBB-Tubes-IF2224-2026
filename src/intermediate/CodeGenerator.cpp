@@ -104,7 +104,13 @@ void CodeGenerator::visit(VariableNode &node) {
     if (node.tabIndex < 0)
         return;
     const TabEntry &entry = symTable.getTab(node.tabIndex);
-    emit(Opcode::LOD, entry.lev, entry.adr);
+    // Constants (true, false, enum values, user-defined consts) are inlined
+    // as literals; their 'adr' field stores the constant value.
+    if (entry.obj == TypeSystem::OBJ_CONSTANT) {
+        emit(Opcode::LIT, 0, entry.adr);
+    } else {
+        emit(Opcode::LOD, entry.lev, entry.adr);
+    }
 }
 
 // Visit a binary operation: evaluate left, right, then apply operator
