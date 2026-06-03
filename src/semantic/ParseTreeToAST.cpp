@@ -360,6 +360,10 @@ ParseTreeToAST::convertFormalParams(std::shared_ptr<ParseTreeNode> node) {
 
 std::shared_ptr<ASTNode>
 ParseTreeToAST::convertStatement(std::shared_ptr<ParseTreeNode> node) {
+    if (!node) return nullptr;
+    if (node->label == "<compound-statement>") {
+        return convertStatementList(node->children[1]);
+    }
     if (node->children.empty()) {
         return nullptr;
     }
@@ -401,7 +405,7 @@ ParseTreeToAST::convertStatement(std::shared_ptr<ParseTreeNode> node) {
             dir = "downto";
         }
         auto fin = convertExpression(child->children[5]);
-        auto body = convertStatement(child->children[6]);
+        auto body = convertStatement(child->children[7]);
         auto n = std::make_shared<ForNode>(varName, init, dir, fin, body);
         n->line = getLine(child);
         return n;

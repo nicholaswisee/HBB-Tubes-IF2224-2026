@@ -23,7 +23,7 @@ DRIVER_SRCS := $(shell find $(SRC_DIR) -name "driver_*.cpp")
 TARGET   := $(BIN_DIR)/compiler
 
 # Driver executables
-DRIVERS  := $(BIN_DIR)/driver_m1 $(BIN_DIR)/driver_m2 $(BIN_DIR)/driver_m3
+DRIVERS  := $(BIN_DIR)/driver_m1 $(BIN_DIR)/driver_m2 $(BIN_DIR)/driver_m3 $(BIN_DIR)/driver_m4
 
 .PHONY: all clean run test setup drivers
 
@@ -127,3 +127,22 @@ test-m3: drivers
 		exit 1; \
 	fi
 	./$(BIN_DIR)/driver_m3 $(FILE)
+
+# Driver M4: Intermediate Code Generation & Interpreter
+$(BIN_DIR)/driver_m4: $(SRC_DIR)/driver_m4.cpp $(OBJ_DIR)/lexical/Scanner.o $(OBJ_DIR)/lexical/Token.o $(OBJ_DIR)/lexical/SourceBuffer.o $(OBJ_DIR)/syntax/Parser.o $(OBJ_DIR)/semantic/ParseTreeToAST.o $(OBJ_DIR)/semantic/SymbolTableManager.o $(OBJ_DIR)/semantic/TypeSystem.o $(OBJ_DIR)/semantic/SemanticAnalyzer.o $(OBJ_DIR)/intermediate/CodeGenerator.o $(OBJ_DIR)/intermediate/Instruction.o $(OBJ_DIR)/runtime/StackMachine.o $(OBJ_DIR)/runtime/Interpreter.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
+	@echo "Built: $@"
+
+test-m4: drivers
+	@if [ -z "$(FILE)" ]; then \
+		echo "Usage: make test-m4 FILE=<filename>"; \
+		exit 1; \
+	fi
+	./$(BIN_DIR)/driver_m4 $(FILE)
+
+test-m4-all: drivers
+	@echo "Running all M4 test cases..."
+	@for f in test/milestone4/input/*.txt; do \
+		echo "\n=== Testing $$(basename $$f) ==="; \
+		./$(BIN_DIR)/driver_m4 $$(basename $$f); \
+	done

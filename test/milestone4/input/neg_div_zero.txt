@@ -1,0 +1,10 @@
+program DivZeroTest;
+var
+  x: integer;
+  y: integer;
+begin
+  x := 10;
+  y := 0;
+  x := x div y;
+  writeln(x);
+end.

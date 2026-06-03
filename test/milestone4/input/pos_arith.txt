@@ -1,0 +1,13 @@
+program Arithmetic;
+var
+  a: integer;
+  b: integer;
+  c: integer;
+begin
+  a := 10 + 20 * 3;
+  writeln(a);
+  b := 100 div 25;
+  writeln(b);
+  c := 17 mod 5;
+  writeln(c);
+end.

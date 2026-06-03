@@ -3,6 +3,9 @@
 #include "semantic/ParseTreeToAST.hpp"
 #include "semantic/SymbolTableManager.hpp"
 #include "semantic/SemanticAnalyzer.hpp"
+#include "intermediate/CodeGenerator.hpp"
+#include "runtime/StackMachine.hpp"
+#include "runtime/Interpreter.hpp"
 
 #include <filesystem>
 #include <iostream>
@@ -110,6 +113,37 @@ int main(int argc, char *argv[]) {
         }
 
         std::cout << "Semantic analysis completed successfully.\n";
+
+        // === Milestone 4: Code Generation & Execution ===
+        if (milestone >= 4) {
+            Intermediate::CodeGenerator codeGen(symTable);
+            auto instructions = codeGen.generate(ast);
+
+            std::cout << "\n=== Intermediate Code ===\n";
+            for (const auto &inst : instructions) {
+                std::cout << inst.toString() << "\n";
+            }
+
+            std::cout << "\n=== Program Output ===\n";
+            StackMachine stack;
+            Interpreter interpreter(stack);
+
+            try {
+                interpreter.execute(instructions);
+            } catch (const RuntimeError &e) {
+                std::cerr << "Runtime error: " << e.message << "\n";
+                return 1;
+            }
+
+            if (interpreter.hasErrors()) {
+                for (const auto &err : interpreter.getErrors()) {
+                    std::cerr << "Runtime error: " << err.message << "\n";
+                }
+                return 1;
+            }
+
+            std::cout << "\nProgram executed successfully.\n";
+        }
 
     } catch (const std::exception& e) {
         std::cerr << "Semantic analysis error: " << e.what() << "\n";
