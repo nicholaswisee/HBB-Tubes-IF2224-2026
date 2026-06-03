@@ -193,8 +193,10 @@ void CodeGenerator::assignAddresses() {
         // Reverse to get declaration order
         std::reverse(indices.begin(), indices.end());
 
-        int paramAddr = 3;
-        int varAddr = 3 + block.psze;
+        // Parameters are pushed by the caller before CAL and sit below
+        // the new frame (negative offsets). Locals are inside the frame.
+        int paramAddr = -block.psze;
+        int varAddr = 3;
 
         for (int tabIdx : indices) {
             TabEntry &entry = symTable.getTab(tabIdx);
@@ -252,7 +254,8 @@ void CodeGenerator::visit(ProcDeclNode &node) {
     // Frame initialization using correct lexical level
     int blockIdx = symTable.getDisplay(entry.lev);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    emit(Opcode::INT, entry.lev, 3 + block.psze + block.vsze);
+    // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
+    emit(Opcode::INT, entry.lev, 3 + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {
@@ -273,7 +276,8 @@ void CodeGenerator::visit(FuncDeclNode &node) {
     // Frame initialization using correct lexical level
     int blockIdx = symTable.getDisplay(entry.lev);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    emit(Opcode::INT, entry.lev, 3 + block.psze + block.vsze);
+    // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
+    emit(Opcode::INT, entry.lev, 3 + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {
