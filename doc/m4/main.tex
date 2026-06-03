@@ -170,30 +170,20 @@ Syntax Tree} (Decorated AST) serta melakukan pengecekan semantik seperti
 kecocokan tipe data, \textit{scope resolution}, dan deteksi \textit{identifier}
 yang belum dideklarasikan. Meskipun \textit{semantic analyzer} telah berfungsi
 dengan baik dalam memvalidasi makna program, tahapan kompilasi belum mencapai
-titik di mana program dapat dijalankan.
+titik di mana program dapat dijalankan. Hasil dari tahap analisis semantik
+berupa \textit{Decorated AST} beserta \textit{symbol table} masih berupa
+representasi abstrak yang belum dapat dieksekusi secara langsung oleh mesin.
 
-Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang
-saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}),
-analisis sintaktik (\textit{syntax analysis}), analisis semantik (\textit{semantic
-analysis}), pembangkitan kode antara (\textit{intermediate code generation}),
-dan eksekusi. Milestone keempat ini menyelesaikan dua tahap terakhir dalam
-rantai kompilasi hingga ke titik eksekusi program.
-
-Pada milestone ini dibangun dua komponen utama:
-
-\begin{enumerate}
-    \item \textbf{\textit{Intermediate Code Generator}}: Komponen yang
-        mentransformasi \textit{Decorated AST} menjadi representasi kode antara
-        berbentuk \textit{Three-Address Code} (TAC). Setiap instruksi TAC
-        terdiri dari nomor baris, opcode, level, dan operand. Kode antara ini
-        menjadi jembatan antara representasi bahasa tingkat tinggi dan mesin
-        eksekusi abstrak.
-    \item \textbf{\textit{Stack Machine Interpreter}}: Komponen yang
-        mengeksekusi instruksi-instruksi TAC menggunakan mesin \textit{stack}
-        dengan manajemen \textit{frame} dan \textit{display}. Interpreter
-        bekerja dalam siklus \textit{Fetch-Decode-Execute} untuk menjalankan
-        setiap instruksi dan menghasilkan keluaran program.
-\end{enumerate}
+Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan
+beberapa tahap berurutan. Setelah analisis semantik selesai, tahap berikutnya
+adalah pembangkitan kode perantara (\textit{intermediate code generation}) dan
+pengeksekusian kode tersebut (\textit{execution}). Pada tahap pembangkitan kode,
+\textit{intermediate code generator} menerima \textit{Decorated AST} dari
+\textit{semantic analyzer} dan menghasilkan representasi kode perantara berupa
+\textit{Three-Address Code} (TAC). Kode perantara ini menjadi jembatan antara
+representasi bahasa tingkat tinggi dan mesin eksekusi. Pada tahap eksekusi,
+\textit{interpreter} berbasis \textit{stack machine} mengeksekusi instruksi-instruksi
+TAC untuk menghasilkan keluaran program yang diharapkan.
 
 \begin{figure}[H]
 \centering
@@ -206,11 +196,31 @@ Pada milestone ini dibangun dua komponen utama:
 
 Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang
 saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}),
-analisis sintaktik, analisis semantik, hingga pembangkitan kode (\textit{code
-generation}). Setelah semantic analyzer berhasil memvalidasi makna program dan
-menghasilkan \textit{Decorated AST}, tahap selanjutnya adalah mengubah
-representasi tersebut menjadi instruksi-instruksi yang dapat dieksekusi oleh
-mesin.
+analisis sintaktik (\textit{syntax analysis}), analisis semantik
+(\textit{semantic analysis}), pembangkitan kode perantara (\textit{intermediate
+code generation}), hingga eksekusi. Setelah \textit{semantic analyzer}
+berhasil memvalidasi makna program dan menghasilkan \textit{Decorated AST},
+tahap selanjutnya adalah mengubah representasi tersebut menjadi
+instruksi-instruksi yang dapat dieksekusi oleh mesin.
+
+Tahap pembangkitan kode perantara merupakan fase keempat dalam rantai
+kompilasi. Fase ini bertugas untuk mentransformasi \textit{Decorated AST}
+menjadi bentuk perantara yang lebih dekat ke bahasa mesin namun masih bersifat
+abstrak dan independen terhadap arsitektur mesin target. Salah satu bentuk
+representasi perantara yang umum digunakan adalah \textit{Three-Address Code}
+(TAC), yang setiap instruksinya umumnya memiliki bentuk \texttt{x = y op z}
+yang melibatkan paling banyak tiga alamat: dua operand sumber dan satu alamat
+tujuan.
+
+Setelah kode perantara dihasilkan, diperlukan sebuah mesin eksekusi untuk
+menjalankan instruksi-instruksi tersebut. Dalam konteks tugas besar ini,
+mesin eksekusi yang dibangun adalah \textit{stack machine} yang menggunakan
+struktur data \textit{stack} sebagai media penyimpanan utama. Setiap
+subprogram yang dipanggil akan memiliki \textit{frame} sendiri di dalam stack,
+yang berisi \textit{static link}, \textit{dynamic link}, \textit{return
+address}, serta ruang untuk variabel lokal dan parameter. Mekanisme
+\textit{display} digunakan untuk mengelola \textit{static scope} dan
+mempercepat akses variabel dari \textit{scope} induk.
 
 Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa
 diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa
@@ -242,27 +252,35 @@ Bagaimana merancang dan mengimplementasikan:
 
 \subsection{Gambaran Umum Sistem}
 
-Sistem yang dibangun pada Milestone 4 terdiri dari dua komponen utama:
+Sistem yang dibangun pada Milestone 4 merupakan bagian akhir dari rantai
+kompilasi bahasa Arion yang diimplementasikan dalam bahasa C++20. Sistem ini
+menerima \textit{Decorated AST} dan \textit{symbol table} dari tahap analisis
+semantik, menghasilkan instruksi TAC, dan mengeksekusinya menggunakan mesin
+\textit{stack}. Sistem terdiri dari dua komponen utama:
 
 \begin{enumerate}
     \item \textbf{\textit{Intermediate Code Generator}} (\texttt{src/intermediate/}):
         Menerima \textit{Decorated AST} dan \textit{symbol table} dari tahap
-        analisis semantik, lalu menghasilkan daftar instruksi TAC.
+        analisis semantik, melakukan traversal pada AST untuk menghasilkan
+daftar instruksi TAC. \textit{Code generator} dirancang menggunakan pola
+\textit{Visitor} dengan fungsi \texttt{visit()} untuk setiap jenis node AST.
 
     \item \textbf{\textit{Runtime Environment}} (\texttt{src/runtime/}):
         Terdiri dari \texttt{StackMachine} (manajemen stack dan frame) dan
         \texttt{Interpreter} (siklus eksekusi instruksi). Interpreter membaca
-        instruksi TAC, mendekode opcode, dan mengeksekusi operasi yang sesuai
-        pada stack.
+        instruksi TAC satu per satu, mendekode opcode, dan mengeksekusi operasi
+yang sesuai pada stack menggunakan siklus \textit{Fetch-Decode-Execute}.
 \end{enumerate}
 
 Keluaran akhir sistem terdiri dari:
 \begin{itemize}
     \item \textbf{\textit{Intermediate Code}}: Daftar instruksi TAC yang
-        dihasilkan dari proses \textit{code generation}.
+        dihasilkan dari proses \textit{code generation}, berupa baris-baris
+        dengan format \texttt{<line> <INSTR> <level> <operand>}.
     \item \textbf{\textit{Program Output}}: Hasil eksekusi program yang
         dicetak ke \texttt{stdout} melalui instruksi \texttt{WRT} dan
-        \texttt{WRTLN}.
+        \texttt{WRTLN}, termasuk keluaran dari operasi I/O yang didefinisikan
+        dalam program sumber.
 \end{itemize}
 
 \subsection{Spesifikasi Umum}
@@ -311,11 +329,14 @@ Keluaran akhir sistem terdiri dari:
 
 Bahasa Pemrograman adalah cara manusia untuk dapat memberikan perintah
 (\textit{instruction}) kepada sebuah komputer. Setiap bahasa pemrograman
-memiliki sintaks (\textit{syntax}) dan semantik (\textit{semantics}). Sintaks
-mengatur bagaimana simbol-simbol dituliskan, sedangkan semantik mengatur makna
-dari setiap konstruksi bahasa. Pada tahap ini, setelah program dinyatakan benar
-secara sintaksis dan semantik, program perlu ditransformasi menjadi
-instruksi-instruksi yang dapat dieksekusi oleh mesin.
+memiliki kata kunci dan aturannya masing-masing serta makna dari kata-kata itu
+yang disebut sintaks (\textit{syntax}) dan semantik (\textit{semantics}).
+Input yang terdapat kesalahan pada tingkat sintaks berarti input tersebut tidak
+valid untuk bahasa pemrograman tersebut, sedangkan kesalahan pada tingkat
+semantik umumnya berbentuk kesalahan logika atau ketidakcocokan tipe data.
+Pada tahap ini, setelah program dinyatakan benar secara sintaksis dan semantik,
+program perlu ditransformasi menjadi instruksi-instruksi yang dapat dieksekusi
+oleh mesin.
 
 \subsubsection{Hierarki Bahasa Pemrograman}
 
@@ -323,64 +344,118 @@ Berdasarkan tingkat abstraksinya, bahasa pemrograman diklasifikasikan menjadi
 dua kategori utama:
 \begin{itemize}
     \item \textbf{\textit{Low-Level Language} (Bahasa Tingkat Rendah)}: Bahasa
-        yang instruksinya mendekati arsitektur perangkat keras dan bahasa mesin.
+        yang instruksinya mendekati arsitektur perangkat keras dan bahasa mesin
+        (biner 0 dan 1). Contohnya adalah \textit{Assembly}, yang memerlukan
+        \textit{Assembler} untuk menerjemahkan kode menjadi instruksi yang dapat
+        dipahami CPU.
     \item \textbf{\textit{High-Level Language} (Bahasa Tingkat Tinggi)}: Bahasa
-        yang dirancang agar lebih mudah dibaca dan dipahami oleh manusia.
+        yang dirancang agar lebih mudah dibaca dan dipahami oleh manusia karena
+        menggunakan kosakata yang menyerupai bahasa natural. Semakin tinggi
+        tingkat bahasa tersebut, semakin banyak tahapan pemrosesan yang diperlukan
+        untuk mengubahnya menjadi kode mesin. Contoh bahasa tingkat tinggi antara
+        lain Pascal, C++, Python, dan Java.
 \end{itemize}
 
 \subsubsection{\textit{Compiler} dan \textit{Interpreter}}
 
+Untuk menjalankan kode sumber yang ditulis dalam bahasa tingkat tinggi,
+diperlukan sebuah perangkat lunak penerjemah yang mengubah kode tersebut menjadi
+format yang dapat dieksekusi oleh mesin. Secara umum, terdapat dua mekanisme
+utama untuk mengubah bahasa tingkat tinggi ke bahasa mesin:
+
 \begin{enumerate}
-    \item \textbf{\textit{Compiler}}: Menerjemahkan seluruh \textit{source
-        code} menjadi kode mesin sebelum program dijalankan.
-    \item \textbf{\textit{Interpreter}}: Memproses kode sumber baris demi
-        baris secara langsung. Pada Milestone 4, interpreter yang dibangun
-        bekerja pada level instruksi TAC, bukan pada kode sumber asli.
+    \item \textbf{\textit{Compiler} (Kompilator)}:
+    \textit{Compiler} adalah program yang menerjemahkan seluruh \textit{source code}
+    secara utuh menjadi kode mesin (biasanya dalam bentuk \textit{Object File})
+    sebelum program dijalankan. Proses kompilasi pada \textit{compiler} umumnya
+    terdiri dari empat tahapan utama: \textit{Lexical Analysis}, \textit{Syntax
+    Analysis}, \textit{Semantic Analysis}, dan \textit{Intermediate Code
+    Generation}. Karakteristik utama \textit{compiler} adalah jika terdeteksi adanya
+    kesalahan (\textit{error}) di dalam \textit{source code}, maka seluruh proses
+    kompilasi akan gagal dan program tidak dapat dijalankan.
+
+    \item \textbf{\textit{Interpreter}}:
+    Berbeda dengan \textit{compiler}, \textit{interpreter} memproses kode sumber
+    baris demi baris secara langsung. \textit{Interpreter} membaca,
+    menerjemahkan, dan langsung mengeksekusi kode mesin tersebut baris demi baris.
+    Hal ini memungkinkan program tetap berjalan normal hingga baris sebelum
+    ditemukannya kesalahan; misalnya, jika terdapat \textit{error} pada baris ke-10,
+    baris 1 sampai 9 akan tetap berhasil dieksekusi. Meskipun mekanisme eksekusinya
+    berbeda, \textit{interpreter} sebenarnya memiliki tahapan pemrosesan internal
+    yang serupa dengan \textit{compiler}. Pada Milestone 4, interpreter yang
+    dibangun bekerja pada level instruksi TAC, bukan pada kode sumber asli.
 \end{enumerate}
 
 \subsection{Teori Kompilator (\textit{Compiler Theory})}
 
-Proses kompilasi terdiri dari fase-fase berurutan:
+Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja
+secara berurutan. Setiap fase mengambil input dari tahap sebelumnya,
+memprosesnya, dan memberikan output yang akan digunakan sebagai input untuk fase
+berikutnya. Secara umum, arsitektur sebuah kompilator terdiri dari fase-fase
+berikut:
 
 \begin{enumerate}
-    \item \textbf{\textit{Lexical Analysis}}: Pemindai teks yang menghasilkan token.
-    \item \textbf{\textit{Syntax Analysis}}: Pemeriksa struktur sintaks yang
-        menghasilkan Parse Tree.
-    \item \textbf{\textit{Semantic Analysis}}: Pemeriksa makna program yang
-        menghasilkan Decorated AST.
+    \item \textbf{\textit{Lexical Analysis}}: Fase pertama yang bekerja sebagai
+        pemindai teks (\textit{text scanner}) pada kode sumber. Fase ini
+        membaca karakter demi karakter dan mengelompokkannya menjadi token-token
+        bermakna. Penjelasan lebih detail mengenai fase ini dibahas pada
+        laporan Milestone 1.
+    \item \textbf{\textit{Syntax Analysis} (\textit{Parsing})}: Mengambil
+        \textit{token} yang dihasilkan oleh \textit{lexical analysis} dan
+        membangun pohon sintaksis (\textit{parse tree}). Fase ini memeriksa
+        kebenaran susunan \textit{token} berdasarkan aturan tata bahasa
+        (\textit{grammar}) kode sumber. Penjelasan lebih detail mengenai fase ini
+        dibahas pada laporan Milestone 2.
+    \item \textbf{\textit{Semantic Analysis}}: Memeriksa apakah pohon sintaksis
+        yang dibangun mengikuti aturan semantik bahasa, seperti kecocokan
+        operasi tipe data dan memastikan \textit{identifier} telah
+        dideklarasikan sebelum digunakan. Fase ini menghasilkan keluaran berupa
+        pohon sintaksis yang dianotasi (\textit{Decorated AST}). Penjelasan
+        lebih detail mengenai fase ini dibahas pada laporan Milestone 3.
     \item \textbf{\textit{Intermediate Code Generation}}: Menghasilkan
-        representasi kode perantara (TAC) untuk mesin abstrak.
+        representasi kode perantara untuk mesin abstrak, yang posisinya
+        menjembatani antara bahasa tingkat tinggi dan bahasa mesin.
     \item \textbf{\textit{Code Optimization}}: Mengoptimalkan kode perantara
-        (opsional, tidak diimplementasikan).
-    \item \textbf{\textit{Target Code Generation}}: Menghasilkan kode mesin
-        (tidak diimplementasikan -- dieksekusi langsung oleh interpreter).
+        dengan menghapus baris kode yang tidak perlu dan mengatur ulang urutan
+        instruksi. Tujuannya adalah untuk mempercepat eksekusi program tanpa
+        membuang sumber daya (\textit{CPU}, memori).
+    \item \textbf{\textit{Target Code Generation}}: Merupakan fase sintesis
+        akhir (\textit{back-end}) yang menggunakan representasi kode perantara dan
+        tabel simbol untuk menghasilkan program target atau bahasa mesin.
 \end{enumerate}
 
 \subsubsection{\textit{Intermediate Code Generation}}
 
-\textit{Intermediate Code Generation} adalah fase keempat dari kompilator yang
-mentransformasi representasi semantik program (\textit{Decorated AST}) menjadi
-bentuk perantara yang bersifat abstrak dan independen terhadap mesin target.
-Salah satu bentuk representasi antara yang umum digunakan adalah
-\textit{Three-Address Code} (TAC).
+Sebagai fokus utama pada \textit{milestone} ini, \textit{Intermediate Code
+Generation} adalah fase keempat dari kompilator yang mentransformasi
+representasi semantik program (\textit{Decorated AST}) menjadi bentuk perantara
+yang bersifat abstrak dan independen terhadap mesin target. Fase ini
+memerlukan \textit{Decorated AST} yang telah dianotasi dengan informasi tipe
+data, \textit{scope}, dan alamat memori dari \textit{symbol table} agar dapat
+menghasilkan instruksi yang sesuai.
 
-TAC disebut \textit{three-address code} karena setiap instruksi umumnya
-memiliki bentuk \texttt{x = y op z}, yang melibatkan tiga alamat: dua operand
-sumber dan satu alamat tujuan. Dalam implementasi proyek ini, TAC
-direpresentasikan dalam format yang lebih sederhana:
+Salah satu bentuk representasi antara yang umum digunakan adalah
+\textit{Three-Address Code} (TAC). TAC disebut \textit{three-address code}
+karena setiap instruksi umumnya memiliki bentuk \texttt{x = y op z}, yang
+melibatkan tiga alamat: dua operand sumber dan satu alamat tujuan. Namun,
+dalam implementasi proyek ini, TAC direpresentasikan dalam format yang lebih
+sederhana dan lebih dekat ke arsitektur mesin stack:
 
 \begin{verbatim}
 <line> <OPCODE> <level> <operand>
 \end{verbatim}
 
-Setiap instruksi terdiri dari:
+Setiap instruksi terdiri dari empat komponen:
 \begin{itemize}
-    \item \textbf{line}: Nomor baris instruksi (0-based, diisi otomatis).
-    \item \textbf{OPCODE}: Kode operasi (INT, LIT, LOD, STO, CAL, JMP, JPC,
-        OPR, RET).
-    \item \textbf{level}: Tingkat \textit{lexical level} untuk resolusi scope.
-    \item \textbf{operand}: Nilai literal, alamat, nomor operasi, atau baris
-        target lompatan.
+    \item \textbf{line}: Nomor baris instruksi (berbasis 0, diisi secara
+        otomatis saat pembuatan instruksi).
+    \item \textbf{OPCODE}: Kode operasi yang menentukan jenis instruksi
+        (\texttt{INT}, \texttt{LIT}, \texttt{LOD}, \texttt{STO}, \texttt{CAL},
+        \texttt{JMP}, \texttt{JPC}, \texttt{OPR}, \texttt{RET}).
+    \item \textbf{level}: Tingkat \textit{lexical level} yang digunakan untuk
+        resolisi \textit{scope} variabel melalui mekanisme \textit{display}.
+    \item \textbf{operand}: Nilai literal, alamat memori, nomor operasi, atau
+        baris target lompatan, tergantung pada jenis instruksi.
 \end{itemize}
 
 \textbf{Daftar Instruksi TAC:}
@@ -396,11 +471,11 @@ Setiap instruksi terdiri dari:
 \texttt{LIT v} & Load Literal & Push nilai literal \texttt{v} ke stack \\
 \texttt{LOD l a} & Load Value & Push value dari address \texttt{a} pada level \texttt{l} \\
 \texttt{STO l a} & Store Value & Pop stack lalu simpan ke address \texttt{a} pada level \texttt{l} \\
-\texttt{CAL l} & Call & Panggil subprogram di instruction line \texttt{l} \\
-\texttt{JMP l} & Unconditional Jump & IP = \texttt{l} \\
-\texttt{JPC l} & Conditional Jump & Jika pop() == 0, IP = \texttt{l} \\
-\texttt{OPR o} & Operation & Eksekusi operasi \texttt{o} pada stack \\
-\texttt{RET} & Return & Kembali dari subprogram \\
+\texttt{CAL l a} & Call & Panggil subprogram pada instruction line \texttt{a} \\
+\texttt{JMP l a} & Unconditional Jump & IP = \texttt{a} \\
+\texttt{JPC l a} & Conditional Jump & Jika pop() == 0, IP = \texttt{a} \\
+\texttt{OPR l a} & Operation & Eksekusi operasi \texttt{a} pada stack \\
+\texttt{RET l a} & Return & Kembali dari subprogram \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -419,15 +494,15 @@ Setiap instruksi terdiri dari:
 3  & SUB   & Pop b, a $\rightarrow$ Push (a-b) \\
 4  & MUL   & Pop b, a $\rightarrow$ Push (a*b) \\
 5  & DIV   & Pop b, a $\rightarrow$ Push (a/b) -- cek div by zero \\
-6  & MOD   & Pop b, a $\rightarrow$ Push (a\%b) \\
+6  & MOD   & Pop b, a $\rightarrow$ Push (a mod b) \\
 7  & EQL   & Push (a == b ? 1 : 0) \\
 8  & NEQ   & Push (a != b ? 1 : 0) \\
 9  & LSS   & Push (a < b ? 1 : 0) \\
 10 & GEQ   & Push (a >= b ? 1 : 0) \\
 11 & GTR   & Push (a > b ? 1 : 0) \\
 12 & LEQ   & Push (a <= b ? 1 : 0) \\
-13 & WRT   & Pop $\rightarrow$ print \\
-14 & WRTLN & Pop $\rightarrow$ print + newline \\
+13 & WRT   & Pop $\rightarrow$ print tanpa newline \\
+14 & WRTLN & Pop $\rightarrow$ print dengan newline \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -435,63 +510,130 @@ Setiap instruksi terdiri dari:
 \subsubsection{\textit{Stack Machine}}
 
 \textit{Stack Machine} adalah model mesin abstrak yang menggunakan struktur
-data \textit{stack} sebagai media penyimpanan utama. Setiap subprogram
-memiliki \textit{frame} sendiri di dalam stack. Layout frame adalah sebagai
-berikut:
+data \textit{stack} sebagai media penyimpanan utama untuk operasi komputasi.
+Model ini umum digunakan dalam implementasi mesin virtual dan bahasa bytecode
+(misalnya JVM dan CLR) karena kesederhanaannya dalam manajemen operand dan
+pemanggilan fungsi. Setiap subprogram yang dipanggil akan memiliki \textit{frame}
+sendiri di dalam stack, yang berfungsi sebagai ruang memori lokal untuk
+variabel, parameter, dan informasi kontrol pemanggilan.
+
+Layout sebuah \textit{frame} pada stack adalah sebagai berikut:
 
 \begin{table}[H]
 \centering
 \caption{Layout frame stack}
 \begin{tabular}{ccl}
 \toprule
-\textbf{Address} & \textbf{Isi} & \textbf{Keterangan} \\
+\textbf{Address Relatif} & \textbf{Isi} & \textbf{Keterangan} \\
 \midrule
-0 & Static Link & Display[level] frame induk \\
-1 & Dynamic Link & Base pointer frame pemanggil \\
-2 & Return Address & Instruction line tujuan setelah RET \\
-3 & Variabel/Parameter ke-1 & \\
-4 & Variabel/Parameter ke-2 & \\
+$-k$ s.d. $-1$ & Parameter ke-1 s.d. ke-$k$ & Argumen yang didorong sebelum \texttt{CAL} \\
+0 & Static Link (SL) & Base pointer frame induk (\textit{lexical scope}) \\
+1 & Dynamic Link (DL) & Base pointer frame pemanggil \\
+2 & Return Address (RA) & Indeks instruksi tujuan setelah \texttt{RET} \\
+3 & Variabel lokal ke-1 & \\
+4 & Variabel lokal ke-2 & \\
 $\cdots$ & $\cdots$ & \\
+$3 + (n-1)$ & Variabel lokal ke-$n$ & \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Untuk level 0 (global), static link = 0. Untuk fungsi/prosedur di level L,
-static link = display[L-1].
+Penting untuk dicatat bahwa parameter tidak dialokasikan di dalam frame baru
+yang dibuat oleh \texttt{INT}. Sebaliknya, parameter berada di stack tepat
+di bawah base pointer frame baru, sehingga diakses dengan alamat negatif relatif
+terhadap \texttt{bp}. Hal ini memungkinkan argumen yang didorong oleh pemanggil
+sebelum instruksi \texttt{CAL} dapat diakses langsung oleh subprogram yang
+dipanggil. Untuk level 0 (program utama), \textit{static link} diatur ke 0.
+Untuk fungsi atau prosedur di level $L$, \textit{static link} diisi dengan
+\texttt{display[$L-1$]}, yaitu base pointer dari frame terakhir pada level
+$L-1$.
+
+Ketika sebuah subprogram dipanggil, instruksi \texttt{CAL} menyebabkan
+penyimpanan return address dan pembuatan frame baru. Instruksi \texttt{INT}
+kemudian mengalokasikan ruang untuk variabel lokal dengan menambah
+\textit{stack pointer}. Ketika subprogram selesai, instruksi \texttt{RET}
+memulihkan \textit{base pointer}, \textit{instruction pointer}, dan
+\textit{display} ke kondisi sebelum pemanggilan, lalu melanjutkan eksekusi
+di instruksi setelah \texttt{CAL}.
 
 \subsubsection{\textit{Display}}
 
 \textit{Display} adalah mekanisme untuk mengelola \textit{static scope} dalam
-bahasa pemrograman dengan \textit{lexical scoping} seperti Pascal. Display
-merupakan array yang menyimpan \textit{base pointer} dari \textit{frame} untuk
-setiap \textit{lexical level}. Ketika interpreter perlu mengakses variabel
-dari \textit{scope} induk, ia mengikuti \textit{static link chain} dari frame
-saat ini hingga mencapai frame pada level yang diinginkan.
+bahasa pemrograman dengan \textit{lexical scoping} seperti Pascal. Pada
+bahasa dengan \textit{lexical scoping}, ruang lingkup (\textit{scope}) sebuah
+variabel ditentukan oleh posisi deklarasinya dalam struktur bersarang program,
+bukan oleh urutan pemanggilan pada saat runtime. \textit{Display} merupakan
+array yang menyimpan \textit{base pointer} dari \textit{frame} terakhir untuk
+setiap \textit{lexical level}. Ketika interpreter perlu mengakses variabel dari
+\textit{scope} induk, ia menggunakan nilai \texttt{display[level]} untuk
+mendapatkan base pointer dari frame pada level yang diinginkan, tanpa harus
+menelusuri \textit{static link chain} secara iteratif.
+
+Implementasi \textit{display} dalam proyek ini terdiri dari sebuah array
+berukuran tetap (sesuai jumlah level maksimum) yang diperbarui setiap kali
+instruksi \texttt{INT} atau \texttt{RET} dieksekusi. Saat \texttt{INT}
+membuat frame baru pada level $L$, \texttt{display[$L$]} diset ke base pointer
+frame baru tersebut. Saat \texttt{RET} mengembalikan kontrol dari level $L$,
+\texttt{display[$L$]} dikembalikan ke nilai semula menggunakan informasi yang
+telah disimpan sebelumnya. Mekanisme ini memastikan bahwa variabel non-lokal
+dapat diakses dengan kompleksitas waktu $O(1)$, tidak tergantung pada kedalaman
+penelusuran \textit{static link chain}.
 
 \subsection{Teori Bahasa Formal dan Otomata}
 
 \subsubsection{Kaitannya dengan Milestone 1--3}
 
 Milestone 4 tidak memperkenalkan konsep baru dalam Teori Bahasa Formal dan
-Otomata secara langsung. Konsep-konsep dari milestone sebelumnya --
-\textit{Regular Expression} dan DFA (M1), \textit{Context-Free Grammar} dan
-Recursive Descent (M2), \textit{Attributed Grammar} dan Visitor Pattern (M3)
--- telah digunakan untuk membangun fondasi yang diperlukan. Milestone 4
-menggunakan \textit{Decorated AST} yang dihasilkan dari M3 sebagai masukan
-untuk menghasilkan kode antara.
+Otomata secara langsung, melainkan memanfaatkan hasil dari milestone-milestone
+sebelumnya sebagai fondasi untuk pembangkitan dan eksekusi kode. Konsep-konsep
+yang telah dibangun pada milestone sebelumnya adalah sebagai berikut:
+
+\begin{itemize}
+    \item \textbf{Milestone 1}: \textit{Regular Expression} dan Deterministic
+        Finite Automaton (DFA) digunakan untuk mengenali pola-pola leksikal
+        dalam kode sumber, menghasilkan token-token yang menjadi masukan parser.
+    \item \textbf{Milestone 2}: \textit{Context-Free Grammar} (CFG) dan algoritma
+        \textit{Recursive Descent} digunakan untuk memeriksa struktur sintaks
+        dan membangun \textit{Parse Tree}.
+    \item \textbf{Milestone 3}: \textit{Attributed Grammar} dan \textit{Visitor
+        Pattern} digunakan untuk melakukan analisis semantik, mengelola
+        \textit{symbol table}, dan menghasilkan \textit{Decorated AST} yang
+        menjadi masukan untuk \textit{intermediate code generator} pada
+        milestone ini.
+\end{itemize}
+
+\textit{Decorated AST} yang dihasilkan dari Milestone 3 merupakan representasi
+program yang telah dianotasi dengan informasi semantik lengkap, termasuk tipe
+data setiap node, referensi ke entri \textit{symbol table}, dan tingkat
+\textit{lexical level}. Informasi ini sangat penting bagi \textit{code
+generator} untuk menentukan alamat memori, level leksikal, dan jenis operasi
+yang tepat untuk setiap konstruksi program.
 
 \subsubsection{\textit{Three-Address Code} dan Mesin Abstrak}
 
-TAC adalah bentuk representasi antara yang berada di antara AST dan kode
-mesin. Dalam konteks teori bahasa formal, TAC dapat dipandang sebagai bahasa
-dari sebuah mesin abstrak (\textit{abstract machine}) yang memiliki stack
-sebagai memori utamanya. Bahasa ini didefinisikan oleh sekumpulan instruksi
-(opcode) dan aturan transisi status mesin (semantik operasional).
+Dalam konteks teori bahasa formal, TAC dapat dipandang sebagai bahasa dari
+sebuah mesin abstrak (\textit{abstract machine}) yang memiliki stack sebagai
+memori utamanya. Bahasa ini didefinisikan oleh sekumpulan instruksi (opcode)
+dan aturan transisi status mesin (semantik operasional). Setiap instruksi TAC
+merupakan sebuah simbol terminal dalam bahasa mesin abstrak ini, dan urutan
+instruksi membentuk sebuah \textit{string} yang diterima oleh mesin.
 
-Mesin abstrak stack dapat dimodelkan sebagai \textit{finite-state machine}
-dengan state berupa (stack, ip, display). Setiap instruksi menyebabkan
-transisi dari satu state ke state berikutnya, membentuk jejak eksekusi
-(\textit{execution trace}) program.
+Mesin abstrak stack dapat dimodelkan secara formal sebagai sistem transisi
+status dengan state berupa tupel $(S, ip, D, bp)$, di mana $S$ adalah stack,
+$ip$ adalah \textit{instruction pointer}, $D$ adalah \textit{display}, dan
+$bp$ adalah \textit{base pointer}. Setiap instruksi menyebabkan transisi dari
+satu state ke state berikutnya sesuai dengan semantik operasionalnya, membentuk
+jejak eksekusi (\textit{execution trace}) program. Sebagai contoh, instruksi
+\texttt{LIT v} menyebabkan transisi $(S, ip, D, bp) \rightarrow (S \cup
+\{v\}, ip+1, D, bp)$, yaitu nilai $v$ ditambahkan ke stack dan \textit{instruction
+pointer} maju satu langkah.
+
+Pemodelan formal ini memastikan bahwa eksekusi program bersifat deterministik:
+untuk setiap state dan instruksi yang sedang dieksekusi, terdapat tepat satu
+state berikutnya yang valid. Sifat deterministik ini merupakan konsekuensi
+dari arsitektur \textit{von Neumann} yang mendasari desain mesin stack, di mana
+setiap instruksi memiliki efek yang terdefinisi dengan jelas terhadap status
+mesin.
 
 
 % ============================================================
@@ -843,26 +985,6 @@ void Interpreter::handleOPR(const Instruction &inst) {
 }
 \end{lstlisting}
 
-\subsection{Pembagian Tugas}
-
-\begin{table}[H]
-\centering
-\caption{Pembagian tugas antar anggota kelompok}
-\begin{tabular}{ccl}
-\toprule
-\textbf{Role} & \textbf{Anggota} & \textbf{Tanggung Jawab} \\
-\midrule
-1 & \MemberB & Instruction struct, \newline Expression/Assignment/I/O CodeGen \\
-2 & \MemberA & Address assignment, \newline Control flow \& Subprogram CodeGen \\
-3 & \MemberC & StackMachine, Interpreter core \newline (INT/LIT/LOD/STO/JMP/JPC/RET/CAL) \\
-4 & \MemberD & OPR operations, driver, \newline test cases, laporan, bonus \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% ============================================================
-%   SECTION 5 — PENGUJIAN
-% ============================================================
 
 \section{Pengujian}
 
@@ -1269,47 +1391,55 @@ Runtime error: Integer overflow in addition
 \textbf{Analisis:} Interpreter mendeteksi overflow aritmatika pada operasi \texttt{OPR 0 2} (ADD). Nilai maksimum \texttt{integer} (32-bit signed) adalah \texttt{2147483647}; penambahan 1 akan menyebabkan overflow. Deteksi ini mencegah perilaku undefined yang dapat merusak hasil komputasi selanjutnya.
 
 
-% ============================================================
-%   SECTION 6 — BONUS FEATURES
-% ============================================================
-
 \section{Fitur Tambahan}
 
 Berikut fitur-fitur tambahan yang berhasil diimplementasikan di luar spesifikasi dasar:
 
 \begin{enumerate}
-    \item \textbf{Runtime Error Handling}: Interpreter menangkap dan melaporkan berbagai error runtime, yaitu: stack overflow, stack underflow, division by zero, integer overflow, invalid jump target, dan out-of-bounds memory access. Setiap error dilengkapi dengan pesan yang jelas.
-    \item \textbf{Static Link Chain}: StackMachine mendukung static link untuk mengakses variabel di lingkup leksikal induk, memungkinkan prosedur bersarang mengakses variabel non-lokal.
-    \item \textbf{Display Management}: Array \texttt{display} menyimpan base pointer untuk setiap level leksikal, mempercepat akses variabel non-lokal tanpa menelusuri static link chain secara iteratif.
-    \item \textbf{Frame Isolation}: Setiap pemanggilan prosedur membuat frame terpisah dengan header SL/DL/RA, memastikan variabel lokal tidak saling mengganggu antar pemanggilan.
-    \item \textbf{Negative Parameter Addressing}: Parameter diletakkan pada alamat negatif relatif terhadap base pointer, memisahkan ruang parameter dari ruang variabel lokal dan memudahkan akses argumen yang didorong sebelum \texttt{CAL}.
+    \item \textbf{ini nanti}: ini nanti
 \end{enumerate}
 
 
-% ============================================================
-%   SECTION 7 — KESIMPULAN
-% ============================================================
 
 \section{Kesimpulan}
 
-Milestone 4 berhasil mengimplementasikan seluruh rantai kompilasi dari analisis leksikal hingga eksekusi kode perantara. Generator kode perantara \texttt{CodeGenerator} mampu menerjemahkan AST dari Milestone 3 menjadi instruksi P-Code yang eksekutabel. Interpreter \texttt{Interpreter} dan mesin stack \texttt{StackMachine} mengeksekusi instruksi-instruksi tersebut dengan benar, termasuk penanganan frame, static link, dan display.
-
-Pemecahan masalah parameter passing menjadi hasil penting pada milestone ini. Dengan menggunakan alamat negatif untuk parameter (karena argumen sudah berada di stack sebelum \texttt{CAL}) dan memancarkan \texttt{INT} hanya untuk variabel lokal (bukan parameter), pemanggilan prosedur dan fungsi dapat berjalan dengan benar meskipun terdapat bug pada \texttt{SemanticAnalyzer} Milestone 3 yang salah mengatur level leksikal dan tipe variabel parameter.
-
-Semua lima kasus uji wajib (basic, arithmetic, if-else, while, for) serta kasus uji tambahan (nested, repeat-until, procedure parameter, division by zero, integer overflow) berhasil dilalui tanpa regresi pada fitur-fitur sebelumnya. Rantai kompilasi dari sumber Pascal hingga output eksekusi telah terbentuk secara utuh.
+belum
 
 
-% ============================================================
-%   APPENDIX — REPOSITORY
-% ============================================================
+\addcontentsline{toc}{section}{Appendix}
+\section*{Appendix}
 
-\appendix
-\section{Referensi Repositori}
+\begin{table}[H]
+  \centering
+  \begin{small}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{11.7cm}}
+    \toprule
+    \textbf{Sumber Daya} & \textbf{Tautan} \\
+    \midrule
+    Repository GitHub & \url{\RepoURL} \\
+    \bottomrule
+  \end{tabular}
+  \end{small}
+  \caption{Tautan repository, deployment, dan diagram}
+\end{table}
 
-Seluruh kode sumber proyek ini dapat diakses melalui repositori GitHub berikut:
+\addcontentsline{toc}{section}{Pembagian Tugas}
+\section*{Pembagian Tugas}
 
-\begin{itemize}
-    \item \textbf{URL Repository}: \url{\RepoURL}
-\end{itemize}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\raggedright\arraybackslash}p{7.6cm}cc}
+    \toprule
+    \textbf{Nama} & \textbf{NIM} & \textbf{Kontribusi} \\
+    \midrule
+    Nathanael Imandatua Manurung & 13524021 & 25\% \\
+    Nicholas Wise Saragih Sumbayak & 13524037 & 25\% \\
+    Kurt Mikhael Purba & 13524065 & 25\% \\
+    Rava Khoman Tuah Saragih & 13524107 & 25\% \\
+    \bottomrule
+  \end{tabular}
+  \caption{Pembagian kontribusi anggota kelompok}
+\end{table}
 
 \end{document}
