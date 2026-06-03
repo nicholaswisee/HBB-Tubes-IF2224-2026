@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include <unordered_set>
 
 namespace Intermediate {
 
@@ -182,6 +183,19 @@ void CodeGenerator::assignAddresses() {
     for (int b = 0; b < symTable.btabSize(); b++) {
         BTabEntry &block = symTable.getBTab(b);
 
+        // Identify parameters via the lpar linked-list chain (M3 workaround:
+        // semantic analyzer sometimes leaves nrm==1 for parameters).
+        std::unordered_set<int> paramIndices;
+        int pIdx = block.lpar;
+        int paramCount = 0;
+        while (pIdx > 0) {
+            paramIndices.insert(pIdx);
+            paramCount++;
+            const TabEntry &e = symTable.getTab(pIdx);
+            pIdx = e.link;
+        }
+        block.psze = paramCount;
+
         // Collect all entries belonging to this block via linked list
         std::vector<int> indices;
         int idx = block.last;
@@ -201,7 +215,8 @@ void CodeGenerator::assignAddresses() {
         for (int tabIdx : indices) {
             TabEntry &entry = symTable.getTab(tabIdx);
             if (entry.obj == TypeSystem::OBJ_VARIABLE) {
-                if (entry.nrm == 0) {
+                if (paramIndices.count(tabIdx) || entry.nrm == 0) {
+                    entry.nrm = 0;
                     entry.adr = paramAddr++;
                 } else {
                     entry.adr = varAddr++;
@@ -209,7 +224,7 @@ void CodeGenerator::assignAddresses() {
             }
         }
 
-        int computedVsze = varAddr - (3 + block.psze);
+        int computedVsze = varAddr - 3;
         if (computedVsze > block.vsze) {
             block.vsze = computedVsze;
         }
@@ -227,10 +242,19 @@ void CodeGenerator::visit(ProgramNode &node) {
 
     emit(Opcode::INT, 0, frameSize);
 
-    // Proses deklarasi
+    // Jump over subprogram bodies so execution starts at the main body
+    int mainLabel = newLabel();
+    int jmpIdx = instructions.size();
+    emit(Opcode::JMP, 0, 0);  // backpatched to mainLabel
+
+    // Proses deklarasi (procedure/function bodies are emitted here)
     for (auto &decl : node.declarations) {
         if (decl) decl->accept(*this);
     }
+
+    // Main body starts here
+    placeLabel(mainLabel);
+    backpatch(jmpIdx, getLabelLine(mainLabel));
 
     // Proses body
     if (node.body) node.body->accept(*this);
@@ -251,11 +275,21 @@ void CodeGenerator::visit(ProcDeclNode &node) {
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // Frame initialization using correct lexical level
-    int blockIdx = symTable.getDisplay(entry.lev);
+    // M3 workaround: entry.ref holds the btab index; entry.lev may be wrong (0).
+    int blockIdx = entry.ref;
+    if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
+        blockIdx = symTable.getDisplay(entry.lev);
+    }
     BTabEntry &block = symTable.getBTab(blockIdx);
+    // Derive level from a parameter if available, otherwise bump by 1
+    int level = entry.lev;
+    if (block.lpar > 0) {
+        level = symTable.getTab(block.lpar).lev;
+    } else if (level == 0) {
+        level = 1;
+    }
     // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
-    emit(Opcode::INT, entry.lev, 3 + block.vsze);
+    emit(Opcode::INT, level, 3 + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {
@@ -273,11 +307,21 @@ void CodeGenerator::visit(FuncDeclNode &node) {
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // Frame initialization using correct lexical level
-    int blockIdx = symTable.getDisplay(entry.lev);
+    // M3 workaround: entry.ref holds the btab index; entry.lev may be wrong (0).
+    int blockIdx = entry.ref;
+    if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
+        blockIdx = symTable.getDisplay(entry.lev);
+    }
     BTabEntry &block = symTable.getBTab(blockIdx);
+    // Derive level from a parameter if available, otherwise bump by 1
+    int level = entry.lev;
+    if (block.lpar > 0) {
+        level = symTable.getTab(block.lpar).lev;
+    } else if (level == 0) {
+        level = 1;
+    }
     // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
-    emit(Opcode::INT, entry.lev, 3 + block.vsze);
+    emit(Opcode::INT, level, 3 + block.vsze);
 
     // Local declarations
     for (auto &decl : node.localDeclarations) {

@@ -1,0 +1,13 @@
+program TestProc;
+
+var x: integer;
+
+procedure printNum(n: integer);
+begin
+    writeln(n);
+end;
+
+begin
+    x := 42;
+    printNum(x);
+end.

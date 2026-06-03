@@ -53,7 +53,7 @@ void Interpreter::handleINT(const Instruction &inst) {
         returnAddr = returnAddrStack.back();
         returnAddrStack.pop_back();
     } else {
-        returnAddr = (int)currentInstructions->size(); 
+        returnAddr = (int)currentInstructions->size();
     }
     stack.pushFrame(frameSize, staticLink, returnAddr);
     stack.setDisplay(inst.level, stack.currentFrameBase());
