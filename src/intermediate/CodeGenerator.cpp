@@ -137,16 +137,21 @@ void CodeGenerator::visit(UnaryOpNode &node) {
 }
 
 void CodeGenerator::visit(AssignNode &node) {
-    if (node.value)
-        node.value->accept(*this);
-
+    // For array/record LHS, we must emit the address offset BEFORE the value,
+    // because STOA pops value first (top of stack), then offset (below it).
+    // Stack layout expected by STOA: bottom→top = [..., offset, value]
     if (node.target) {
         if (auto arrAcc = std::dynamic_pointer_cast<ArrayAccessNode>(node.target)) {
+            // 1. Compute and push array offset
             int baseIdx = emitArrayAccess(arrAcc);
+            // 2. Compute and push the RHS value
+            if (node.value) node.value->accept(*this);
+            // 3. Store: STOA pops value then offset
             if (baseIdx >= 0) {
                 const TabEntry &entry = symTable.getTab(baseIdx);
                 emit(Opcode::STOA, entry.lev, entry.adr);
             }
+            return;
         } else if (auto fieldAcc = std::dynamic_pointer_cast<FieldAccessNode>(node.target)) {
             if (auto var = std::dynamic_pointer_cast<VariableNode>(fieldAcc->recordExpr)) {
                 if (var->tabIndex >= 0) {
@@ -155,29 +160,39 @@ void CodeGenerator::visit(AssignNode &node) {
                     int fieldIdx = symTable.lookupLocal(fieldAcc->fieldName, recBlock);
                     if (fieldIdx >= 0) {
                         const TabEntry &fieldEntry = symTable.getTab(fieldIdx);
-                        emit(Opcode::LIT, 0, fieldEntry.adr);   // push field offset
+                        // 1. Push field offset
+                        emit(Opcode::LIT, 0, fieldEntry.adr);
+                        // 2. Push RHS value
+                        if (node.value) node.value->accept(*this);
+                        // 3. Store
                         emit(Opcode::STOA, recEntry.lev, recEntry.adr);
+                        return;
                     }
                 }
             }
-        } else if (node.target->tabIndex >= 0) {
-            const TabEntry &entry = symTable.getTab(node.target->tabIndex);
-            if (entry.obj == TypeSystem::OBJ_FUNCTION) {
-                int blockIdx = entry.ref;
-                if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
-                    blockIdx = symTable.getDisplay(entry.lev);
-                }
-                BTabEntry &block = symTable.getBTab(blockIdx);
-                int level = entry.lev;
-                if (block.lpar > 0) {
-                    level = symTable.getTab(block.lpar).lev;
-                } else if (level == 0) {
-                    level = 1;
-                }
-                emit(Opcode::STO, level, 3);
-            } else {
-                emit(Opcode::STO, entry.lev, entry.adr);
+        }
+    }
+
+    // Simple assignment (scalar variable or function return value)
+    if (node.value) node.value->accept(*this);
+
+    if (node.target && node.target->tabIndex >= 0) {
+        const TabEntry &entry = symTable.getTab(node.target->tabIndex);
+        if (entry.obj == TypeSystem::OBJ_FUNCTION) {
+            int blockIdx = entry.ref;
+            if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
+                blockIdx = symTable.getDisplay(entry.lev);
             }
+            BTabEntry &block = symTable.getBTab(blockIdx);
+            int level = entry.lev;
+            if (block.lpar > 0) {
+                level = symTable.getTab(block.lpar).lev;
+            } else if (level == 0) {
+                level = 1;
+            }
+            emit(Opcode::STO, level, 3);
+        } else {
+            emit(Opcode::STO, entry.lev, entry.adr);
         }
     }
 }
@@ -289,19 +304,22 @@ void CodeGenerator::assignAddresses() {
                     entry.adr = paramAddr++;
                 } else {
                     entry.adr = varAddr;
-                    int size = 1;
+                    int size = 1; // default: 1 slot for scalar
                     if (entry.type == TypeSystem::TYPE_ARRAY && entry.ref >= 0 && entry.ref < symTable.atabSize()) {
                         size = symTable.getATab(entry.ref).size;
+                        if (size <= 0) size = 1;
                     } else if (entry.type == TypeSystem::TYPE_RECORD && entry.ref >= 0 && entry.ref < symTable.btabSize()) {
-                        // Count fields in record block (simplified: 1 slot per scalar field)
+                        // Count fields in the record block; each scalar field = 1 slot.
+                        // Start at 0 (not 1!) to get the exact count.
+                        int fieldCount = 0;
                         int fieldIdx = symTable.getBTab(entry.ref).last;
                         while (fieldIdx > 0) {
                             if (symTable.getTab(fieldIdx).obj == TypeSystem::OBJ_VARIABLE) {
-                                size++;
+                                fieldCount++;
                             }
                             fieldIdx = symTable.getTab(fieldIdx).link;
                         }
-                        if (size == 0) size = 1;
+                        size = (fieldCount > 0) ? fieldCount : 1;
                     }
                     varAddr += size;
                 }
@@ -603,54 +621,69 @@ int CodeGenerator::emitAddressOffset(std::shared_ptr<ASTNode> target) {
 }
 
 int CodeGenerator::emitArrayAccess(std::shared_ptr<ASTNode> target) {
+    // Peel off ArrayAccessNode layers to collect indices and find the base variable.
     std::vector<std::shared_ptr<ASTNode>> allIndices;
     std::shared_ptr<ASTNode> curr = target;
     while (auto arrAcc = std::dynamic_pointer_cast<ArrayAccessNode>(curr)) {
         allIndices.insert(allIndices.begin(), arrAcc->indices.begin(), arrAcc->indices.end());
         curr = arrAcc->arrayExpr;
     }
-    
+
     auto varNode = std::dynamic_pointer_cast<VariableNode>(curr);
     if (!varNode || varNode->tabIndex < 0) {
-        emit(Opcode::LIT, 0, 0);
+        emit(Opcode::LIT, 0, 0); // push dummy offset so STOA/LODA always has something
         return -1;
     }
-    
+
     int baseIdx = varNode->tabIndex;
     const TabEntry &baseEntry = symTable.getTab(baseIdx);
     int ref = baseEntry.ref;
-    
-    emit(Opcode::LIT, 0, 0); // initial offset = 0
-    int finalElsz = 1;
-    
-    for (auto &idx : allIndices) {
+
+    // Compute flat offset: for each dimension, offset = offset * dimSize + (index - low)
+    // For the very first dimension, offset starts at 0, so the MUL is a no-op (0*anything=0).
+    // We skip the initial LIT 0 + MUL and directly compute (index - low) for the first dim,
+    // then accumulate for subsequent dims.
+    bool first = true;
+    for (auto &idxExpr : allIndices) {
         if (ref < 0 || ref >= symTable.atabSize()) break;
         const ATabEntry &ate = symTable.getATab(ref);
-        
-        int dimLength = ate.high - ate.low + 1;
-        emit(Opcode::LIT, 0, dimLength);
-        emit(Opcode::OPR, 0, 4); // MUL
-        
-        idx->accept(*this);
-        
+
+        if (!first) {
+            // For multi-dim: multiply accumulated offset by size of this dimension
+            int dimSize = ate.high - ate.low + 1;
+            emit(Opcode::LIT, 0, dimSize);
+            emit(Opcode::OPR, 0, 4); // MUL: offset *= dimSize
+        }
+
+        // Push index and bounds-check it
+        idxExpr->accept(*this);                      // push raw index
+        emit(Opcode::LIT, 0, ate.low);               // push low bound
+        emit(Opcode::LIT, 0, ate.high);              // push high bound
+        emit(Opcode::OPR, 0, 17);                    // BOUNDS_CHECK: pops high,low,idx; pushes idx back
+
+        // Subtract lower bound to get 0-based offset
         emit(Opcode::LIT, 0, ate.low);
-        emit(Opcode::LIT, 0, ate.high);
-        emit(Opcode::OPR, 0, 17); // BOUNDS_CHECK
-        
-        emit(Opcode::LIT, 0, ate.low);
-        emit(Opcode::OPR, 0, 3); // SUB
-        
-        emit(Opcode::OPR, 0, 2); // ADD
-        
-        finalElsz = ate.elsz;
+        emit(Opcode::OPR, 0, 3); // SUB: (index - low)
+
+        if (!first) {
+            emit(Opcode::OPR, 0, 2); // ADD: offset = offset*dimSize + (index-low)
+        }
+
+        // Scale by element size
+        if (ate.elsz > 1) {
+            emit(Opcode::LIT, 0, ate.elsz);
+            emit(Opcode::OPR, 0, 4); // MUL
+        }
+
+        first = false;
         ref = ate.eref;
     }
-    
-    if (finalElsz > 1) {
-        emit(Opcode::LIT, 0, finalElsz);
-        emit(Opcode::OPR, 0, 4); // MUL
+
+    // If no indices were processed (shouldn't happen), push 0 as fallback offset
+    if (first) {
+        emit(Opcode::LIT, 0, 0);
     }
-    
+
     return baseIdx;
 }
 
