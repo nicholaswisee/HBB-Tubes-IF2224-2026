@@ -836,9 +836,9 @@ void SemanticAnalyzer::visit(ArrayTypeNode &node) {
 
 void SemanticAnalyzer::visit(RecordTypeNode &node) {
     currentLine = node.line;
-    for (auto &f : node.fields) {
-        if (f)
-            f->accept(*this);
-    }
+    // Fields are already registered inside enterBlock()/exitBlock() in
+    // visit(VarDeclNode) and visit(TypeDeclNode). Do NOT traverse here again
+    // or fields will be re-entered into the outer (caller's) block, corrupting
+    // the symbol table layout and assignAddresses() frame-size computation.
     node.type = TYPE_RECORD;
 }
