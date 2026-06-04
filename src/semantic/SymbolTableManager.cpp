@@ -51,13 +51,10 @@ int SymbolTableManager::enter(const std::string &id, int obj, int type, int ref,
     tab.push_back(entry);
     btab[block].last = idx;
 
-    if (obj == TypeSystem::OBJ_VARIABLE && actualLev > 0) {
-        if (nrm == 0) {
-            btab[block].psze += 1;
-        } else {
-            btab[block].vsze += 1;
-        }
+    if (obj == TypeSystem::OBJ_VARIABLE && actualLev > 0 && nrm == 0) {
+        btab[block].psze += 1;
     }
+    // vsze is computed later by assignAddresses()
 
     return idx;
 }

@@ -5,24 +5,26 @@
 namespace Intermediate {
 
 enum class Opcode {
-    INT,    // Initiate Memory: allocate frame of size operand
-    LIT,    // Load Literal: push operand onto stack
-    LOD,    // Load Value: push value from address (level, operand) onto stack
-    STO,    // Store Value: pop value and store to address (level, operand)
-    CAL,    // Call: jump to procedure at instruction line operand
-    JMP,    // Unconditional Jump: set IP to operand
-    JPC,    // Conditional Jump: pop value; if 0, set IP to operand
-    OPR,    // Operation: execute operation number operand
-    RET     // Return: exit current procedure
+    INT,    
+    LIT,  
+    LOD,    
+    STO,   
+    CAL,    
+    JMP,   
+    JPC,    
+    OPR,    
+    RET,   
+    LODA,   
+    STOA    
 };
 
 std::string opcodeToString(Opcode op);
 
 struct Instruction {
-    int line;       // instruction index (auto-assigned by emit)
+    int line;      
     Opcode opcode;
-    int level;      // static nesting level
-    int operand;    // literal value, address, operation number, or target line
+    int level;      
+    int operand;   
 
     Instruction(int ln, Opcode op, int lv, int opr)
         : line(ln), opcode(op), level(lv), operand(opr) {}

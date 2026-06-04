@@ -73,6 +73,12 @@ int StackMachine::getStaticLink(int level) const {
 void StackMachine::store(int level, int addr, int value) {
     int frameBP = findFrame(level);
     int absAddr = frameBP + addr;
+
+    if (frameBP == bp && addr >= 0 && addr <= 2) {
+        throw RuntimeError(RuntimeError::STACK_CORRUPTION,
+            "Stack smashing detected: attempted to overwrite protected frame slot " + std::to_string(addr));
+    }
+
     if (absAddr < 0 || absAddr >= (int)stack.size()) {
         throw RuntimeError(RuntimeError::INDEX_OUT_OF_BOUNDS,
             "Memory access out of bounds: address " + std::to_string(absAddr));

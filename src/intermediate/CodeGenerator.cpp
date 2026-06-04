@@ -136,17 +136,52 @@ void CodeGenerator::visit(UnaryOpNode &node) {
     }
 }
 
-// Visit an assignment: evaluate value, then store to target
 void CodeGenerator::visit(AssignNode &node) {
     if (node.value)
         node.value->accept(*this);
-    if (node.target && node.target->tabIndex >= 0) {
-        const TabEntry &entry = symTable.getTab(node.target->tabIndex);
-        emit(Opcode::STO, entry.lev, entry.adr);
+
+    if (node.target) {
+        if (auto arrAcc = std::dynamic_pointer_cast<ArrayAccessNode>(node.target)) {
+            int baseIdx = emitArrayAccess(arrAcc);
+            if (baseIdx >= 0) {
+                const TabEntry &entry = symTable.getTab(baseIdx);
+                emit(Opcode::STOA, entry.lev, entry.adr);
+            }
+        } else if (auto fieldAcc = std::dynamic_pointer_cast<FieldAccessNode>(node.target)) {
+            if (auto var = std::dynamic_pointer_cast<VariableNode>(fieldAcc->recordExpr)) {
+                if (var->tabIndex >= 0) {
+                    const TabEntry &recEntry = symTable.getTab(var->tabIndex);
+                    int recBlock = recEntry.ref;
+                    int fieldIdx = symTable.lookupLocal(fieldAcc->fieldName, recBlock);
+                    if (fieldIdx >= 0) {
+                        const TabEntry &fieldEntry = symTable.getTab(fieldIdx);
+                        emit(Opcode::LIT, 0, fieldEntry.adr);   // push field offset
+                        emit(Opcode::STOA, recEntry.lev, recEntry.adr);
+                    }
+                }
+            }
+        } else if (node.target->tabIndex >= 0) {
+            const TabEntry &entry = symTable.getTab(node.target->tabIndex);
+            if (entry.obj == TypeSystem::OBJ_FUNCTION) {
+                int blockIdx = entry.ref;
+                if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
+                    blockIdx = symTable.getDisplay(entry.lev);
+                }
+                BTabEntry &block = symTable.getBTab(blockIdx);
+                int level = entry.lev;
+                if (block.lpar > 0) {
+                    level = symTable.getTab(block.lpar).lev;
+                } else if (level == 0) {
+                    level = 1;
+                }
+                emit(Opcode::STO, level, 3);
+            } else {
+                emit(Opcode::STO, entry.lev, entry.adr);
+            }
+        }
     }
 }
 
-// Visit a compound statement: evaluate each statement in order
 void CodeGenerator::visit(CompoundNode &node) {
     for (auto &stmt : node.statements) {
         if (stmt)
@@ -154,7 +189,6 @@ void CodeGenerator::visit(CompoundNode &node) {
     }
 }
 
-// Visit a procedure call: handle I/O and user-defined calls
 void CodeGenerator::visit(ProcCallNode &node) {
     if (node.name == "writeln" || node.name == "write") {
         for (auto &arg : node.arguments) {
@@ -184,13 +218,10 @@ void CodeGenerator::visit(ProcCallNode &node) {
     }
 }
 
-// Stubs for Role 2 implementation
 void CodeGenerator::assignAddresses() {
     for (int b = 0; b < symTable.btabSize(); b++) {
         BTabEntry &block = symTable.getBTab(b);
 
-        // Identify parameters via the lpar linked-list chain (M3 workaround:
-        // semantic analyzer sometimes leaves nrm==1 for parameters).
         std::unordered_set<int> paramIndices;
         int pIdx = block.lpar;
         int paramCount = 0;
@@ -210,13 +241,45 @@ void CodeGenerator::assignAddresses() {
             indices.push_back(idx);
             idx = entry.link;
         }
-        // Reverse to get declaration order
         std::reverse(indices.begin(), indices.end());
 
-        // Parameters are pushed by the caller before CAL and sit below
-        // the new frame (negative offsets). Locals are inside the frame.
+        bool hasProcOrFunc = false;
+        bool isFunction = false;
+        for (int i = 1; i < symTable.tabSize(); i++) {
+            const TabEntry &e = symTable.getTab(i);
+            if (e.ref == b && (e.obj == TypeSystem::OBJ_PROCEDURE || e.obj == TypeSystem::OBJ_FUNCTION)) {
+                hasProcOrFunc = true;
+                if (e.obj == TypeSystem::OBJ_FUNCTION) isFunction = true;
+            }
+        }
+
+        bool isRecordBlock = false;
+        if (!hasProcOrFunc && b > 0 && !indices.empty()) {
+            bool allVars = true;
+            for (int tabIdx : indices) {
+                if (symTable.getTab(tabIdx).obj != TypeSystem::OBJ_VARIABLE) {
+                    allVars = false;
+                    break;
+                }
+            }
+            if (allVars && paramIndices.empty()) {
+                isRecordBlock = true;
+            }
+        }
+
+        if (isRecordBlock) {
+            int fieldAddr = 0;
+            for (int tabIdx : indices) {
+                TabEntry &entry = symTable.getTab(tabIdx);
+                entry.adr = fieldAddr++;
+            }
+            block.vsze = fieldAddr;
+            continue;
+        }
+
         int paramAddr = -block.psze;
-        int varAddr = 3;
+        int startVarAddr = isFunction ? 4 : 3;
+        int varAddr = startVarAddr;
 
         for (int tabIdx : indices) {
             TabEntry &entry = symTable.getTab(tabIdx);
@@ -225,51 +288,58 @@ void CodeGenerator::assignAddresses() {
                     entry.nrm = 0;
                     entry.adr = paramAddr++;
                 } else {
-                    entry.adr = varAddr++;
+                    entry.adr = varAddr;
+                    int size = 1;
+                    if (entry.type == TypeSystem::TYPE_ARRAY && entry.ref >= 0 && entry.ref < symTable.atabSize()) {
+                        size = symTable.getATab(entry.ref).size;
+                    } else if (entry.type == TypeSystem::TYPE_RECORD && entry.ref >= 0 && entry.ref < symTable.btabSize()) {
+                        // Count fields in record block (simplified: 1 slot per scalar field)
+                        int fieldIdx = symTable.getBTab(entry.ref).last;
+                        while (fieldIdx > 0) {
+                            if (symTable.getTab(fieldIdx).obj == TypeSystem::OBJ_VARIABLE) {
+                                size++;
+                            }
+                            fieldIdx = symTable.getTab(fieldIdx).link;
+                        }
+                        if (size == 0) size = 1;
+                    }
+                    varAddr += size;
                 }
             }
         }
 
-        int computedVsze = varAddr - 3;
-        if (computedVsze > block.vsze) {
-            block.vsze = computedVsze;
-        }
+        int computedVsze = varAddr - startVarAddr;
+        block.vsze = computedVsze;
     }
 }
 
 void CodeGenerator::visit(ProgramNode &node) {
-    // Ensure all variables have addresses before generating code
     assignAddresses();
 
-    // Hitung frame size dari btab level 0
     int blockIdx = symTable.getDisplay(0);
     BTabEntry &block = symTable.getBTab(blockIdx);
-    int frameSize = 3 + block.psze + block.vsze;  // 3 untuk SL/DL/RA + parameter + variabel
+    int frameSize = 3 + block.psze + block.vsze;  
 
     emit(Opcode::INT, 0, frameSize);
 
-    // Jump over subprogram bodies so execution starts at the main body
     int mainLabel = newLabel();
     int jmpIdx = instructions.size();
-    emit(Opcode::JMP, 0, 0);  // backpatched to mainLabel
+    emit(Opcode::JMP, 0, 0); 
 
-    // Proses deklarasi (procedure/function bodies are emitted here)
     for (auto &decl : node.declarations) {
         if (decl) decl->accept(*this);
     }
 
-    // Main body starts here
     placeLabel(mainLabel);
     backpatch(jmpIdx, getLabelLine(mainLabel));
 
-    // Proses body
     if (node.body) node.body->accept(*this);
 
     emit(Opcode::RET, 0, 0);
 }
 
 void CodeGenerator::visit(VarDeclNode &node) {
-    (void)node; // no-op for expression codegen
+    (void)node; 
 }
 
 void CodeGenerator::visit(ConstDeclNode &node) { (void)node; }
@@ -277,59 +347,49 @@ void CodeGenerator::visit(ConstDeclNode &node) { (void)node; }
 void CodeGenerator::visit(TypeDeclNode &node) { (void)node; }
 
 void CodeGenerator::visit(ProcDeclNode &node) {
-    // Procedure entry point — catat line number untuk CAL
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // M3 workaround: entry.ref holds the btab index; entry.lev may be wrong (0).
     int blockIdx = entry.ref;
     if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
         blockIdx = symTable.getDisplay(entry.lev);
     }
     BTabEntry &block = symTable.getBTab(blockIdx);
-    // Derive level from a parameter if available, otherwise bump by 1
     int level = entry.lev;
     if (block.lpar > 0) {
         level = symTable.getTab(block.lpar).lev;
     } else if (level == 0) {
         level = 1;
     }
-    // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
     emit(Opcode::INT, level, 3 + block.vsze);
 
-    // Local declarations
     for (auto &decl : node.localDeclarations) {
         if (decl) decl->accept(*this);
     }
 
-    // Body
+    
     if (node.body) node.body->accept(*this);
 
-    emit(Opcode::RET, 0, 0);
+    emit(Opcode::RET, block.psze, 0);
 }
 
 void CodeGenerator::visit(FuncDeclNode &node) {
-    // Function entry point
     TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
     entry.adr = instructions.size();
 
-    // M3 workaround: entry.ref holds the btab index; entry.lev may be wrong (0).
     int blockIdx = entry.ref;
     if (blockIdx <= 0 || blockIdx >= symTable.btabSize()) {
         blockIdx = symTable.getDisplay(entry.lev);
     }
     BTabEntry &block = symTable.getBTab(blockIdx);
-    // Derive level from a parameter if available, otherwise bump by 1
     int level = entry.lev;
     if (block.lpar > 0) {
         level = symTable.getTab(block.lpar).lev;
     } else if (level == 0) {
         level = 1;
     }
-    // Parameters are pre-pushed by the caller; INT only allocates SL/DL/RA + locals
-    emit(Opcode::INT, level, 3 + block.vsze);
+    emit(Opcode::INT, level, 4 + block.vsze); // 3 (sys) + 1 (ret) + vsze
 
-    // Local declarations
     for (auto &decl : node.localDeclarations) {
         if (decl) decl->accept(*this);
     }
@@ -337,9 +397,10 @@ void CodeGenerator::visit(FuncDeclNode &node) {
     // Body
     if (node.body) node.body->accept(*this);
 
-    // (Note: push return value ke stack sebelum RET di-handle pada return statement di AST, atau disini)
+    // Push return value to stack
+    emit(Opcode::LOD, level, 3);
 
-    emit(Opcode::RET, 0, 0);
+    emit(Opcode::RET, block.psze, 1);
 }
 
 void CodeGenerator::visit(IfNode &node) {
@@ -465,37 +526,160 @@ void CodeGenerator::visit(RepeatNode &node) {
 }
 
 void CodeGenerator::visit(CaseNode &node) {
-    if (node.expression)
-        node.expression->accept(*this);
-    for (auto &branch : node.branches) {
-        if (branch)
-            branch->accept(*this);
+    int endLabel = newLabel();
+    std::vector<int> bodyJmps;
+    std::vector<std::pair<int, int>> jpcPatches; // (instIndex, targetLabelId)
+
+    std::vector<std::shared_ptr<CaseBranchNode>> validBranches;
+    std::vector<int> branchLabels;
+
+    for (auto &b : node.branches) {
+        auto cb = std::dynamic_pointer_cast<CaseBranchNode>(b);
+        if (!cb) continue;
+        validBranches.push_back(cb);
+        branchLabels.push_back(newLabel());
+    }
+
+    int elseLabel = newLabel();
+
+    for (size_t i = 0; i < validBranches.size(); ++i) {
+        auto &cb = validBranches[i];
+        placeLabel(branchLabels[i]);
+
+        int nextLabel = (i + 1 < validBranches.size()) ? branchLabels[i + 1] : elseLabel;
+
+        for (auto &c : cb->constants) {
+            if (node.expression) node.expression->accept(*this);
+            if (c) c->accept(*this);
+            emit(Opcode::OPR, 0, 7); // EQL
+            int jpcIdx = instructions.size();
+            emit(Opcode::JPC, 0, 0); // if false, goto next
+            jpcPatches.push_back({jpcIdx, nextLabel});
+        }
+
+        if (cb->statement) cb->statement->accept(*this);
+        int jmpIdx = instructions.size();
+        emit(Opcode::JMP, 0, 0);
+        bodyJmps.push_back(jmpIdx);
+    }
+
+    placeLabel(elseLabel);
+
+    placeLabel(endLabel);
+
+    for (auto &p : jpcPatches) {
+        backpatch(p.first, getLabelLine(p.second));
+    }
+    for (int idx : bodyJmps) {
+        backpatch(idx, getLabelLine(endLabel));
     }
 }
 
 void CodeGenerator::visit(CaseBranchNode &node) {
-    for (auto &c : node.constants) {
-        if (c)
-            c->accept(*this);
-    }
-    if (node.statement)
-        node.statement->accept(*this);
+    // Handled in visit(CaseNode)
+    (void)node;
 }
 
 void CodeGenerator::visit(ParamNode &node) { (void)node; }
 
+int CodeGenerator::emitAddressOffset(std::shared_ptr<ASTNode> target) {
+    if (auto var = std::dynamic_pointer_cast<VariableNode>(target)) {
+        emit(Opcode::LIT, 0, 0); // initial offset 0
+        return var->tabIndex;
+    } else if (auto arrAcc = std::dynamic_pointer_cast<ArrayAccessNode>(target)) {
+        int baseIdx = emitAddressOffset(arrAcc->arrayExpr);
+        if (baseIdx < 0) return -1;
+        
+        const TabEntry &baseEntry = symTable.getTab(baseIdx);
+        int ref = baseEntry.ref;
+        
+        // Advance ref to current depth?
+        // Wait, emitAddressOffset is recursive. 
+        // We should instead collect all indices iteratively to avoid deep ATabEntry tracking issues!
+        // Actually, if we just use a helper that collects all indices from the outer target, it's easier.
+        return -1; // This branch won't be hit if we rewrite properly.
+    }
+    return -1;
+}
+
+int CodeGenerator::emitArrayAccess(std::shared_ptr<ASTNode> target) {
+    std::vector<std::shared_ptr<ASTNode>> allIndices;
+    std::shared_ptr<ASTNode> curr = target;
+    while (auto arrAcc = std::dynamic_pointer_cast<ArrayAccessNode>(curr)) {
+        allIndices.insert(allIndices.begin(), arrAcc->indices.begin(), arrAcc->indices.end());
+        curr = arrAcc->arrayExpr;
+    }
+    
+    auto varNode = std::dynamic_pointer_cast<VariableNode>(curr);
+    if (!varNode || varNode->tabIndex < 0) {
+        emit(Opcode::LIT, 0, 0);
+        return -1;
+    }
+    
+    int baseIdx = varNode->tabIndex;
+    const TabEntry &baseEntry = symTable.getTab(baseIdx);
+    int ref = baseEntry.ref;
+    
+    emit(Opcode::LIT, 0, 0); // initial offset = 0
+    int finalElsz = 1;
+    
+    for (auto &idx : allIndices) {
+        if (ref < 0 || ref >= symTable.atabSize()) break;
+        const ATabEntry &ate = symTable.getATab(ref);
+        
+        int dimLength = ate.high - ate.low + 1;
+        emit(Opcode::LIT, 0, dimLength);
+        emit(Opcode::OPR, 0, 4); // MUL
+        
+        idx->accept(*this);
+        
+        emit(Opcode::LIT, 0, ate.low);
+        emit(Opcode::LIT, 0, ate.high);
+        emit(Opcode::OPR, 0, 17); // BOUNDS_CHECK
+        
+        emit(Opcode::LIT, 0, ate.low);
+        emit(Opcode::OPR, 0, 3); // SUB
+        
+        emit(Opcode::OPR, 0, 2); // ADD
+        
+        finalElsz = ate.elsz;
+        ref = ate.eref;
+    }
+    
+    if (finalElsz > 1) {
+        emit(Opcode::LIT, 0, finalElsz);
+        emit(Opcode::OPR, 0, 4); // MUL
+    }
+    
+    return baseIdx;
+}
+
 void CodeGenerator::visit(ArrayAccessNode &node) {
-    if (node.arrayExpr)
-        node.arrayExpr->accept(*this);
-    for (auto &idx : node.indices) {
-        if (idx)
-            idx->accept(*this);
+    int baseIdx = emitArrayAccess(std::make_shared<ArrayAccessNode>(node));
+    if (baseIdx >= 0) {
+        const TabEntry &entry = symTable.getTab(baseIdx);
+        emit(Opcode::LODA, entry.lev, entry.adr);
     }
 }
 
 void CodeGenerator::visit(FieldAccessNode &node) {
-    if (node.recordExpr)
-        node.recordExpr->accept(*this);
+    if (!node.recordExpr) return;
+
+    if (auto var = std::dynamic_pointer_cast<VariableNode>(node.recordExpr)) {
+        if (var->tabIndex >= 0) {
+            const TabEntry &recEntry = symTable.getTab(var->tabIndex);
+            int recBlock = recEntry.ref;
+            int fieldIdx = symTable.lookupLocal(node.fieldName, recBlock);
+            if (fieldIdx >= 0) {
+                const TabEntry &fieldEntry = symTable.getTab(fieldIdx);
+                emit(Opcode::LIT, 0, fieldEntry.adr);           // push field offset
+                emit(Opcode::LODA, recEntry.lev, recEntry.adr); // load from base+offset
+                return;
+            }
+        }
+    }
+    // fallback
+    if (node.recordExpr) node.recordExpr->accept(*this);
 }
 
 void CodeGenerator::visit(RangeNode &node) {

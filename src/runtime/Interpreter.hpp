@@ -29,6 +29,8 @@ private:
     void handleLIT(const Intermediate::Instruction &inst);
     void handleLOD(const Intermediate::Instruction &inst);
     void handleSTO(const Intermediate::Instruction &inst);
+    void handleLODA(const Intermediate::Instruction &inst);
+    void handleSTOA(const Intermediate::Instruction &inst);
     void handleCAL(const Intermediate::Instruction &inst);
     void handleJMP(const Intermediate::Instruction &inst);
     void handleJPC(const Intermediate::Instruction &inst);

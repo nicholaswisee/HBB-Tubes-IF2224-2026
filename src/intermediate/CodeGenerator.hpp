@@ -70,6 +70,9 @@ class CodeGenerator : public ASTVisitor {
 
     // Map binary operator string to OPR operation number
     int opToCode(const std::string &op) const;
+    
+    int emitAddressOffset(std::shared_ptr<ASTNode> target);
+    int emitArrayAccess(std::shared_ptr<ASTNode> target);
 };
 
 } // namespace Intermediate

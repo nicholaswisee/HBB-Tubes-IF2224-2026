@@ -23,6 +23,10 @@ std::string opcodeToString(Opcode op) {
         return "OPR";
     case Opcode::RET:
         return "RET";
+    case Opcode::LODA:
+        return "LODA";
+    case Opcode::STOA:
+        return "STOA";
     }
     return "???";
 }

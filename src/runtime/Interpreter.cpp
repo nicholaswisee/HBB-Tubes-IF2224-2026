@@ -22,6 +22,8 @@ void Interpreter::execute(const std::vector<Instruction> &instructions) {
                 case Opcode::LIT: handleLIT(inst); break;
                 case Opcode::LOD: handleLOD(inst); break;
                 case Opcode::STO: handleSTO(inst); break;
+                case Opcode::LODA: handleLODA(inst); break;
+                case Opcode::STOA: handleSTOA(inst); break;
                 case Opcode::CAL: handleCAL(inst); break;
                 case Opcode::JMP: handleJMP(inst); break;
                 case Opcode::JPC: handleJPC(inst); break;
@@ -73,6 +75,18 @@ void Interpreter::handleSTO(const Instruction &inst) {
     stack.store(inst.level, inst.operand, value);
 }
 
+void Interpreter::handleLODA(const Instruction &inst) {
+    int offset = stack.pop();
+    int value = stack.load(inst.level, inst.operand + offset);
+    stack.push(value);
+}
+
+void Interpreter::handleSTOA(const Instruction &inst) {
+    int value = stack.pop();
+    int offset = stack.pop();
+    stack.store(inst.level, inst.operand + offset, value);
+}
+
 void Interpreter::handleJMP(const Instruction &inst) {
     if (!currentInstructions || inst.operand < 0 || inst.operand >= (int)currentInstructions->size()) {
         throw RuntimeError(RuntimeError::INVALID_JUMP,
@@ -93,7 +107,6 @@ void Interpreter::handleJPC(const Instruction &inst) {
 }
 
 void Interpreter::handleRET(const Instruction &inst) {
-    (void)inst; // unused
     int frameBase = stack.currentFrameBase();
     const auto &stk = stack.getStack();
     if (frameBase < 0 || frameBase + 2 >= (int)stk.size()) {
@@ -101,7 +114,25 @@ void Interpreter::handleRET(const Instruction &inst) {
             "RET: invalid frame base or stack too small", ip);
     }
     int returnAddr = stk[frameBase + 2];  
+    
+    int paramCount = inst.level;
+    int hasRetVal = inst.operand;
+    
+    int retVal = 0;
+    if (hasRetVal == 1) {
+        retVal = stack.pop();
+    }
+    
     stack.popFrame();
+    
+    for (int i = 0; i < paramCount; i++) {
+        stack.pop();
+    }
+    
+    if (hasRetVal == 1) {
+        stack.push(retVal);
+    }
+    
     ip = returnAddr - 1;  
 }
 
@@ -236,6 +267,18 @@ void Interpreter::handleOPR(const Instruction &inst) {
         case 16: { // NOT
             int a = stack.pop();
             stack.push(a == 0 ? 1 : 0);
+            break;
+        }
+        case 17: { // BOUNDS_CHECK
+            int high = stack.pop();
+            int low = stack.pop();
+            int idx = stack.pop();
+            if (idx < low || idx > high) {
+                throw RuntimeError(RuntimeError::INDEX_OUT_OF_BOUNDS,
+                    "Array index out of bounds: " + std::to_string(idx) +
+                    " not in [" + std::to_string(low) + ", " + std::to_string(high) + "]", ip);
+            }
+            stack.push(idx);
             break;
         }
         default:
