@@ -1,0 +1,10 @@
+program FuncTest;
+var x: integer;
+function f(n: integer): integer;
+begin
+    f := n * 2;
+end;
+begin
+    x := f(5);
+    writeln(x);
+end.

@@ -1,13 +1,44 @@
-=== Intermediate Code ===
-0 INT 0 4
-1 JMP 0 2
-2 LIT 0 42
-3 STO 0 3
-4 LOD 0 3
-5 OPR 0 14
-6 RET 0 0
-
-=== Program Output ===
-42
-
-Execution completed successfully.
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(Basic)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(x)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(x)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(42)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <procedure/function-call>
+|   |   |       |-- ident(writeln)
+|   |   |       |-- lparent
+|   |   |       |-- <parameter-list>
+|   |   |       |   +-- <expression>
+|   |   |       |       +-- <simple-expression>
+|   |   |       |           +-- <term>
+|   |   |       |               +-- <factor>
+|   |   |       |                   +-- <variable>
+|   |   |       |                       +-- ident(x)
+|   |   |       +-- rparent
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
