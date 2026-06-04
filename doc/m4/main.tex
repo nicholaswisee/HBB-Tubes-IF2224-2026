@@ -177,69 +177,114 @@ Berikut file-file baru dan modifikasi yang dilakukan pada milestone ini:
 \newpage
 \section{Implementasi Intermediate Code Generator}
 
-\subsection{Kelas \texttt{Instruction}}
+Pembangkitan kode perantara (\textit{intermediate code generation}) adalah fase di mana \textit{Decorated AST} dari tahap sebelumnya ditransformasi menjadi serangkaian instruksi mesin abstrak. Dalam proyek ini, kami menggunakan instruksi berbasis P-Code yang dirancang untuk dieksekusi pada mesin \textit{stack}.
 
-Setiap instruksi P-Code direpresentasikan dengan tiga field: \texttt{f} (fungsi), \texttt{l} (level), dan \texttt{a} (argumen). Fungsi-fungsi yang diimplementasikan adalah:
+\subsection{Arsitektur Instruksi P-Code}
+
+Setiap instruksi P-Code direpresentasikan oleh struktur \texttt{Instruction} yang terdiri dari empat \textit{field} utama:
+\begin{itemize}
+    \item \texttt{line}: Indeks atau alamat instruksi dalam memori instruksi.
+    \item \texttt{f} (\textit{function/opcode}): Kode operasi yang menentukan tindakan yang harus diambil.
+    \item \texttt{l} (\textit{level}): Perbedaan tingkat leksikal (\textit{lexical level}) untuk akses variabel non-lokal.
+    \item \texttt{a} (\textit{argument/operand}): Nilai literal atau alamat memori.
+\end{itemize}
+
+Berikut adalah daftar lengkap instruksi P-Code yang diimplementasikan:
 
 \begin{table}[H]
 \centering
-\begin{tabular}{clp{8cm}}
+\begin{tabular}{clp{9cm}}
 \toprule
-\textbf{Kode} & \textbf{Nama} & \textbf{Deskripsi} \\
+\textbf{Opcode} & \textbf{Nama} & \textbf{Deskripsi} \\
 \midrule
-0 & \texttt{LIT} & Push literal \texttt{a} ke stack \\
-1 & \texttt{OPR} & Operasi aritmatika/perbandingan (dikodekan di \texttt{a}) \\
-2 & \texttt{LOD} & Load variabel (level \texttt{l}, alamat \texttt{a}) \\
-3 & \texttt{STO} & Store ke variabel (level \texttt{l}, alamat \texttt{a}) \\
-4 & \texttt{CAL} & Panggil prosedur (level \texttt{l}, alamat \texttt{a}) \\
-5 & \texttt{INT} & Alokasi frame (level \texttt{l}, ukuran \texttt{a}) \\
-6 & \texttt{JMP} & Loncat tak-bersyarat ke alamat \texttt{a} \\
-7 & \texttt{JPC} & Loncat ke \texttt{a} jika top-of-stack = 0 \\
-8 & \texttt{RET} & Return dari prosedur/fungsi \\
+\texttt{LIT} & \textit{Literal} & Mendorong (\textit{push}) nilai literal \texttt{a} ke atas \textit{stack}. \\
+\texttt{OPR} & \textit{Operator} & Melakukan operasi aritmatika atau logika yang ditentukan oleh \texttt{a}. \\
+\texttt{LOD} & \textit{Load} & Mengambil nilai dari alamat \texttt{a} pada tingkat leksikal \texttt{l} ke \textit{stack}. \\
+\texttt{STO} & \textit{Store} & Menyimpan nilai teratas \textit{stack} ke alamat \texttt{a} pada tingkat leksikal \texttt{l}. \\
+\texttt{LODA} & \textit{Load Array} & Mengambil nilai \textit{array} dengan \textit{offset} dari \textit{stack}. \\
+\texttt{STOA} & \textit{Store Array} & Menyimpan nilai ke \textit{array} dengan \textit{offset} dari \textit{stack}. \\
+\texttt{CAL} & \textit{Call} & Memanggil prosedur atau fungsi pada alamat \texttt{a}. \\
+\texttt{INT} & \textit{Increment} & Mengalokasikan ruang memori sebesar \texttt{a} pada \textit{stack}. \\
+\texttt{JMP} & \textit{Jump} & Melompat secara tidak bersyarat ke instruksi di alamat \texttt{a}. \\
+\texttt{JPC} & \textit{Jump Conditional} & Melompat ke \texttt{a} jika nilai teratas \textit{stack} adalah 0 (\textit{false}). \\
+\texttt{RET} & \textit{Return} & Kembali dari pemanggilan subprogram. \\
 \bottomrule
 \end{tabular}
 \caption{Instruksi P-Code yang diimplementasikan}
 \end{table}
 
-\subsection{CodeGenerator sebagai AST Visitor}
+\subsection{Operasi Aritmatika dan Logika (\texttt{OPR})}
 
-\texttt{CodeGenerator} melakukan traversal AST secara rekursif dan mengisi vektor instruksi. Strategi alokasi alamat yang digunakan:
+Instruksi \texttt{OPR} menggunakan argumen \texttt{a} untuk menentukan jenis operasi yang dilakukan terhadap elemen-elemen di atas \textit{stack}.
 
-\begin{itemize}
-    \item \textbf{Parameter}: mendapat alamat negatif, mulai dari \texttt{-psze} sampai \texttt{-1}, dihitung dari kiri ke kanan.
-    \item \textbf{Variabel lokal}: mendapat alamat positif mulai dari \texttt{3} (setelah frame header SL, DL, RA) sampai \texttt{3 + vsze - 1}.
-    \item \textbf{Konstanta}: di-inline sebagai \texttt{LIT}, tidak dialokasikan di memori.
-\end{itemize}
+\begin{table}[H]
+\centering
+\begin{tabular}{cl|cl}
+\toprule
+\textbf{a} & \textbf{Operasi} & \textbf{a} & \textbf{Operasi} \\
+\midrule
+1 & Negasi (\texttt{-}) & 9 & Kurang dari (\texttt{<}) \\
+2 & Penjumlahan (\texttt{+}) & 10 & Lebih besar sama dengan (\texttt{>=}) \\
+3 & Pengurangan (\texttt{-}) & 11 & Lebih besar dari (\texttt{>}) \\
+4 & Perkalian (\texttt{*}) & 12 & Kurang dari sama dengan (\texttt{<=}) \\
+5 & Pembagian (\texttt{/}, \texttt{div}) & 13 & \textit{Write} (Cetak nilai) \\
+6 & Modulo (\texttt{mod}) & 14 & \textit{Writeln} (Cetak baris baru) \\
+7 & Sama dengan (\texttt{=}) & 15 & \textit{Odd} (Ganjil) \\
+8 & Tidak sama dengan (\texttt{<>}) & 16 & Logika \texttt{NOT} \\
+\bottomrule
+\end{tabular}
+\caption{Sub-kode operasi untuk instruksi \texttt{OPR}}
+\end{table}
 
-Untuk memastikan eksekusi tidak jatuh ke tubuh prosedur, \texttt{visit(ProgramNode)} memancarkan \texttt{JMP} di awal program yang melewati seluruh deklarasi subprogram menuju badan utama program.
+\subsection{Strategi Pembangkitan Kode}
+
+\texttt{CodeGenerator} mengimplementasikan \textit{Visitor Pattern} untuk menelusuri \textit{Decorated AST}. Beberapa strategi kunci yang diterapkan adalah:
+
+\begin{enumerate}
+    \item \textbf{Pengelolaan Label dan \textit{Backpatching}}: Untuk instruksi kontrol alur seperti \texttt{IF} dan \texttt{WHILE}, alamat lompatan (\textit{jump target}) seringkali belum diketahui saat instruksi \texttt{JMP} atau \texttt{JPC} pertama kali dipancarkan. Kami menggunakan mekanisme label dan fungsi \texttt{backpatch} untuk mengisi alamat tersebut setelah seluruh blok kode selesai dibangkitkan.
+    \item \textbf{Alokasi Memori}:
+    \begin{itemize}
+        \item \textbf{Variabel Lokal}: Dialokasikan mulai dari \textit{offset} 3 (setelah \textit{Static Link}, \textit{Dynamic Link}, dan \textit{Return Address}).
+        \item \textbf{Parameter}: Karena argumen didorong ke \textit{stack} sebelum pemanggilan prosedur, parameter diakses menggunakan \textit{offset} negatif relatif terhadap \textit{base pointer} baru.
+    \end{itemize}
+    \item \textbf{Akses Array}: Pembangkitan kode untuk akses \textit{array} melibatkan perhitungan indeks yang kemudian dikalikan dengan ukuran elemen (\textit{element size}) untuk mendapatkan \textit{offset} yang digunakan oleh \texttt{LODA} atau \texttt{STOA}.
+\end{enumerate}
 
 \newpage
 \section{Implementasi Interpreter dan Stack Machine}
 
-\subsection{Stack Machine}
+Fase eksekusi melibatkan mesin abstrak yang menjalankan instruksi P-Code yang telah dihasilkan. Komponen utamanya adalah \textit{Stack Machine} sebagai pengelola memori dan \textit{Interpreter} sebagai pengontrol eksekusi.
 
-\texttt{StackMachine} mengelola stack eksekusi dan frame aktivasi. Setiap frame memiliki:
+\subsection{Model Memori \textit{Stack Machine}}
 
+\textit{Stack Machine} menggunakan sebuah \textit{vector} sebagai representasi memori linier yang dikelola sebagai \textit{stack}. Struktur \textit{Activation Record} (Frame) untuk setiap pemanggilan prosedur terdiri dari:
+\begin{enumerate}
+    \item \textbf{\textit{Static Link} (SL)}: Menunjuk ke \textit{base pointer} dari tingkat leksikal satu tingkat di atasnya untuk mendukung akses variabel non-lokal (\textit{nested scopes}).
+    \item \textbf{\textit{Dynamic Link} (DL)}: Menunjuk ke \textit{base pointer} dari pemanggil (\textit{caller}) untuk pemulihan \textit{stack} saat kembali (\textit{return}).
+    \item \textbf{\textit{Return Address} (RA)}: Alamat instruksi berikutnya yang harus dieksekusi setelah prosedur selesai.
+    \item \textbf{Data Lokal}: Ruang untuk variabel lokal dan parameter.
+\end{enumerate}
+
+Selain itu, digunakan mekanisme \textbf{\textit{Display}} untuk mempercepat akses ke variabel pada tingkat leksikal yang berbeda tanpa harus menelusuri rantai \textit{Static Link} secara berulang.
+
+\subsection{Mekanisme Eksekusi \textit{Interpreter}}
+
+\textit{Interpreter} bekerja dalam sebuah \textit{loop} utama yang melakukan siklus \textit{fetch-decode-execute}:
+\begin{enumerate}
+    \item \textbf{\textit{Fetch}}: Mengambil instruksi dari memori instruksi berdasarkan nilai \textit{Instruction Pointer} (\texttt{ip}).
+    \item \textbf{\textit{Decode}}: Mengidentifikasi \textit{opcode} dan argumen instruksi menggunakan struktur \texttt{switch-case}.
+    \item \textbf{\textit{Execute}}: Melakukan operasi yang sesuai, seperti memodifikasi \textit{stack}, mengubah \texttt{ip} (untuk lompatan), atau memanipulasi frame aktivasi.
+\end{enumerate}
+
+\subsection{Penanganan Kesalahan \textit{Runtime}}
+
+Sistem dilengkapi dengan pendeteksi kesalahan saat eksekusi (\textit{Runtime Error handling}), meliputi:
 \begin{itemize}
-    \item \texttt{bp} (base pointer) --- awal frame
-    \item \texttt{sp} (stack pointer) --- elemen teratas stack
-    \item \texttt{ip} (instruction pointer) --- indeks instruksi berikutnya
-    \item \texttt{Display} --- array alamat frame untuk tiap level leksikal
+    \item \textit{Division by Zero}: Kesalahan saat operasi pembagian atau modulo dengan pembagi nol.
+    \item \textit{Stack Overflow/Underflow}: Melindungi integritas memori dari penggunaan berlebih atau pengambilan data dari \textit{stack} kosong.
+    \item \textit{Index Out of Bounds}: Memastikan akses \textit{array} berada dalam rentang yang dideklarasikan.
+    \item \textit{Invalid Jump}: Mencegah lompatan ke alamat instruksi yang tidak valid.
 \end{itemize}
-
-Fungsi \texttt{pushFrame} mendorong \texttt{SL}, \texttt{DL}, \texttt{RA}, lalu \texttt{frameSize - 3} elemen nol. Argumen yang didorong pemanggil sebelum \texttt{CAL} berada tepat di bawah base pointer frame baru, sehingga parameter diakses dengan offset negatif.
-
-\subsection{Interpreter}
-
-\texttt{Interpreter} mengeksekusi instruksi satu per satu menggunakan dispatcher \texttt{switch} pada field \texttt{f}. Penanganan instruksi kunci:
-
-\begin{itemize}
-    \item \texttt{handleCAL}: menyimpan \texttt{RA = ip + 1}, membuat frame baru, dan melompat ke alamat target.
-    \item \texttt{handleINT}: mengalokasikan ruang frame (menambah \texttt{sp}) dan memperbarui \texttt{display[level]}.
-    \item \texttt{handleRET}: memulihkan \texttt{ip}, \texttt{bp}, dan \texttt{display} dari frame saat ini.
-\end{itemize}
-
-Error handling mencakup: stack underflow/overflow, division by zero, integer overflow, invalid jump, dan out-of-bounds memory access.
 
 \newpage
 \section{Pengujian}
