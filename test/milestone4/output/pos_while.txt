@@ -1,26 +1,81 @@
-=== Intermediate Code ===
-0 INT 0 4
-1 JMP 0 2
-2 LIT 0 5
-3 STO 0 3
-4 LOD 0 3
-5 LIT 0 0
-6 OPR 0 11
-7 JPC 0 15
-8 LOD 0 3
-9 OPR 0 14
-10 LOD 0 3
-11 LIT 0 1
-12 OPR 0 3
-13 STO 0 3
-14 JMP 0 4
-15 RET 0 0
-
-=== Program Output ===
-5
-4
-3
-2
-1
-
-Execution completed successfully.
+<program>
+|-- <program-header>
+|   |-- programsy
+|   |-- ident(WhileLoop)
+|   +-- semicolon
+|-- <declaration-part>
+|   +-- <var-declaration>
+|       |-- varsy
+|       |-- <identifier-list>
+|       |   +-- ident(i)
+|       |-- colon
+|       |-- <type>
+|       |   +-- ident(integer)
+|       +-- semicolon
+|-- <compound-statement>
+|   |-- beginsy
+|   |-- <statement-list>
+|   |   |-- <statement>
+|   |   |   +-- <assignment-statement>
+|   |   |       |-- <variable>
+|   |   |       |   +-- ident(i)
+|   |   |       |-- becomes
+|   |   |       +-- <expression>
+|   |   |           +-- <simple-expression>
+|   |   |               +-- <term>
+|   |   |                   +-- <factor>
+|   |   |                       +-- intcon(5)
+|   |   |-- semicolon
+|   |   |-- <statement>
+|   |   |   +-- <while-statement>
+|   |   |       |-- whilesy
+|   |   |       |-- <expression>
+|   |   |       |   |-- <simple-expression>
+|   |   |       |   |   +-- <term>
+|   |   |       |   |       +-- <factor>
+|   |   |       |   |           +-- <variable>
+|   |   |       |   |               +-- ident(i)
+|   |   |       |   |-- gtr
+|   |   |       |   +-- <simple-expression>
+|   |   |       |       +-- <term>
+|   |   |       |           +-- <factor>
+|   |   |       |               +-- intcon(0)
+|   |   |       |-- dosy
+|   |   |       +-- <compound-statement>
+|   |   |           |-- beginsy
+|   |   |           |-- <statement-list>
+|   |   |           |   |-- <statement>
+|   |   |           |   |   +-- <procedure/function-call>
+|   |   |           |   |       |-- ident(writeln)
+|   |   |           |   |       |-- lparent
+|   |   |           |   |       |-- <parameter-list>
+|   |   |           |   |       |   +-- <expression>
+|   |   |           |   |       |       +-- <simple-expression>
+|   |   |           |   |       |           +-- <term>
+|   |   |           |   |       |               +-- <factor>
+|   |   |           |   |       |                   +-- <variable>
+|   |   |           |   |       |                       +-- ident(i)
+|   |   |           |   |       +-- rparent
+|   |   |           |   |-- semicolon
+|   |   |           |   |-- <statement>
+|   |   |           |   |   +-- <assignment-statement>
+|   |   |           |   |       |-- <variable>
+|   |   |           |   |       |   +-- ident(i)
+|   |   |           |   |       |-- becomes
+|   |   |           |   |       +-- <expression>
+|   |   |           |   |           +-- <simple-expression>
+|   |   |           |   |               |-- <term>
+|   |   |           |   |               |   +-- <factor>
+|   |   |           |   |               |       +-- <variable>
+|   |   |           |   |               |           +-- ident(i)
+|   |   |           |   |               |-- minus
+|   |   |           |   |               +-- <term>
+|   |   |           |   |                   +-- <factor>
+|   |   |           |   |                       +-- intcon(1)
+|   |   |           |   |-- semicolon
+|   |   |           |   +-- <statement>
+|   |   |           +-- endsy
+|   |   |-- semicolon
+|   |   +-- <statement>
+|   +-- endsy
++-- period
