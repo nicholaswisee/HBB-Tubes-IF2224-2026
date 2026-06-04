@@ -1,4 +1,5 @@
 #include "ParseTreeToAST.hpp"
+#include <functional>
 #include <iostream>
 
 static int getLine(std::shared_ptr<ParseTreeNode> node) {
@@ -422,9 +423,34 @@ ParseTreeToAST::convertStatement(std::shared_ptr<ParseTreeNode> node) {
     } else if (child->label == "<case-statement>") {
         auto expr = convertExpression(child->children[1]);
         std::vector<std::shared_ptr<ASTNode>> branches;
-        for (size_t i = 3; i < child->children.size(); ++i) {
-            if (child->children[i]->label == "<case-block>") {
-                branches.push_back(convertStatement(child->children[i]));
+        // parseCaseBlock() is recursive: subsequent branches are nested <case-block>
+        // children of the first <case-block>. Flatten using a queue.
+        if (child->children.size() > 3 &&
+                child->children[3]->label == "<case-block>") {
+            std::vector<std::shared_ptr<ParseTreeNode>> blockQueue;
+            blockQueue.push_back(child->children[3]);
+            while (!blockQueue.empty()) {
+                auto cbNode = blockQueue.front();
+                blockQueue.erase(blockQueue.begin());
+                std::vector<std::shared_ptr<ASTNode>> consts;
+                std::shared_ptr<ASTNode> stmt = nullptr;
+                for (size_t j = 0; j < cbNode->children.size(); ++j) {
+                    auto& c = cbNode->children[j];
+                    if (c->label == "<constant>") {
+                        consts.push_back(convertConstant(c));
+                    } else if (c->label.find("colon") == 0 || c->label == ":") {
+                        if (j + 1 < cbNode->children.size()) {
+                            stmt = convertStatement(cbNode->children[j + 1]);
+                        }
+                    } else if (c->label == "<case-block>") {
+                        blockQueue.push_back(c); // nested branch → process next
+                    }
+                }
+                if (!consts.empty()) {
+                    auto branch = std::make_shared<CaseBranchNode>(consts, stmt);
+                    branch->line = getLine(cbNode);
+                    branches.push_back(branch);
+                }
             }
         }
         auto n = std::make_shared<CaseNode>(expr, branches);

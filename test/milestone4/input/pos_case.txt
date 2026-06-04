@@ -1,0 +1,11 @@
+program TestCase;
+var x, y: integer;
+begin
+  x := 2;
+  case x of
+    1: y := 10;
+    2: y := 20;
+    3: y := 30;
+  end;
+  writeln(y);
+end.
