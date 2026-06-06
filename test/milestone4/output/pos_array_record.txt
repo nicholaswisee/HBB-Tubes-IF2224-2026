@@ -1,108 +1,36 @@
-<program>
-|-- <program-header>
-|   |-- programsy
-|   |-- ident(TestVar)
-|   +-- semicolon
-|-- <declaration-part>
-|   +-- <var-declaration>
-|       |-- varsy
-|       |-- <identifier-list>
-|       |   +-- ident(arr)
-|       |-- colon
-|       |-- <type>
-|       |   +-- <array-type>
-|       |       |-- arraysy
-|       |       |-- lbrack
-|       |       |-- <range>
-|       |       |   |-- <constant>
-|       |       |   |   +-- intcon(1)
-|       |       |   |-- period
-|       |       |   |-- period
-|       |       |   +-- <constant>
-|       |       |       +-- intcon(10)
-|       |       |-- rbrack
-|       |       |-- ofsy
-|       |       +-- <type>
-|       |           +-- ident(integer)
-|       |-- semicolon
-|       |-- <identifier-list>
-|       |   +-- ident(rec)
-|       |-- colon
-|       |-- <type>
-|       |   +-- <record-type>
-|       |       |-- recordsy
-|       |       |-- <field-list>
-|       |       |   +-- <field-part>
-|       |       |       |-- <identifier-list>
-|       |       |       |   +-- ident(x)
-|       |       |       |-- colon
-|       |       |       +-- <type>
-|       |       |           +-- ident(integer)
-|       |       +-- endsy
-|       +-- semicolon
-|-- <compound-statement>
-|   |-- beginsy
-|   |-- <statement-list>
-|   |   |-- <statement>
-|   |   |   +-- <assignment-statement>
-|   |   |       |-- <variable>
-|   |   |       |   |-- ident(arr)
-|   |   |       |   +-- <component-variable>
-|   |   |       |       |-- lbrack
-|   |   |       |       |-- <index-list>
-|   |   |       |       |   +-- intcon(1)
-|   |   |       |       +-- rbrack
-|   |   |       |-- becomes
-|   |   |       +-- <expression>
-|   |   |           +-- <simple-expression>
-|   |   |               +-- <term>
-|   |   |                   +-- <factor>
-|   |   |                       +-- intcon(5)
-|   |   |-- semicolon
-|   |   |-- <statement>
-|   |   |   +-- <assignment-statement>
-|   |   |       |-- <variable>
-|   |   |       |   |-- ident(rec)
-|   |   |       |   +-- <component-variable>
-|   |   |       |       |-- period
-|   |   |       |       +-- ident(x)
-|   |   |       |-- becomes
-|   |   |       +-- <expression>
-|   |   |           +-- <simple-expression>
-|   |   |               +-- <term>
-|   |   |                   +-- <factor>
-|   |   |                       +-- intcon(10)
-|   |   |-- semicolon
-|   |   |-- <statement>
-|   |   |   +-- <assignment-statement>
-|   |   |       |-- <variable>
-|   |   |       |   |-- ident(arr)
-|   |   |       |   +-- <component-variable>
-|   |   |       |       |-- lbrack
-|   |   |       |       |-- <index-list>
-|   |   |       |       |   +-- intcon(2)
-|   |   |       |       +-- rbrack
-|   |   |       |-- becomes
-|   |   |       +-- <expression>
-|   |   |           +-- <simple-expression>
-|   |   |               |-- <term>
-|   |   |               |   +-- <factor>
-|   |   |               |       +-- <variable>
-|   |   |               |           |-- ident(arr)
-|   |   |               |           +-- <component-variable>
-|   |   |               |               |-- lbrack
-|   |   |               |               |-- <index-list>
-|   |   |               |               |   +-- intcon(1)
-|   |   |               |               +-- rbrack
-|   |   |               |-- plus
-|   |   |               +-- <term>
-|   |   |                   +-- <factor>
-|   |   |                       +-- <variable>
-|   |   |                           |-- ident(rec)
-|   |   |                           +-- <component-variable>
-|   |   |                               |-- period
-|   |   |                               +-- ident(x)
-|   |   |-- semicolon
-|   |   +-- <statement>
-|   +-- endsy
-+-- period
+=== Intermediate Code ===
+0 INT 0 14
+1 JMP 0 2
+2 LIT 0 1
+3 LIT 0 1
+4 LIT 0 10
+5 OPR 0 17
+6 LIT 0 1
+7 OPR 0 3
+8 LIT 0 5
+9 STOA 0 3
+10 LIT 0 0
+11 LIT 0 10
+12 STOA 0 13
+13 LIT 0 2
+14 LIT 0 1
+15 LIT 0 10
+16 OPR 0 17
+17 LIT 0 1
+18 OPR 0 3
+19 LIT 0 1
+20 LIT 0 1
+21 LIT 0 10
+22 OPR 0 17
+23 LIT 0 1
+24 OPR 0 3
+25 LODA 0 3
+26 LIT 0 0
+27 LODA 0 13
+28 OPR 0 2
+29 STOA 0 3
+30 RET 0 0
+
+=== Program Output ===
+
+Execution completed successfully.
