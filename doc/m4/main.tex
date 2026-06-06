@@ -771,9 +771,6 @@ menyebabkan \textit{crash}:
 \end{itemize}
 
 
-% ============================================================
-%   SECTION 4 — IMPLEMENTASI
-% ============================================================
 
 \section{Implementasi}
 
@@ -1652,11 +1649,50 @@ Berikut fitur-fitur tambahan yang berhasil diimplementasikan di luar spesifikasi
 
 
 
-\section{Kesimpulan}
+\section{Penutup}
+\subsection{Kesimpulan}
+Milestone 4 berhasil menyelesaikan rantai kompilasi bahasa Pascal sederhana
+(Arion) dengan mengimplementasikan \textit{intermediate code generator} dan
+\textit{stack machine interpreter}. Code generator mampu menerjemahkan
+\textit{Decorated AST} dari tahap semantik menjadi instruksi P-Code (TAC) yang
+mencakup ekspresi, kontrol alur, subprogram, serta akses \textit{array} dan
+\textit{record}. Interpreter mengeksekusi instruksi-instruksi tersebut
+menggunakan manajemen \textit{frame} (SL/DL/RA), \textit{display} untuk resolusi
+\textit{scope}, dan penanganan kesalahan runtime.
 
-Milestone 4 (M4) telah berhasil mengimplementasikan eksekusi kode perantara (P-Code) untuk bahasa Pascal versi subset. Implementasi meliputi interpreter virtual stack machine yang mendukung instruksi dasar (LIT, LOD, STO, INT, JMP, JPC, CAL, RET), operasi aritmatika (ADD, SUB, MUL, DIV, MOD), perbandingan (EQL, NEQ, GTR, LSS, GEQ, LEQ), I/O (OPR 14), serta fitur lanjutan seperti prosedur dengan parameter, function dengan return value, array dengan bounds checking, dan statement \texttt{case}.
+Beberapa aspek teknis menjadi kunci keberhasilan. Pertama, \textbf{parameter
+passing dengan alamat negatif} memungkinkan argumen yang didorong sebelum
+\texttt{CAL} diakses langsung oleh subprogram tanpa perlu memindahkan data.
+Kedua, \textbf{backpatching} memastikan instruksi lompatan
+(\texttt{JMP}/\texttt{JPC}) dapat dituju setelah seluruh blok kode dibangkitkan.
+Ketiga, \textbf{in-lining konstanta} (\texttt{true}, \texttt{false},
+\textit{enum}) memastikan ekspresi kondisional dapat dievaluasi tanpa alokasi
+memori runtime terpisah. Keempat, \textbf{bounds checking} pada array
+(\texttt{OPR 17}) mencegah korupsi memori dengan memvalidasi indeks sebelum
+akses.
 
-Pengujian integrasi pada 14 kasus uji menunjukkan bahwa implementasi dapat menangani berbagai skenario program, mulai dari operasi dasar, kontrol alur (\texttt{if}, \texttt{while}, \texttt{for}, \texttt{repeat-until}), hingga deteksi kesalahan runtime (overflow, division by zero, bounds checking). Kode perantara yang dihasilkan konsisten dengan ekspetasi P-Code, menunjukkan bahwa compiler (M1--M3) dan interpreter (M4) bekerja secara terintegrasi dengan baik.
+Pengujian pada 14 kasus uji (12 positif dan 2 negatif) menunjukkan bahwa seluruh
+pipeline kompilasi---dari tokenisasi (M1), parsing (M2), analisis semantik (M3),
+hingga eksekusi kode perantara (M4)---bekerja secara terintegrasi tanpa regresi.
+Kode perantara yang dihasilkan konsisten dengan ekspetasi P-Code, dan kesalahan
+runtime ditangani dengan pesan informatif tanpa menyebabkan \textit{crash}.
+
+
+\subsection{Saran}
+
+Berdasarkan keterbatasan yang ditemukan selama implementasi, beberapa saran perbaikan untuk pengembangan kompilator ini ke depan adalah sebagai berikut:
+
+\begin{enumerate}
+    \item \textbf{Fase Optimasi}: Menambahkan fase optimasi kode perantara, seperti \textit{constant folding} (misalnya \texttt{2 + 3} menjadi \texttt{LIT 5}), \textit{dead code elimination}, dan \textit{peephole optimization} untuk mengurangi jumlah instruksi yang tidak perlu.
+
+    \item \textbf{Dukungan Tipe Data Lengkap}: Melengkapi operasi runtime untuk tipe \texttt{real}, \texttt{char}, \texttt{string}, dan \textit{enum} agar semua tipe yang telah didefinisikan pada tahap semantik (M3) dapat dieksekusi dengan benar.
+
+    \item \textbf{Pengujian Rekursi}: Melakukan pengujian eksplisit terhadap fungsi rekursif dan memperbaiki pengaturan \textit{lexical level} pada \texttt{SemanticAnalyzer} (M3) agar rekursi dapat berjalan dengan benar.
+
+    \item \textbf{Penanganan Input yang Lebih Robust}: Menguji instruksi \texttt{read} dan \texttt{readln} dengan berbagai skenario input (termasuk input tidak valid) dan menambahkan mekanisme \textit{buffering} yang lebih andal untuk pembacaan dari \texttt{stdin}.
+
+    \item \textbf{Ekspansi Arsitektur Target}: Mengembangkan \textit{backend} tambahan yang mampu menghasilkan kode mesin untuk arsitektur tertentu (misalnya x86 atau RISC-V), sehingga kompilator tidak hanya terbatas pada mesin abstrak berbasis stack.
+\end{enumerate}
 
 
 \addcontentsline{toc}{section}{Appendix}
