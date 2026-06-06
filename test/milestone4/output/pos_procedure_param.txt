@@ -1,77 +1,17 @@
-<program>
-|-- <program-header>
-|   |-- programsy
-|   |-- ident(TestProc)
-|   +-- semicolon
-|-- <declaration-part>
-|   |-- <var-declaration>
-|   |   |-- varsy
-|   |   |-- <identifier-list>
-|   |   |   +-- ident(x)
-|   |   |-- colon
-|   |   |-- <type>
-|   |   |   +-- ident(integer)
-|   |   +-- semicolon
-|   +-- <procedure-declaration>
-|       |-- proceduresy
-|       |-- ident(printNum)
-|       |-- <formal-parameter-list>
-|       |   |-- lparent
-|       |   |-- <parameter-group>
-|       |   |   |-- <identifier-list>
-|       |   |   |   +-- ident(n)
-|       |   |   |-- colon
-|       |   |   +-- ident(integer)
-|       |   +-- rparent
-|       |-- semicolon
-|       |-- <block>
-|       |   |-- <declaration-part>
-|       |   +-- <compound-statement>
-|       |       |-- beginsy
-|       |       |-- <statement-list>
-|       |       |   |-- <statement>
-|       |       |   |   +-- <procedure/function-call>
-|       |       |   |       |-- ident(writeln)
-|       |       |   |       |-- lparent
-|       |       |   |       |-- <parameter-list>
-|       |       |   |       |   +-- <expression>
-|       |       |   |       |       +-- <simple-expression>
-|       |       |   |       |           +-- <term>
-|       |       |   |       |               +-- <factor>
-|       |       |   |       |                   +-- <variable>
-|       |       |   |       |                       +-- ident(n)
-|       |       |   |       +-- rparent
-|       |       |   |-- semicolon
-|       |       |   +-- <statement>
-|       |       +-- endsy
-|       +-- semicolon
-|-- <compound-statement>
-|   |-- beginsy
-|   |-- <statement-list>
-|   |   |-- <statement>
-|   |   |   +-- <assignment-statement>
-|   |   |       |-- <variable>
-|   |   |       |   +-- ident(x)
-|   |   |       |-- becomes
-|   |   |       +-- <expression>
-|   |   |           +-- <simple-expression>
-|   |   |               +-- <term>
-|   |   |                   +-- <factor>
-|   |   |                       +-- intcon(42)
-|   |   |-- semicolon
-|   |   |-- <statement>
-|   |   |   +-- <procedure/function-call>
-|   |   |       |-- ident(printNum)
-|   |   |       |-- lparent
-|   |   |       |-- <parameter-list>
-|   |   |       |   +-- <expression>
-|   |   |       |       +-- <simple-expression>
-|   |   |       |           +-- <term>
-|   |   |       |               +-- <factor>
-|   |   |       |                   +-- <variable>
-|   |   |       |                       +-- ident(x)
-|   |   |       +-- rparent
-|   |   |-- semicolon
-|   |   +-- <statement>
-|   +-- endsy
-+-- period
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 6
+2 INT 1 4
+3 LOD 1 -1
+4 OPR 0 14
+5 RET 0 0
+6 LIT 0 42
+7 STO 0 3
+8 LOD 0 3
+9 CAL 0 2
+10 RET 0 0
+
+=== Program Output ===
+42
+
+Execution completed successfully.

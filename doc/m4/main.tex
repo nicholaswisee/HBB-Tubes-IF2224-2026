@@ -1,40 +1,42 @@
 \documentclass[12pt,a4paper]{article}
 
-% === Geometry & spacing ==================================================
+% ── Geometry & spacing ──────────────────────────────────────
 \usepackage[margin=2.5cm]{geometry}
 \setlength{\headheight}{14.5pt}
 \addtolength{\topmargin}{-2.5pt}
 \setlength{\parindent}{1.25em}
 \setlength{\parskip}{0pt}
 
-% === Encoding & language ================================================
+% ── Encoding & language ─────────────────────────────────────
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[indonesian]{babel}
+% Swap the two lines below to switch language:
+% \usepackage[english]{babel}       
+\usepackage[indonesian]{babel}     % Bahasa Indonesia
 
-% === Font ================================================================
+% ── Font ────────────────────────────────────────────────────
 \usepackage{lmodern}
 
-% === Math ================================================================
+% ── Math ────────────────────────────────────────────────────
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{mathtools}
 
-% === Graphics & figures =================================================
+% ── Graphics & figures ──────────────────────────────────────
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
 \graphicspath{{./}}
 
-% === Tables ==============================================================
+% ── Tables ──────────────────────────────────────────────────
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{longtable}
 
-% === Lists ===============================================================
+% ── Lists ───────────────────────────────────────────────────
 \usepackage{enumitem}
 
-% === Code listings =======================================================
+% ── Code listings ───────────────────────────────────────────
 \usepackage{listings}
 \usepackage{xcolor}
 
@@ -62,11 +64,15 @@
   commentstyle=\color{codecomment}\itshape,
   stringstyle=\color{codestring},
 }
-\lstdefinestyle{pascal}{style=default, language=Pascal}
+\lstdefinestyle{go}{style=default, language=Python}    % closest builtin
+\lstdefinestyle{python}{style=default, language=Python}
+\lstdefinestyle{java}{style=default, language=Java}
+\lstdefinestyle{cpp}{style=default, language=C++}
 \lstdefinestyle{bash}{style=default, language=bash}
-\lstset{style=default}
 
-% === Boxes ===============================================================
+\lstset{style=default}   % global default
+
+% ── Boxes (for tips / callouts) ──────────────────────────────
 \usepackage{tcolorbox}
 \tcbuselibrary{listings, skins, breakable}
 
@@ -81,221 +87,950 @@
   breakable
 }
 
+% ── Hyperlinks ──────────────────────────────────────────────
 \usepackage{hyperref}
 \usepackage{xurl}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
 
+% ── SI units ────────────────────────────────────────────────
+\usepackage{siunitx}
+
+% ── Header / Footer ─────────────────────────────────────────
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\CourseCode{} -- \CourseName}
 \rhead{\thepage}
 
+% ── First-line indent on all sections ───────────────────────
 \usepackage{indentfirst}
 
 \newcommand{\CourseCode}{IF2224}
 \newcommand{\CourseName}{Teori Bahasa Formal dan Otomata}
 \newcommand{\AssignmentTitle}{Laporan Tugas Besar}
-\newcommand{\AssignmentSubtitle}{Milestone 4: Intermediate Code Generator}
+\newcommand{\AssignmentSubtitle}{Milestone 4: Intermediate Code \& Interpreter}
 \newcommand{\Semester}{Semester II / 2025--2026}
 
+% Team / group
 \newcommand{\GroupName}{GTFOTBFO (HBB)}
 \newcommand{\MemberA}{Nathanael Imandatua Manurung - 13524021}
 \newcommand{\MemberB}{Nicholas Wise Saragih Sumbayak - 13524037}
 \newcommand{\MemberC}{Kurt Mikhael Purba - 13524065}
 \newcommand{\MemberD}{Rava Khoman Tuah Saragih - 13524107}
 
+% Institution
 \newcommand{\Lab}{Laboratorium Ilmu dan Rekayasa Komputasi}
 \newcommand{\Program}{Teknik Informatika}
 \newcommand{\Faculty}{Sekolah Teknik Elektro dan Informatika}
 \newcommand{\University}{Institut Teknologi Bandung}
 
+% Repository link (used in Appendix)
 \newcommand{\RepoURL}{https://github.com/nicholaswisee/HBB-Tubes-IF2224-2026}
+\newcommand{\DeployURL}{https://your-deployment-url.example.com}
+\newcommand{\DFAURL}{https://drive.google.com/file/d/1XT-esS_K76ImoWZUwJKy43QvJW_NdP0a/view}
 
 \begin{document}
 
 \begin{titlepage}
-    \centering
+  \begin{center}
     \vspace*{1cm}
-    {\Large \textbf{\University}}\\[0.3cm]
-    {\large \Faculty}\\[0.2cm]
-    {\large \Program}\\[2cm]
-    \rule{\linewidth}{0.5mm}\\[0.6cm]
-    {\LARGE \bfseries \AssignmentTitle}\\[0.3cm]
-    {\large \AssignmentSubtitle}\\[0.2cm]
-    \rule{\linewidth}{0.5mm}\\[1.5cm]
-    {\Large \GroupName}\\[1cm]
-    \begin{tabular}{rl}
-        \MemberA\\
-        \MemberB\\
-        \MemberC\\
-        \MemberD\\
-    \end{tabular}\\[2cm]
-    {\large \Semester}\\[1cm]
-    {\Lab}
+    {\Huge \textbf{\AssignmentTitle}}\\[0.4cm]
+    {\Large \textsc{\CourseCode{} \CourseName}}\\[0.2cm]
+    {\large \textsc{\AssignmentSubtitle}}\\[0.2cm]
+    {\large \textsc{\Semester}}\\[2cm]
+
+    \includegraphics[height=8cm]{nael.jpeg}\\[2cm]
+
+    {\large \textbf{Disusun oleh:}}\\[0.3cm]
+    {\large
+      \textbf{\GroupName}\\[0.25cm]
+      \MemberA\\
+      \MemberB\\
+      \MemberC\\
+      \MemberD\\
+    }
+
+    \vfill
+
+    {\large \textsc{\Lab}}\\[0.15cm]
+    {\large \textsc{Program Studi \Program}}\\[0.15cm]
+    {\large \textsc{\Faculty}}\\[0.15cm]
+    {\large \textsc{\University}}\\
+  \end{center}
 \end{titlepage}
 
 \tableofcontents
 \newpage
 
-\section{Ringkasan Pengerjaan Milestone 4}
+\section{Pendahuluan}
 
-Milestone 4 merupakan tahap akhir kompilasi bahasa Pascal sederhana, yaitu pembangkitan kode perantara (intermediate code) dan eksekusinya menggunakan interpreter stack-based. Kelompok kami mengimplementasikan generator kode P-Code untuk AST yang dibangun pada Milestone 3, dan interpreter yang mengeksekusi instruksi P-Code tersebut. Seluruh pipeline lengkapnya adalah:
+Pada tahap sebelumnya, telah berhasil dibangun sebuah \textit{semantic analyzer}
+yang mampu mengkonversi \textit{Parse Tree} menjadi \textit{Decorated Abstract
+Syntax Tree} (Decorated AST) serta melakukan pengecekan semantik seperti
+kecocokan tipe data, \textit{scope resolution}, dan deteksi \textit{identifier}
+yang belum dideklarasikan. Meskipun \textit{semantic analyzer} telah berfungsi
+dengan baik dalam memvalidasi makna program, tahapan kompilasi belum mencapai
+titik di mana program dapat dijalankan. Hasil dari tahap analisis semantik
+berupa \textit{Decorated AST} beserta \textit{symbol table} masih berupa
+representasi abstrak yang belum dapat dieksekusi secara langsung oleh mesin.
 
-\begin{enumerate}
-    \item \textbf{Lexical Analysis} (Scanner) --- tokenisasi sumber Pascal
-    \item \textbf{Syntax Analysis} (Parser) --- pembangunan Parse Tree
-    \item \textbf{Semantic Analysis} (SemanticAnalyzer + SymbolTableManager) --- pemeriksaan tipe dan tabel simbol
-    \item \textbf{Intermediate Code Generation} (CodeGenerator) --- pembangkitan instruksi P-Code
-    \item \textbf{Execution} (Interpreter + StackMachine) --- eksekusi P-Code
+Proses transformasi kode sumber menjadi program yang dapat dijalankan melibatkan
+beberapa tahap berurutan. Setelah analisis semantik selesai, tahap berikutnya
+adalah pembangkitan kode perantara (\textit{intermediate code generation}) dan
+pengeksekusian kode tersebut (\textit{execution}). Pada tahap pembangkitan kode,
+\textit{intermediate code generator} menerima \textit{Decorated AST} dari
+\textit{semantic analyzer} dan menghasilkan representasi kode perantara berupa
+\textit{Three-Address Code} (TAC). Kode perantara ini menjadi jembatan antara
+representasi bahasa tingkat tinggi dan mesin eksekusi. Pada tahap eksekusi,
+\textit{interpreter} berbasis \textit{stack machine} mengeksekusi instruksi-instruksi
+TAC untuk menghasilkan keluaran program yang diharapkan.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{pipeline.png}
+\caption{Pipeline kompilasi lengkap hingga Milestone 4}
+\caption*{Sumber: Spesifikasi Milestone 4 Tugas Besar IF2224}
+\end{figure}
+
+\subsection{Latar Belakang}
+
+Proses kompilasi suatu bahasa pemrograman terdiri atas beberapa tahap yang
+saling berkaitan, dimulai dari analisis leksikal (\textit{lexical analysis}),
+analisis sintaktik (\textit{syntax analysis}), analisis semantik
+(\textit{semantic analysis}), pembangkitan kode perantara (\textit{intermediate
+code generation}), hingga eksekusi. Setelah \textit{semantic analyzer}
+berhasil memvalidasi makna program dan menghasilkan \textit{Decorated AST},
+tahap selanjutnya adalah mengubah representasi tersebut menjadi
+instruksi-instruksi yang dapat dieksekusi oleh mesin.
+
+Tahap pembangkitan kode perantara merupakan fase keempat dalam rantai
+kompilasi. Fase ini bertugas untuk mentransformasi \textit{Decorated AST}
+menjadi bentuk perantara yang lebih dekat ke bahasa mesin namun masih bersifat
+abstrak dan independen terhadap arsitektur mesin target. Salah satu bentuk
+representasi perantara yang umum digunakan adalah \textit{Three-Address Code}
+(TAC), yang setiap instruksinya umumnya memiliki bentuk \texttt{x = y op z}
+yang melibatkan paling banyak tiga alamat: dua operand sumber dan satu alamat
+tujuan.
+
+Setelah kode perantara dihasilkan, diperlukan sebuah mesin eksekusi untuk
+menjalankan instruksi-instruksi tersebut. Dalam konteks tugas besar ini,
+mesin eksekusi yang dibangun adalah \textit{stack machine} yang menggunakan
+struktur data \textit{stack} sebagai media penyimpanan utama. Setiap
+subprogram yang dipanggil akan memiliki \textit{frame} sendiri di dalam stack,
+yang berisi \textit{static link}, \textit{dynamic link}, \textit{return
+address}, serta ruang untuk variabel lokal dan parameter. Mekanisme
+\textit{display} digunakan untuk mengelola \textit{static scope} dan
+mempercepat akses variabel dari \textit{scope} induk.
+
+Pada tugas besar mata kuliah IF2224 Teori Bahasa Formal dan Otomata, mahasiswa
+diminta untuk membangun sebuah \textit{compiler} sederhana untuk bahasa
+pemrograman Arion, yaitu bahasa bertipe Pascal. Milestone keempat dan terakhir
+ini berfokus pada pembangunan \textit{intermediate code generator} yang
+mengonversi \textit{Decorated AST} menjadi instruksi \textit{Three-Address
+Code} (TAC), serta \textit{interpreter} berbasis \textit{stack machine} yang
+mengeksekusi instruksi-instruksi tersebut untuk menjalankan program.
+
+\subsection{Rumusan Masalah}
+
+Bagaimana merancang dan mengimplementasikan:
+
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{\textit{Intermediate Code Generator}} yang mampu
+        mengonversi \textit{Decorated AST} menjadi instruksi \textit{Three-Address
+        Code} (TAC) yang mencakup ekspresi, penugasan, kontrol alur
+        (\textit{if}, \textit{while}, \textit{for}, \textit{repeat}),
+        subprogram (\textit{procedure}/\textit{function}), dan I/O.
+    \item \textbf{\textit{Stack Machine}} yang mampu mengelola memori stack,
+        \textit{frame} untuk setiap pemanggilan subprogram, \textit{display}
+        untuk resolusi \textit{scope}, serta mendeteksi dan menangani
+        kesalahan \textit{runtime} seperti \textit{stack overflow}, pembagian
+        dengan nol, dan \textit{jump} tidak valid.
+    \item \textbf{\textit{Interpreter}} yang mampu mengeksekusi daftar
+        instruksi TAC dalam siklus \textit{Fetch-Decode-Execute} serta
+        menjalankan seluruh operasi aritmetika, logika, relasional, dan I/O.
 \end{enumerate}
 
-\subsection{Struktur File Milestone 4}
+\subsection{Gambaran Umum Sistem}
 
-Berikut file-file baru dan modifikasi yang dilakukan pada milestone ini:
+Sistem yang dibangun pada Milestone 4 merupakan bagian akhir dari rantai
+kompilasi bahasa Arion yang diimplementasikan dalam bahasa C++20. Sistem ini
+menerima \textit{Decorated AST} dan \textit{symbol table} dari tahap analisis
+semantik, menghasilkan instruksi TAC, dan mengeksekusinya menggunakan mesin
+\textit{stack}. Sistem terdiri dari dua komponen utama:
 
-\begin{table}[H]
-\centering
-\begin{tabular}{llp{6cm}}
-\toprule
-\textbf{Path} & \textbf{Peran} & \textbf{Deskripsi Singkat} \\
-\midrule
-\texttt{src/intermediate/CodeGenerator.hpp} & Role 4 & Header CodeGenerator \\
-\texttt{src/intermediate/CodeGenerator.cpp} & Role 4 & Visitor AST untuk emit P-Code \\
-\texttt{src/intermediate/Instruction.hpp} & Role 4 & Definisi kelas \texttt{Instruction} \\
-\texttt{src/intermediate/Instruction.cpp} & Role 4 & Implementasi \texttt{Instruction::toString()} \\
-\texttt{src/runtime/StackMachine.hpp} & Role 3 & Header mesin stack \\
-\texttt{src/runtime/StackMachine.cpp} & Role 3 & Operasi stack dan frame \\
-\texttt{src/runtime/Interpreter.hpp} & Role 3 & Header interpreter P-Code \\
-\texttt{src/runtime/Interpreter.cpp} & Role 3 & Implementasi interpreter \\
-\texttt{src/driver\_m4.cpp} & Role 4 & Driver end-to-end M4 \\
-\bottomrule
-\end{tabular}
-\caption{File-file kunci Milestone 4}
-\end{table}
+\begin{enumerate}
+    \item \textbf{\textit{Intermediate Code Generator}} (\texttt{src/intermediate/}):
+        Menerima \textit{Decorated AST} dan \textit{symbol table} dari tahap
+        analisis semantik, melakukan traversal pada AST untuk menghasilkan
+daftar instruksi TAC. \textit{Code generator} dirancang menggunakan pola
+\textit{Visitor} dengan fungsi \texttt{visit()} untuk setiap jenis node AST.
 
-\newpage
-\section{Implementasi Intermediate Code Generator}
+    \item \textbf{\textit{Runtime Environment}} (\texttt{src/runtime/}):
+        Terdiri dari \texttt{StackMachine} (manajemen stack dan frame) dan
+        \texttt{Interpreter} (siklus eksekusi instruksi). Interpreter membaca
+        instruksi TAC satu per satu, mendekode opcode, dan mengeksekusi operasi
+yang sesuai pada stack menggunakan siklus \textit{Fetch-Decode-Execute}.
+\end{enumerate}
 
-Pembangkitan kode perantara (\textit{intermediate code generation}) adalah fase di mana \textit{Decorated AST} dari tahap sebelumnya ditransformasi menjadi serangkaian instruksi mesin abstrak. Dalam proyek ini, kami menggunakan instruksi berbasis P-Code yang dirancang untuk dieksekusi pada mesin \textit{stack}.
-
-\subsection{Arsitektur Instruksi P-Code}
-
-Setiap instruksi P-Code direpresentasikan oleh struktur \texttt{Instruction} yang terdiri dari empat \textit{field} utama:
+Keluaran akhir sistem terdiri dari:
 \begin{itemize}
-    \item \texttt{line}: Indeks atau alamat instruksi dalam memori instruksi.
-    \item \texttt{f} (\textit{function/opcode}): Kode operasi yang menentukan tindakan yang harus diambil.
-    \item \texttt{l} (\textit{level}): Perbedaan tingkat leksikal (\textit{lexical level}) untuk akses variabel non-lokal.
-    \item \texttt{a} (\textit{argument/operand}): Nilai literal atau alamat memori.
+    \item \textbf{\textit{Intermediate Code}}: Daftar instruksi TAC yang
+        dihasilkan dari proses \textit{code generation}, berupa baris-baris
+        dengan format \texttt{<line> <INSTR> <level> <operand>}.
+    \item \textbf{\textit{Program Output}}: Hasil eksekusi program yang
+        dicetak ke \texttt{stdout} melalui instruksi \texttt{WRT} dan
+        \texttt{WRTLN}, termasuk keluaran dari operasi I/O yang didefinisikan
+        dalam program sumber.
 \end{itemize}
 
-Berikut adalah daftar lengkap instruksi P-Code yang diimplementasikan:
+\subsection{Spesifikasi Umum}
 
-\begin{table}[H]
-\centering
-\begin{tabular}{clp{9cm}}
-\toprule
-\textbf{Opcode} & \textbf{Nama} & \textbf{Deskripsi} \\
-\midrule
-\texttt{LIT} & \textit{Literal} & Mendorong (\textit{push}) nilai literal \texttt{a} ke atas \textit{stack}. \\
-\texttt{OPR} & \textit{Operator} & Melakukan operasi aritmatika atau logika yang ditentukan oleh \texttt{a}. \\
-\texttt{LOD} & \textit{Load} & Mengambil nilai dari alamat \texttt{a} pada tingkat leksikal \texttt{l} ke \textit{stack}. \\
-\texttt{STO} & \textit{Store} & Menyimpan nilai teratas \textit{stack} ke alamat \texttt{a} pada tingkat leksikal \texttt{l}. \\
-\texttt{LODA} & \textit{Load Array} & Mengambil nilai \textit{array} dengan \textit{offset} dari \textit{stack}. \\
-\texttt{STOA} & \textit{Store Array} & Menyimpan nilai ke \textit{array} dengan \textit{offset} dari \textit{stack}. \\
-\texttt{CAL} & \textit{Call} & Memanggil prosedur atau fungsi pada alamat \texttt{a}. \\
-\texttt{INT} & \textit{Increment} & Mengalokasikan ruang memori sebesar \texttt{a} pada \textit{stack}. \\
-\texttt{JMP} & \textit{Jump} & Melompat secara tidak bersyarat ke instruksi di alamat \texttt{a}. \\
-\texttt{JPC} & \textit{Jump Conditional} & Melompat ke \texttt{a} jika nilai teratas \textit{stack} adalah 0 (\textit{false}). \\
-\texttt{RET} & \textit{Return} & Kembali dari pemanggilan subprogram. \\
-\bottomrule
-\end{tabular}
-\caption{Instruksi P-Code yang diimplementasikan}
-\end{table}
-
-\subsection{Operasi Aritmatika dan Logika (\texttt{OPR})}
-
-Instruksi \texttt{OPR} menggunakan argumen \texttt{a} untuk menentukan jenis operasi yang dilakukan terhadap elemen-elemen di atas \textit{stack}.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{cl|cl}
-\toprule
-\textbf{a} & \textbf{Operasi} & \textbf{a} & \textbf{Operasi} \\
-\midrule
-1 & Negasi (\texttt{-}) & 9 & Kurang dari (\texttt{<}) \\
-2 & Penjumlahan (\texttt{+}) & 10 & Lebih besar sama dengan (\texttt{>=}) \\
-3 & Pengurangan (\texttt{-}) & 11 & Lebih besar dari (\texttt{>}) \\
-4 & Perkalian (\texttt{*}) & 12 & Kurang dari sama dengan (\texttt{<=}) \\
-5 & Pembagian (\texttt{/}, \texttt{div}) & 13 & \textit{Write} (Cetak nilai) \\
-6 & Modulo (\texttt{mod}) & 14 & \textit{Writeln} (Cetak baris baru) \\
-7 & Sama dengan (\texttt{=}) & 15 & \textit{Odd} (Ganjil) \\
-8 & Tidak sama dengan (\texttt{<>}) & 16 & Logika \texttt{NOT} \\
-\bottomrule
-\end{tabular}
-\caption{Sub-kode operasi untuk instruksi \texttt{OPR}}
-\end{table}
-
-\subsection{Strategi Pembangkitan Kode}
-
-\texttt{CodeGenerator} mengimplementasikan \textit{Visitor Pattern} untuk menelusuri \textit{Decorated AST}. Beberapa strategi kunci yang diterapkan adalah:
-
-\begin{enumerate}
-    \item \textbf{Pengelolaan Label dan \textit{Backpatching}}: Untuk instruksi kontrol alur seperti \texttt{IF} dan \texttt{WHILE}, alamat lompatan (\textit{jump target}) seringkali belum diketahui saat instruksi \texttt{JMP} atau \texttt{JPC} pertama kali dipancarkan. Kami menggunakan mekanisme label dan fungsi \texttt{backpatch} untuk mengisi alamat tersebut setelah seluruh blok kode selesai dibangkitkan.
-    \item \textbf{Alokasi Memori}:
-    \begin{itemize}
-        \item \textbf{Variabel Lokal}: Dialokasikan mulai dari \textit{offset} 3 (setelah \textit{Static Link}, \textit{Dynamic Link}, dan \textit{Return Address}).
-        \item \textbf{Parameter}: Karena argumen didorong ke \textit{stack} sebelum pemanggilan prosedur, parameter diakses menggunakan \textit{offset} negatif relatif terhadap \textit{base pointer} baru.
-    \end{itemize}
-    \item \textbf{Akses Array}: Pembangkitan kode untuk akses \textit{array} melibatkan perhitungan indeks yang kemudian dikalikan dengan ukuran elemen (\textit{element size}) untuk mendapatkan \textit{offset} yang digunakan oleh \texttt{LODA} atau \texttt{STOA}.
+\begin{enumerate}[label=\arabic*.]
+    \item \textbf{Intermediate Code Generation}:
+        \begin{itemize}
+            \item Mengubah \textit{Decorated AST} menjadi instruksi TAC
+                dengan format \texttt{<line> <INSTR> <level> <operand>}.
+            \item Mendukung 9 opcode: \texttt{INT}, \texttt{LIT},
+                \texttt{LOD}, \texttt{STO}, \texttt{CAL}, \texttt{JMP},
+                \texttt{JPC}, \texttt{OPR}, \texttt{RET}.
+            \item Mendukung ekspresi, penugasan, I/O (\texttt{write},
+                \texttt{writeln}, \texttt{read}, \texttt{readln}).
+            \item Mendukung kontrol alur: \texttt{if-then-else},
+                \texttt{while-do}, \texttt{for-to/downto},
+                \texttt{repeat-until}.
+            \item Mendukung subprogram: prosedur dan fungsi dengan parameter.
+            \item Manajemen \textit{label} untuk \textit{backpatching}
+                instruksi lompatan.
+        \end{itemize}
+    \item \textbf{Stack Machine \& Interpreter}:
+        \begin{itemize}
+            \item Manajemen stack dengan struktur \textit{frame} per
+                pemanggilan subprogram (SL, DL, RA, variabel lokal).
+            \item Mekanisme \textit{display} untuk resolusi \textit{lexical
+                level} (\textit{static scope}).
+            \item Siklus eksekusi \textit{Fetch-Decode-Execute} untuk
+                menjalankan instruksi TAC.
+            \item 14 operasi OPR: NEG, ADD, SUB, MUL, DIV, MOD, EQL, NEQ,
+                LSS, GEQ, GTR, LEQ, WRT, WRTLN.
+            \item Penanganan kesalahan \textit{runtime}: \textit{stack
+                overflow/underflow}, pembagian nol, \textit{jump} tidak valid,
+                akses di luar batas, dan korupsi stack.
+        \end{itemize}
 \end{enumerate}
 
-\newpage
-\section{Implementasi Interpreter dan Stack Machine}
 
-Fase eksekusi melibatkan mesin abstrak yang menjalankan instruksi P-Code yang telah dihasilkan. Komponen utamanya adalah \textit{Stack Machine} sebagai pengelola memori dan \textit{Interpreter} sebagai pengontrol eksekusi.
+% ============================================================
+%   SECTION 2 — DASAR TEORI
+% ============================================================
 
-\subsection{Model Memori \textit{Stack Machine}}
+\section{Dasar Teori}
 
-\textit{Stack Machine} menggunakan sebuah \textit{vector} sebagai representasi memori linier yang dikelola sebagai \textit{stack}. Struktur \textit{Activation Record} (Frame) untuk setiap pemanggilan prosedur terdiri dari:
-\begin{enumerate}
-    \item \textbf{\textit{Static Link} (SL)}: Menunjuk ke \textit{base pointer} dari tingkat leksikal satu tingkat di atasnya untuk mendukung akses variabel non-lokal (\textit{nested scopes}).
-    \item \textbf{\textit{Dynamic Link} (DL)}: Menunjuk ke \textit{base pointer} dari pemanggil (\textit{caller}) untuk pemulihan \textit{stack} saat kembali (\textit{return}).
-    \item \textbf{\textit{Return Address} (RA)}: Alamat instruksi berikutnya yang harus dieksekusi setelah prosedur selesai.
-    \item \textbf{Data Lokal}: Ruang untuk variabel lokal dan parameter.
-\end{enumerate}
+\subsection{Pendefinisian Bahasa Pemrograman}
 
-Selain itu, digunakan mekanisme \textbf{\textit{Display}} untuk mempercepat akses ke variabel pada tingkat leksikal yang berbeda tanpa harus menelusuri rantai \textit{Static Link} secara berulang.
+Bahasa Pemrograman adalah cara manusia untuk dapat memberikan perintah
+(\textit{instruction}) kepada sebuah komputer. Setiap bahasa pemrograman
+memiliki kata kunci dan aturannya masing-masing serta makna dari kata-kata itu
+yang disebut sintaks (\textit{syntax}) dan semantik (\textit{semantics}).
+Input yang terdapat kesalahan pada tingkat sintaks berarti input tersebut tidak
+valid untuk bahasa pemrograman tersebut, sedangkan kesalahan pada tingkat
+semantik umumnya berbentuk kesalahan logika atau ketidakcocokan tipe data.
+Pada tahap ini, setelah program dinyatakan benar secara sintaksis dan semantik,
+program perlu ditransformasi menjadi instruksi-instruksi yang dapat dieksekusi
+oleh mesin.
 
-\subsection{Mekanisme Eksekusi \textit{Interpreter}}
+\subsubsection{Hierarki Bahasa Pemrograman}
 
-\textit{Interpreter} bekerja dalam sebuah \textit{loop} utama yang melakukan siklus \textit{fetch-decode-execute}:
-\begin{enumerate}
-    \item \textbf{\textit{Fetch}}: Mengambil instruksi dari memori instruksi berdasarkan nilai \textit{Instruction Pointer} (\texttt{ip}).
-    \item \textbf{\textit{Decode}}: Mengidentifikasi \textit{opcode} dan argumen instruksi menggunakan struktur \texttt{switch-case}.
-    \item \textbf{\textit{Execute}}: Melakukan operasi yang sesuai, seperti memodifikasi \textit{stack}, mengubah \texttt{ip} (untuk lompatan), atau memanipulasi frame aktivasi.
-\end{enumerate}
-
-\subsection{Penanganan Kesalahan \textit{Runtime}}
-
-Sistem dilengkapi dengan pendeteksi kesalahan saat eksekusi (\textit{Runtime Error handling}), meliputi:
+Berdasarkan tingkat abstraksinya, bahasa pemrograman diklasifikasikan menjadi
+dua kategori utama:
 \begin{itemize}
-    \item \textit{Division by Zero}: Kesalahan saat operasi pembagian atau modulo dengan pembagi nol.
-    \item \textit{Stack Overflow/Underflow}: Melindungi integritas memori dari penggunaan berlebih atau pengambilan data dari \textit{stack} kosong.
-    \item \textit{Index Out of Bounds}: Memastikan akses \textit{array} berada dalam rentang yang dideklarasikan.
-    \item \textit{Invalid Jump}: Mencegah lompatan ke alamat instruksi yang tidak valid.
+    \item \textbf{\textit{Low-Level Language} (Bahasa Tingkat Rendah)}: Bahasa
+        yang instruksinya mendekati arsitektur perangkat keras dan bahasa mesin
+        (biner 0 dan 1). Contohnya adalah \textit{Assembly}, yang memerlukan
+        \textit{Assembler} untuk menerjemahkan kode menjadi instruksi yang dapat
+        dipahami CPU.
+    \item \textbf{\textit{High-Level Language} (Bahasa Tingkat Tinggi)}: Bahasa
+        yang dirancang agar lebih mudah dibaca dan dipahami oleh manusia karena
+        menggunakan kosakata yang menyerupai bahasa natural. Semakin tinggi
+        tingkat bahasa tersebut, semakin banyak tahapan pemrosesan yang diperlukan
+        untuk mengubahnya menjadi kode mesin. Contoh bahasa tingkat tinggi antara
+        lain Pascal, C++, Python, dan Java.
 \end{itemize}
 
-\newpage
+\subsubsection{\textit{Compiler} dan \textit{Interpreter}}
+
+Untuk menjalankan kode sumber yang ditulis dalam bahasa tingkat tinggi,
+diperlukan sebuah perangkat lunak penerjemah yang mengubah kode tersebut menjadi
+format yang dapat dieksekusi oleh mesin. Secara umum, terdapat dua mekanisme
+utama untuk mengubah bahasa tingkat tinggi ke bahasa mesin:
+
+\begin{enumerate}
+    \item \textbf{\textit{Compiler} (Kompilator)}:
+    \textit{Compiler} adalah program yang menerjemahkan seluruh \textit{source code}
+    secara utuh menjadi kode mesin (biasanya dalam bentuk \textit{Object File})
+    sebelum program dijalankan. Proses kompilasi pada \textit{compiler} umumnya
+    terdiri dari empat tahapan utama: \textit{Lexical Analysis}, \textit{Syntax
+    Analysis}, \textit{Semantic Analysis}, dan \textit{Intermediate Code
+    Generation}. Karakteristik utama \textit{compiler} adalah jika terdeteksi adanya
+    kesalahan (\textit{error}) di dalam \textit{source code}, maka seluruh proses
+    kompilasi akan gagal dan program tidak dapat dijalankan.
+
+    \item \textbf{\textit{Interpreter}}:
+    Berbeda dengan \textit{compiler}, \textit{interpreter} memproses kode sumber
+    baris demi baris secara langsung. \textit{Interpreter} membaca,
+    menerjemahkan, dan langsung mengeksekusi kode mesin tersebut baris demi baris.
+    Hal ini memungkinkan program tetap berjalan normal hingga baris sebelum
+    ditemukannya kesalahan; misalnya, jika terdapat \textit{error} pada baris ke-10,
+    baris 1 sampai 9 akan tetap berhasil dieksekusi. Meskipun mekanisme eksekusinya
+    berbeda, \textit{interpreter} sebenarnya memiliki tahapan pemrosesan internal
+    yang serupa dengan \textit{compiler}. Pada Milestone 4, interpreter yang
+    dibangun bekerja pada level instruksi TAC, bukan pada kode sumber asli.
+\end{enumerate}
+
+\subsection{Teori Kompilator (\textit{Compiler Theory})}
+
+Proses kompilasi adalah urutan dari berbagai fase (\textit{phases}) yang bekerja
+secara berurutan. Setiap fase mengambil input dari tahap sebelumnya,
+memprosesnya, dan memberikan output yang akan digunakan sebagai input untuk fase
+berikutnya. Secara umum, arsitektur sebuah kompilator terdiri dari fase-fase
+berikut:
+
+\begin{enumerate}
+    \item \textbf{\textit{Lexical Analysis}}: Fase pertama yang bekerja sebagai
+        pemindai teks (\textit{text scanner}) pada kode sumber. Fase ini
+        membaca karakter demi karakter dan mengelompokkannya menjadi token-token
+        bermakna. Penjelasan lebih detail mengenai fase ini dibahas pada
+        laporan Milestone 1.
+    \item \textbf{\textit{Syntax Analysis} (\textit{Parsing})}: Mengambil
+        \textit{token} yang dihasilkan oleh \textit{lexical analysis} dan
+        membangun pohon sintaksis (\textit{parse tree}). Fase ini memeriksa
+        kebenaran susunan \textit{token} berdasarkan aturan tata bahasa
+        (\textit{grammar}) kode sumber. Penjelasan lebih detail mengenai fase ini
+        dibahas pada laporan Milestone 2.
+    \item \textbf{\textit{Semantic Analysis}}: Memeriksa apakah pohon sintaksis
+        yang dibangun mengikuti aturan semantik bahasa, seperti kecocokan
+        operasi tipe data dan memastikan \textit{identifier} telah
+        dideklarasikan sebelum digunakan. Fase ini menghasilkan keluaran berupa
+        pohon sintaksis yang dianotasi (\textit{Decorated AST}). Penjelasan
+        lebih detail mengenai fase ini dibahas pada laporan Milestone 3.
+    \item \textbf{\textit{Intermediate Code Generation}}: Menghasilkan
+        representasi kode perantara untuk mesin abstrak, yang posisinya
+        menjembatani antara bahasa tingkat tinggi dan bahasa mesin.
+    \item \textbf{\textit{Code Optimization}}: Mengoptimalkan kode perantara
+        dengan menghapus baris kode yang tidak perlu dan mengatur ulang urutan
+        instruksi. Tujuannya adalah untuk mempercepat eksekusi program tanpa
+        membuang sumber daya (\textit{CPU}, memori).
+    \item \textbf{\textit{Target Code Generation}}: Merupakan fase sintesis
+        akhir (\textit{back-end}) yang menggunakan representasi kode perantara dan
+        tabel simbol untuk menghasilkan program target atau bahasa mesin.
+\end{enumerate}
+
+\subsubsection{\textit{Intermediate Code Generation}}
+
+Sebagai fokus utama pada \textit{milestone} ini, \textit{Intermediate Code
+Generation} adalah fase keempat dari kompilator yang mentransformasi
+representasi semantik program (\textit{Decorated AST}) menjadi bentuk perantara
+yang bersifat abstrak dan independen terhadap mesin target. Fase ini
+memerlukan \textit{Decorated AST} yang telah dianotasi dengan informasi tipe
+data, \textit{scope}, dan alamat memori dari \textit{symbol table} agar dapat
+menghasilkan instruksi yang sesuai.
+
+Salah satu bentuk representasi antara yang umum digunakan adalah
+\textit{Three-Address Code} (TAC). TAC disebut \textit{three-address code}
+karena setiap instruksi umumnya memiliki bentuk \texttt{x = y op z}, yang
+melibatkan tiga alamat: dua operand sumber dan satu alamat tujuan. Namun,
+dalam implementasi proyek ini, TAC direpresentasikan dalam format yang lebih
+sederhana dan lebih dekat ke arsitektur mesin stack:
+
+\begin{verbatim}
+<line> <OPCODE> <level> <operand>
+\end{verbatim}
+
+Setiap instruksi terdiri dari empat komponen:
+\begin{itemize}
+    \item \textbf{line}: Nomor baris instruksi (berbasis 0, diisi secara
+        otomatis saat pembuatan instruksi).
+    \item \textbf{OPCODE}: Kode operasi yang menentukan jenis instruksi
+        (\texttt{INT}, \texttt{LIT}, \texttt{LOD}, \texttt{STO}, \texttt{CAL},
+        \texttt{JMP}, \texttt{JPC}, \texttt{OPR}, \texttt{RET}).
+    \item \textbf{level}: Tingkat \textit{lexical level} yang digunakan untuk
+        resolisi \textit{scope} variabel melalui mekanisme \textit{display}.
+    \item \textbf{operand}: Nilai literal, alamat memori, nomor operasi, atau
+        baris target lompatan, tergantung pada jenis instruksi.
+\end{itemize}
+
+\textbf{Daftar Instruksi TAC:}
+
+\begin{table}[H]
+\centering
+\caption{Daftar instruksi TAC}
+\begin{tabular}{llp{8cm}}
+\toprule
+\textbf{Opcode} & \textbf{Operasi} & \textbf{Semantik} \\
+\midrule
+\texttt{INT m} & Initiate Memory & Alokasi frame sebesar \texttt{m} word di stack \\
+\texttt{LIT v} & Load Literal & Push nilai literal \texttt{v} ke stack \\
+\texttt{LOD l a} & Load Value & Push value dari address \texttt{a} pada level \texttt{l} \\
+\texttt{STO l a} & Store Value & Pop stack lalu simpan ke address \texttt{a} pada level \texttt{l} \\
+\texttt{CAL l a} & Call & Panggil subprogram pada instruction line \texttt{a} \\
+\texttt{JMP l a} & Unconditional Jump & IP = \texttt{a} \\
+\texttt{JPC l a} & Conditional Jump & Jika pop() == 0, IP = \texttt{a} \\
+\texttt{OPR l a} & Operation & Eksekusi operasi \texttt{a} pada stack \\
+\texttt{RET l a} & Return & Kembali dari subprogram \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Operasi OPR (1--16):}
+
+\begin{table}[H]
+\centering
+\caption{Daftar operasi OPR}
+\begin{tabular}{cll}
+\toprule
+\textbf{No} & \textbf{Nama} & \textbf{Stack Effect} \\
+\midrule
+1  & NEG   & Pop a $\rightarrow$ Push (-a) \\
+2  & ADD   & Pop b, a $\rightarrow$ Push (a+b) \\
+3  & SUB   & Pop b, a $\rightarrow$ Push (a-b) \\
+4  & MUL   & Pop b, a $\rightarrow$ Push (a*b) \\
+5  & DIV   & Pop b, a $\rightarrow$ Push (a/b) -- cek div by zero \\
+6  & MOD   & Pop b, a $\rightarrow$ Push (a mod b) \\
+7  & EQL   & Push (a == b ? 1 : 0) \\
+8  & NEQ   & Push (a != b ? 1 : 0) \\
+9  & LSS   & Push (a < b ? 1 : 0) \\
+10 & GEQ   & Push (a >= b ? 1 : 0) \\
+11 & GTR   & Push (a > b ? 1 : 0) \\
+12 & LEQ   & Push (a <= b ? 1 : 0) \\
+13 & WRT   & Pop $\rightarrow$ print tanpa newline \\
+14 & WRTLN & Pop $\rightarrow$ print dengan newline \\
+15 & ODD   & Pop a $\rightarrow$ Push (a \%\ 2 == 1 ? 1 : 0) \\
+16 & NOT   & Pop a $\rightarrow$ Push (a == 0 ? 1 : 0) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{\textit{Stack Machine}}
+
+\textit{Stack Machine} adalah model mesin abstrak yang menggunakan struktur
+data \textit{stack} sebagai media penyimpanan utama untuk operasi komputasi.
+Model ini umum digunakan dalam implementasi mesin virtual dan bahasa bytecode
+(misalnya JVM dan CLR) karena kesederhanaannya dalam manajemen operand dan
+pemanggilan fungsi. Setiap subprogram yang dipanggil akan memiliki \textit{frame}
+sendiri di dalam stack, yang berfungsi sebagai ruang memori lokal untuk
+variabel, parameter, dan informasi kontrol pemanggilan.
+
+Layout sebuah \textit{frame} pada stack adalah sebagai berikut:
+
+\begin{table}[H]
+\centering
+\caption{Layout frame stack}
+\begin{tabular}{ccl}
+\toprule
+\textbf{Address Relatif} & \textbf{Isi} & \textbf{Keterangan} \\
+\midrule
+$-k$ s.d. $-1$ & Parameter ke-1 s.d. ke-$k$ & Argumen yang didorong sebelum \texttt{CAL} \\
+0 & Static Link (SL) & Base pointer frame induk (\textit{lexical scope}) \\
+1 & Dynamic Link (DL) & Base pointer frame pemanggil \\
+2 & Return Address (RA) & Indeks instruksi tujuan setelah \texttt{RET} \\
+3 & Variabel lokal ke-1 & \\
+4 & Variabel lokal ke-2 & \\
+$\cdots$ & $\cdots$ & \\
+$3 + (n-1)$ & Variabel lokal ke-$n$ & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Penting untuk dicatat bahwa parameter tidak dialokasikan di dalam frame baru
+yang dibuat oleh \texttt{INT}. Sebaliknya, parameter berada di stack tepat
+di bawah base pointer frame baru, sehingga diakses dengan alamat negatif relatif
+terhadap \texttt{bp}. Hal ini memungkinkan argumen yang didorong oleh pemanggil
+sebelum instruksi \texttt{CAL} dapat diakses langsung oleh subprogram yang
+dipanggil. Untuk level 0 (program utama), \textit{static link} diatur ke 0.
+Untuk fungsi atau prosedur di level $L$, \textit{static link} diisi dengan
+\texttt{display[$L-1$]}, yaitu base pointer dari frame terakhir pada level
+$L-1$.
+
+Ketika sebuah subprogram dipanggil, instruksi \texttt{CAL} menyebabkan
+penyimpanan return address dan pembuatan frame baru. Instruksi \texttt{INT}
+kemudian mengalokasikan ruang untuk variabel lokal dengan menambah
+\textit{stack pointer}. Ketika subprogram selesai, instruksi \texttt{RET}
+memulihkan \textit{base pointer}, \textit{instruction pointer}, dan
+\textit{display} ke kondisi sebelum pemanggilan, lalu melanjutkan eksekusi
+di instruksi setelah \texttt{CAL}.
+
+\subsubsection{\textit{Display}}
+
+\textit{Display} adalah mekanisme untuk mengelola \textit{static scope} dalam
+bahasa pemrograman dengan \textit{lexical scoping} seperti Pascal. Pada
+bahasa dengan \textit{lexical scoping}, ruang lingkup (\textit{scope}) sebuah
+variabel ditentukan oleh posisi deklarasinya dalam struktur bersarang program,
+bukan oleh urutan pemanggilan pada saat runtime. \textit{Display} merupakan
+array yang menyimpan \textit{base pointer} dari \textit{frame} terakhir untuk
+setiap \textit{lexical level}. Ketika interpreter perlu mengakses variabel dari
+\textit{scope} induk, ia menggunakan nilai \texttt{display[level]} untuk
+mendapatkan base pointer dari frame pada level yang diinginkan, tanpa harus
+menelusuri \textit{static link chain} secara iteratif.
+
+Implementasi \textit{display} dalam proyek ini terdiri dari sebuah array
+berukuran tetap (sesuai jumlah level maksimum) yang diperbarui setiap kali
+instruksi \texttt{INT} atau \texttt{RET} dieksekusi. Saat \texttt{INT}
+membuat frame baru pada level $L$, \texttt{display[$L$]} diset ke base pointer
+frame baru tersebut. Saat \texttt{RET} mengembalikan kontrol dari level $L$,
+\texttt{display[$L$]} dikembalikan ke nilai semula menggunakan informasi yang
+telah disimpan sebelumnya. Mekanisme ini memastikan bahwa variabel non-lokal
+dapat diakses dengan kompleksitas waktu $O(1)$, tidak tergantung pada kedalaman
+penelusuran \textit{static link chain}.
+
+\subsection{Teori Bahasa Formal dan Otomata}
+
+\subsubsection{Kaitannya dengan Milestone 1--3}
+
+Milestone 4 tidak memperkenalkan konsep baru dalam Teori Bahasa Formal dan
+Otomata secara langsung, melainkan memanfaatkan hasil dari milestone-milestone
+sebelumnya sebagai fondasi untuk pembangkitan dan eksekusi kode. Konsep-konsep
+yang telah dibangun pada milestone sebelumnya adalah sebagai berikut:
+
+\begin{itemize}
+    \item \textbf{Milestone 1}: \textit{Regular Expression} dan Deterministic
+        Finite Automaton (DFA) digunakan untuk mengenali pola-pola leksikal
+        dalam kode sumber, menghasilkan token-token yang menjadi masukan parser.
+    \item \textbf{Milestone 2}: \textit{Context-Free Grammar} (CFG) dan algoritma
+        \textit{Recursive Descent} digunakan untuk memeriksa struktur sintaks
+        dan membangun \textit{Parse Tree}.
+    \item \textbf{Milestone 3}: \textit{Attributed Grammar} dan \textit{Visitor
+        Pattern} digunakan untuk melakukan analisis semantik, mengelola
+        \textit{symbol table}, dan menghasilkan \textit{Decorated AST} yang
+        menjadi masukan untuk \textit{intermediate code generator} pada
+        milestone ini.
+\end{itemize}
+
+\textit{Decorated AST} yang dihasilkan dari Milestone 3 merupakan representasi
+program yang telah dianotasi dengan informasi semantik lengkap, termasuk tipe
+data setiap node, referensi ke entri \textit{symbol table}, dan tingkat
+\textit{lexical level}. Informasi ini sangat penting bagi \textit{code
+generator} untuk menentukan alamat memori, level leksikal, dan jenis operasi
+yang tepat untuk setiap konstruksi program.
+
+\subsubsection{\textit{Three-Address Code} dan Mesin Abstrak}
+
+Dalam konteks teori bahasa formal, TAC dapat dipandang sebagai bahasa dari
+sebuah mesin abstrak (\textit{abstract machine}) yang memiliki stack sebagai
+memori utamanya. Bahasa ini didefinisikan oleh sekumpulan instruksi (opcode)
+dan aturan transisi status mesin (semantik operasional). Setiap instruksi TAC
+merupakan sebuah simbol terminal dalam bahasa mesin abstrak ini, dan urutan
+instruksi membentuk sebuah \textit{string} yang diterima oleh mesin.
+
+Mesin abstrak stack dapat dimodelkan secara formal sebagai sistem transisi
+status dengan state berupa tupel $(S, ip, D, bp)$, di mana $S$ adalah stack,
+$ip$ adalah \textit{instruction pointer}, $D$ adalah \textit{display}, dan
+$bp$ adalah \textit{base pointer}. Setiap instruksi menyebabkan transisi dari
+satu state ke state berikutnya sesuai dengan semantik operasionalnya, membentuk
+jejak eksekusi (\textit{execution trace}) program. Sebagai contoh, instruksi
+\texttt{LIT v} menyebabkan transisi $(S, ip, D, bp) \rightarrow (S \cup
+\{v\}, ip+1, D, bp)$, yaitu nilai $v$ ditambahkan ke stack dan \textit{instruction
+pointer} maju satu langkah.
+
+Pemodelan formal ini memastikan bahwa eksekusi program bersifat deterministik:
+untuk setiap state dan instruksi yang sedang dieksekusi, terdapat tepat satu
+state berikutnya yang valid. Sifat deterministik ini merupakan konsekuensi
+dari arsitektur \textit{von Neumann} yang mendasari desain mesin stack, di mana
+setiap instruksi memiliki efek yang terdefinisi dengan jelas terhadap status
+mesin.
+
+
+% ============================================================
+%   SECTION 3 — PERANCANGAN
+% ============================================================
+
+\section{Perancangan}
+
+\subsection{Perancangan \textit{Intermediate Code Generator}}
+
+\textit{Code generator} dirancang dengan pola desain \textit{Visitor}
+(\texttt{ASTVisitor}). Setiap jenis node AST memiliki fungsi \texttt{visit()}
+yang menghasilkan instruksi TAC yang sesuai. \textit{Code generator} berjalan
+dalam satu lintasan (\textit{single pass}) pada AST yang sudah dianotasi.
+
+\subsubsection{Struktur Data Instruksi}
+
+Setiap instruksi TAC direpresentasikan oleh struktur berikut:
+
+\begin{lstlisting}[style=cpp, caption={Struktur Instruction}]
+struct Instruction {
+    int line;       // instruction index (0-based, auto-set)
+    Opcode opcode;  // INT, LIT, LOD, STO, CAL, JMP, JPC, OPR, RET
+    int level;      // static nesting level
+    int operand;    // literal value, address, operation number, etc.
+};
+\end{lstlisting}
+
+\subsubsection{Algoritma \textit{Code Generation}}
+
+Berikut adalah algoritma \textit{code generation} untuk setiap node AST:
+
+\begin{itemize}
+    \item \textbf{ProgramNode}: Hitung \texttt{frameSize} dari \texttt{btab},
+        emit \texttt{INT}, proses deklarasi, proses \texttt{body}, emit
+        \texttt{RET}.
+    \item \textbf{AssignNode}: \texttt{visit(value)}, emit \texttt{STO}
+        dengan \texttt{level} dan \texttt{adr} dari target.
+    \item \textbf{BinaryOpNode}: \texttt{visit(left)}, \texttt{visit(right)},
+        emit \texttt{OPR} dengan nomor operasi sesuai operator.
+    \item \textbf{UnaryOpNode}: \texttt{visit(operand)}, emit \texttt{OPR}
+        NEG atau NOT.
+    \item \textbf{LiteralNode}: Emit \texttt{LIT} dengan nilai literal.
+    \item \textbf{VariableNode}: Emit \texttt{LOD} dengan \texttt{level} dan
+        \texttt{adr} dari symbol table.
+    \item \textbf{IfNode}: Evaluasi kondisi, \texttt{JPC} ke else-label,
+        then-branch, \texttt{JMP} ke end-label, else-branch.
+    \item \textbf{WhileNode}: Place start-label, kondisi, \texttt{JPC} ke
+        end-label, body, \texttt{JMP} ke start-label.
+    \item \textbf{RepeatNode}: Place start-label, statements, kondisi,
+        \texttt{JPC} ke start-label.
+    \item \textbf{ForNode}: Init, \texttt{STO}, start-label, check condition
+        (LEQ/GEQ), \texttt{JPC}, body, increment/decrement, \texttt{JMP}.
+    \item \textbf{ProcDeclNode}: Catat \texttt{adr}, \texttt{INT}, lokal,
+        body, \texttt{RET}.
+    \item \textbf{FuncDeclNode}: Sama dengan ProcDeclNode.
+    \item \textbf{ProcCallNode}: Untuk I/O: push argumen, \texttt{OPR} WRT/WRTLN.
+        Untuk user-defined: push argumen, \texttt{CAL}.
+\end{itemize}
+
+\subsection{Perancangan \textit{Stack Machine}}
+
+Stack machine dirancang dengan operasi-operasi berikut:
+
+\begin{itemize}
+    \item \texttt{push(value)}: Push nilai ke stack.
+    \item \texttt{pop()}: Pop nilai dari stack (dengan deteksi underflow).
+    \item \texttt{pushFrame(frameSize, staticLink, returnAddr)}: Alokasi frame
+        baru dengan SL, DL, RA, dan inisialisasi variabel lokal.
+    \item \texttt{popFrame()}: Pop seluruh frame dan kembalikan BP.
+    \item \texttt{store(level, addr, value)}: Simpan value pada address di
+        frame level tertentu melalui \textit{static link chain}.
+    \item \texttt{load(level, addr)}: Load value dari address di frame level
+        tertentu.
+    \item \texttt{setDisplay/getDisplay}: Manajemen display untuk scope.
+\end{itemize}
+
+\subsection{Perancangan \textit{Interpreter}}
+
+Interpreter dirancang dengan siklus \textit{Fetch-Decode-Execute}:
+
+\begin{lstlisting}[style=cpp, caption={Siklus utama interpreter}]
+void Interpreter::execute(const vector<Instruction> &instructions) {
+    ip = 0;
+    while (ip >= 0 && ip < instructions.size()) {
+        const Instruction &inst = instructions[ip];
+        try {
+            switch (inst.opcode) {
+                case INT: handleINT(inst); break;
+                case LIT: handleLIT(inst); break;
+                // ... semua opcode
+            }
+        } catch (const RuntimeError &e) {
+            errors.push_back(e);
+            return;
+        }
+        ip++;
+    }
+}
+\end{lstlisting}
+
+Setiap handler instruksi didefinisikan secara terpisah:
+
+\begin{itemize}
+    \item \textbf{handleINT}: Push Frame baru dengan static link dari display.
+    \item \textbf{handleLIT}: Push inst.operand ke stack.
+    \item \textbf{handleLOD}: Load value dari address dan push ke stack.
+    \item \textbf{handleSTO}: Pop stack dan store ke address.
+    \item \textbf{handleJMP}: Set ip = operand - 1.
+    \item \textbf{handleJPC}: Pop condition; jika 0, set ip = operand - 1.
+    \item \textbf{handleCAL}: Simpan return address dan set ip = operand - 1.
+    \item \textbf{handleRET}: Pop frame dan set ip = returnAddress - 1.
+    \item \textbf{handleOPR}: Dispatch ke 14 operasi OPR sesuai nomor operand.
+\end{itemize}
+
+\subsection{Perancangan Penanganan \textit{Runtime Error}}
+
+Sistem dirancang untuk mendeteksi dan melaporkan \textit{runtime error} tanpa
+menyebabkan \textit{crash}:
+
+\begin{itemize}
+    \item \textbf{\texttt{RuntimeError}}: Struktur yang menyimpan tipe error,
+        pesan, dan nomor baris instruksi tempat error terjadi.
+    \item \textbf{\texttt{Stack Overflow}}: Deteksi saat \texttt{pushFrame()}
+        melebihi \texttt{maxFrames} (default 1000).
+    \item \textbf{\texttt{Stack Underflow}}: Deteksi saat \texttt{pop()} pada
+        stack kosong.
+    \item \textbf{\texttt{Division By Zero}}: Deteksi pada OPR DIV dan MOD.
+    \item \textbf{\texttt{Invalid Jump}}: Validasi target \texttt{JMP} dan
+        \texttt{JPC} berada dalam rentang instruksi.
+    \item \textbf{\texttt{Index Out of Bounds}}: Validasi address absolut
+        pada \texttt{store()} dan \texttt{load()}.
+\end{itemize}
+
+
+% ============================================================
+%   SECTION 4 — IMPLEMENTASI
+% ============================================================
+
+\section{Implementasi}
+
+\textit{Intermediate code generator} dan \textit{interpreter} pada compiler
+Arion diimplementasikan dalam bahasa C++20. Kedua komponen ini berada pada
+direktori \texttt{src/intermediate/} dan \texttt{src/runtime/}.
+
+\subsection{Struktur Direktori Proyek}
+
+\begin{lstlisting}[style=bash, caption={Tata letak direktori proyek}]
+HBB-Tubes-IF2224-2026/
+    src/
+        main.cpp                    # Titik masuk program
+        driver_m4.cpp               # Driver khusus Milestone 4
+        lexical/                    # Lexical analyzer (M1)
+        syntax/                     # Syntax analyzer (M2)
+        semantic/                   # Semantic analyzer (M3)
+        intermediate/               # Code generator (M4 -- BARU)
+            Instruction.hpp/cpp     # Opcode enum + Instruction struct
+            CodeGenerator.hpp/cpp   # Kelas CodeGenerator (ASTVisitor)
+        runtime/                    # Runtime environment (M4 -- BARU)
+            RuntimeError.hpp        # Struktur RuntimeError
+            StackMachine.hpp/cpp    # Kelas StackMachine
+            Interpreter.hpp/cpp     # Kelas Interpreter
+    test/
+        milestone4/
+            input/                  # Berkas uji masukan M4
+                pos_basic.txt
+                pos_arith.txt
+                pos_if_else.txt
+                pos_while.txt
+                pos_for.txt
+                ...
+            output/                 # Keluaran yang diharapkan
+                pos_basic.txt
+                ...
+    doc/
+        m4/                         # Laporan M4
+            main.tex
+            *.png                   # Screenshot hasil uji
+    Makefile                        # Skrip kompilasi (diperbarui)
+\end{lstlisting}
+
+\subsection{Implementasi \texttt{Instruction.hpp} dan \texttt{Instruction.cpp}}
+
+Berkas \texttt{Instruction.hpp} mendefinisikan:
+\begin{itemize}
+    \item \texttt{enum class Opcode}: INT, LIT, LOD, STO, CAL, JMP, JPC, OPR, RET.
+    \item \texttt{struct Instruction}: line, opcode, level, operand.
+    \item \texttt{std::string toString()} const: format \texttt{"<line> <OPCODE> <level> <operand>"}.
+\end{itemize}
+
+\begin{lstlisting}[style=cpp, caption={Deklarasi Instruction}]
+enum class Opcode {
+    INT, LIT, LOD, STO, CAL, JMP, JPC, OPR, RET
+};
+
+struct Instruction {
+    int line;
+    Opcode opcode;
+    int level;
+    int operand;
+    
+    std::string toString() const;
+};
+\end{lstlisting}
+
+\subsection{Implementasi \texttt{CodeGenerator}}
+
+Kelas \texttt{CodeGenerator} mengimplementasikan \texttt{ASTVisitor} dan
+menyediakan fungsi \texttt{generate()} sebagai titik masuk.
+
+\subsubsection{Expression dan Assignment}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi ekspresi dan assignment}]
+void CodeGenerator::visit(LiteralNode &node) {
+    int value = 0;
+    try { value = stoi(node.value); }
+    catch (...) {
+        if (node.value == "true") value = 1;
+        else if (node.value == "false") value = 0;
+    }
+    emit(LIT, 0, value);
+}
+
+void CodeGenerator::visit(VariableNode &node) {
+    const TabEntry &entry = symTable.getTab(node.tabIndex);
+    emit(LOD, entry.lev, entry.adr);
+}
+
+void CodeGenerator::visit(BinaryOpNode &node) {
+    if (node.left) node.left->accept(*this);
+    if (node.right) node.right->accept(*this);
+    int opNum = opToCode(node.op);
+    if (opNum > 0) emit(OPR, 0, opNum);
+}
+
+void CodeGenerator::visit(AssignNode &node) {
+    if (node.value) node.value->accept(*this);
+    if (node.target && node.target->tabIndex >= 0) {
+        const TabEntry &entry = symTable.getTab(node.target->tabIndex);
+        emit(STO, entry.lev, entry.adr);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{Kontrol Alur (If, While, For, Repeat)}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi IfNode dengan backpatching}]
+void CodeGenerator::visit(IfNode &node) {
+    int elseLabel = newLabel();
+    int endLabel = newLabel();
+
+    if (node.condition) node.condition->accept(*this);
+    int jpcIdx = instructions.size();
+    emit(JPC, 0, 0);  // backpatched
+    if (node.thenBranch) node.thenBranch->accept(*this);
+
+    int jmpIdx = -1;
+    if (node.elseBranch) {
+        jmpIdx = instructions.size();
+        emit(JMP, 0, 0);  // backpatched
+    }
+
+    placeLabel(elseLabel);
+    backpatch(jpcIdx, getLabelLine(elseLabel));
+    if (node.elseBranch) node.elseBranch->accept(*this);
+
+    placeLabel(endLabel);
+    if (jmpIdx >= 0) backpatch(jmpIdx, getLabelLine(endLabel));
+}
+\end{lstlisting}
+
+\subsubsection{Subprogram (Procedure dan Function)}
+
+\begin{lstlisting}[style=cpp, caption={Implementasi deklarasi prosedur}]
+void CodeGenerator::visit(ProcDeclNode &node) {
+    TabEntry &entry = symTable.getTab(symTable.lookup(node.name));
+    entry.adr = instructions.size();  // catat entry point
+
+    int blockIdx = symTable.getDisplay(entry.lev);
+    BTabEntry &block = symTable.getBTab(blockIdx);
+    emit(INT, entry.lev, 3 + block.psze + block.vsze);
+
+    for (auto &decl : node.localDeclarations) {
+        if (decl) decl->accept(*this);
+    }
+    if (node.body) node.body->accept(*this);
+    emit(RET, 0, 0);
+}
+\end{lstlisting}
+
+\subsection{Implementasi \texttt{StackMachine}}
+
+\texttt{StackMachine} mengelola memori stack dan frame:
+
+\begin{lstlisting}[style=cpp, caption={Implementasi pushFrame dan popFrame}]
+void StackMachine::pushFrame(int frameSize, int staticLink, int returnAddr) {
+    if (currentFrames >= maxFrames) {
+        throw RuntimeError(STACK_OVERFLOW, "Stack overflow...");
+    }
+    push(staticLink);  // SL
+    push(bp);          // DL
+    push(returnAddr);  // RA
+    for (int i = 3; i < frameSize; i++) push(0);  // lokal
+    bp = sp - frameSize + 1;
+    currentFrames++;
+}
+
+void StackMachine::popFrame() {
+    if (currentFrames <= 0) {
+        throw RuntimeError(STACK_CORRUPTION, "No frame to pop");
+    }
+    int dynLink = stack[bp + 1];
+    int frameSize = sp - bp + 1;
+    for (int i = 0; i < frameSize; i++) pop();
+    bp = dynLink;
+    currentFrames--;
+}
+\end{lstlisting}
+
+\subsection{Implementasi \texttt{Interpreter}}
+
+Interpreter memiliki siklus utama \texttt{execute()} dan handler untuk setiap
+jenis instruksi:
+
+\begin{lstlisting}[style=cpp, caption={Implementasi OPR operations}]
+void Interpreter::handleOPR(const Instruction &inst) {
+    switch (inst.operand) {
+        case 1: { // NEG
+            int a = stack.pop(); stack.push(-a); break;
+        }
+        case 2: { // ADD
+            int b = stack.pop(), a = stack.pop();
+            stack.push(a + b); break;
+        }
+        case 3: { // SUB
+            int b = stack.pop(), a = stack.pop();
+            stack.push(a - b); break;
+        }
+        // ... case 4--14 ...
+        case 13: { // WRT
+            int a = stack.pop(); cout << a; break;
+        }
+        case 14: { // WRTLN
+            int a = stack.pop(); cout << a << endl; break;
+        }
+        default:
+            throw RuntimeError(UNKNOWN_INSTRUCTION, "...");
+    }
+}
+\end{lstlisting}
+
+
 \section{Pengujian}
 
-Berikut hasil pengujian untuk lima kasus uji wajib. Semua pengujian berhasil menghasilkan output yang sesuai.
+Pengujian dilakukan terhadap program dari dua sisi: pengujian unit
+(\textit{unit test}) untuk komponen StackMachine dan Interpreter, serta
+pengujian integrasi (\textit{integration test}) menggunakan driver M4 yang
+menjalankan pipeline kompilasi penuh.
 
-\subsection{Kasus 1: Program Dasar (\texttt{pos\_basic.txt})}
+\subsection{Pengujian Unit}
 
-Program paling sederhana: inisialisasi variabel, lalu cetak nilainya.
+Pengujian unit untuk Role 3 (\texttt{test/test\_role3.cpp}) mencakup:
 
-\begin{lstlisting}[style=pascal]
+\begin{itemize}
+    \item StackMachine push/pop dan deteksi underflow
+    \item Frame push/pop dan akses memori
+    \item Static link chain / frame bersarang
+    \item Interpreter LIT + STO + LOD
+    \item Interpreter JMP (unconditional jump)
+    \item Interpreter JPC (conditional jump)
+    \item Interpreter CAL + RET
+    \item Invalid jump target
+    \item Out-of-bounds memory access
+    \item Stack overflow (max frames)
+    \item Display management
+\end{itemize}
+
+\subsection{Pengujian Integrasi}
+
+Pilih minimal 5 kasus uji dari tabel berikut. Untuk setiap kasus, sertakan
+\textbf{input}, \textbf{keluaran yang diharapkan}, \textbf{screenshot hasil},
+dan \textbf{analisis}.
+
+\begin{itemize}
+    \item Kasus uji positif: basic, arithmetic, if-else, while, for, mixed, nested.
+    \item Kasus uji negatif: division by zero.
+    \item Kasus uji batas: loop besar.
+\end{itemize}
+
+\subsubsection{Kasus Uji 1: Basic}
+
+\textbf{Berkas:} \texttt{pos\_basic.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program Basic;
 var x: integer;
 begin
@@ -304,16 +1039,31 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 42
+3 STO 0 3
+4 LOD 0 3
+5 OPR 0 14
+6 RET 0 0
+
+=== Program Output ===
 42
-\end{lstlisting}
 
-\subsection{Kasus 2: Aritmatika (\texttt{pos\_arith.txt})}
+Execution completed successfully.
+\end{verbatim}
 
-Menguji urutan operasi: perkalian lebih tinggi prioritas dari penjumlahan.
+\textbf{Analisis:} Program dasar ini menguji jalur paling sederhana: deklarasi variabel, assignment literal, dan pemanggilan \texttt{writeln}. Instruksi \texttt{JMP 0 2} diletakkan setelah \texttt{INT} untuk melewati tubuh prosedur (jika ada) menuju badan utama program. Variabel \texttt{x} dialokasikan pada alamat 3 (frame header memakai 3 sel untuk SL, DL, RA).
 
-\begin{lstlisting}[style=pascal]
+\subsubsection{Kasus Uji 2: Aritmetika}
+
+\textbf{Berkas:} \texttt{pos\_arith.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program Arith;
 var x: integer;
 begin
@@ -322,16 +1072,35 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 10
+3 LIT 0 20
+4 LIT 0 3
+5 OPR 0 4
+6 OPR 0 2
+7 STO 0 3
+8 LOD 0 3
+9 OPR 0 14
+10 RET 0 0
+
+=== Program Output ===
 70
-\end{lstlisting}
 
-\subsection{Kasus 3: If-Else (\texttt{pos\_if\_else.txt})}
+Execution completed successfully.
+\end{verbatim}
 
-Percabangan dengan kondisi \texttt{>}.
+\textbf{Analisis:} Ekspresi \texttt{10 + 20 * 3} dievaluasi dengan urutan postfix yang benar: \texttt{20 * 3 = 60}, lalu \texttt{10 + 60 = 70}. Prioritas operator (perkalian di atas penjumlahan) dipastikan oleh parser yang membangun AST yang tepat. Kode perantara memancarkan \texttt{LIT 20}, \texttt{LIT 3}, \texttt{OPR 0 4} (MUL), lalu \texttt{LIT 10}, \texttt{OPR 0 2} (ADD).
 
-\begin{lstlisting}[style=pascal]
+\subsubsection{Kasus Uji 3: If-Else}
+
+\textbf{Berkas:} \texttt{pos\_if\_else.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program IfElse;
 var x, y: integer;
 begin
@@ -344,16 +1113,40 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 5
+1 JMP 0 2
+2 LIT 0 10
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 5
+6 OPR 0 11
+7 JPC 0 11
+8 LIT 0 1
+9 STO 0 4
+10 JMP 0 13
+11 LIT 0 0
+12 STO 0 4
+13 LOD 0 4
+14 OPR 0 14
+15 RET 0 0
+
+=== Program Output ===
 1
-\end{lstlisting}
 
-\subsection{Kasus 4: While Loop (\texttt{pos\_while.txt})}
+Execution completed successfully.
+\end{verbatim}
 
-Perulangan \texttt{while} dengan pencetakan nilai menurun.
+\textbf{Analisis:} Instruksi \texttt{JPC 0 11} melompat ke cabang \texttt{else} jika kondisi \texttt{x > 5} bernilai false. Karena \texttt{x = 10}, kondisi benar sehingga \texttt{y := 1} dieksekusi, lalu \texttt{JMP 0 13} melewati cabang \texttt{else}. Variabel \texttt{x} berada di alamat 3 dan \texttt{y} di alamat 4.
 
-\begin{lstlisting}[style=pascal]
+\subsubsection{Kasus Uji 4: While}
+
+\textbf{Berkas:} \texttt{pos\_while.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program WhileLoop;
 var i: integer;
 begin
@@ -366,20 +1159,44 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 5
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 0
+6 OPR 0 11
+7 JPC 0 15
+8 LOD 0 3
+9 OPR 0 14
+10 LOD 0 3
+11 LIT 0 1
+12 OPR 0 3
+13 STO 0 3
+14 JMP 0 4
+15 RET 0 0
+
+=== Program Output ===
 5
 4
 3
 2
 1
-\end{lstlisting}
 
-\subsection{Kasus 5: For Loop (\texttt{pos\_for.txt})}
+Execution completed successfully.
+\end{verbatim}
 
-Perulangan \texttt{for} dengan pencetakan nilai 1 sampai 5.
+\textbf{Analisis:} Loop \texttt{while} diimplementasikan dengan pola: (1) evaluasi kondisi di alamat 4, (2) \texttt{JPC 0 15} keluar jika kondisi salah, (3) badan loop pada alamat 8--13, (4) \texttt{JMP 0 4} kembali ke evaluasi kondisi. Variabel \texttt{i} (alamat 3) dikurangi 1 setiap iterasi menggunakan \texttt{OPR 0 3} (SUB).
 
-\begin{lstlisting}[style=pascal]
+\subsubsection{Kasus Uji 5: For Loop}
+
+\textbf{Berkas:} \texttt{pos\_for.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program ForLoop;
 var i: integer;
 begin
@@ -390,20 +1207,109 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 2
+2 LIT 0 1
+3 STO 0 3
+4 LOD 0 3
+5 LIT 0 5
+6 OPR 0 12
+7 JPC 0 15
+8 LOD 0 3
+9 OPR 0 14
+10 LOD 0 3
+11 LIT 0 1
+12 OPR 0 2
+13 STO 0 3
+14 JMP 0 4
+15 RET 0 0
+
+=== Program Output ===
 1
 2
 3
 4
 5
+
+Execution completed successfully.
+\end{verbatim}
+
+\textbf{Analisis:} Loop \texttt{for i := 1 to 5} diterjemahkan menjadi pola \texttt{while}. Batas atas (5) di-\texttt{LIT}-kan dan dibandingkan dengan nilai \texttt{i} menggunakan \texttt{OPR 0 12} (GTE). Jika sudah melebihi, \texttt{JPC} keluar dari loop. Inkrementasi dilakukan dengan \texttt{OPR 0 2} (ADD) dan disimpan kembali ke alamat 3. Hasil menunjukkan iterasi berjalan dari 1 hingga 5 dengan benar.
+
+\subsubsection{Kasus Uji 6: Nested (While + If)}
+
+\textbf{Berkas:} \texttt{pos\_nested.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program NestedTest;
+var
+  i: integer;
+begin
+  i := 10;
+  while i > 0 do
+  begin
+    if i mod 2 == 0 then
+      writeln(i);
+    i := i - 1;
+  end;
+end.
 \end{lstlisting}
 
-\subsection{Kasus Tambahan: Prosedur dengan Parameter}
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+10
+8
+6
+4
+2
+\end{verbatim}
 
-Menguji pemanggilan prosedur dengan satu parameter \texttt{integer}.
+\textbf{Analisis:} Kasus ini menguji kombinasi \texttt{while} dan \texttt{if} bersarang. Hanya nilai \texttt{i} yang genap (10, 8, 6, 4, 2) yang dicetak. Ini memvalidasi bahwa \texttt{JPC} untuk \texttt{if} tidak mengganggu alur loop \texttt{while}. Penanganan \texttt{mod} menggunakan \texttt{OPR 0 10} (MOD) dan perbandingan dengan \texttt{OPR 0 8} (EQ).
 
-\begin{lstlisting}[style=pascal]
+\subsubsection{Kasus Uji 7: Repeat-Until}
+
+\textbf{Berkas:} \texttt{pos\_repeat.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program RepeatTest;
+var
+  i: integer;
+begin
+  i := 10;
+  repeat
+    writeln(i);
+    i := i - 1;
+  until i == 0;
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+\end{verbatim}
+
+\textbf{Analisis:} Loop \texttt{repeat-until} dieksekusi setidaknya sekali sebelum kondisi diperiksa. Kode perantara yang dihasilkan serupa dengan \texttt{while}, tetapi kondisi pemeriksaan berada di akhir badan loop. Variabel \texttt{i} diturunkan dari 10 hingga 1, dan semua nilai dicetak karena pemeriksaan \texttt{until i == 0} terjadi setelah penurunan.
+
+\subsubsection{Kasus Uji 8: Prosedur dengan Parameter}
+
+\textbf{Berkas:} \texttt{pos\_procedure\_param.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
 program ProcParam;
 
 var x: integer;
@@ -419,14 +1325,123 @@ begin
 end.
 \end{lstlisting}
 
-\textbf{Output:}
-\begin{lstlisting}[style=bash]
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+=== Intermediate Code ===
+0 INT 0 4
+1 JMP 0 6
+2 INT 1 4
+3 LOD 1 -1
+4 OPR 0 14
+5 RET 0 0
+6 LIT 0 42
+7 STO 0 3
+8 LOD 0 3
+9 CAL 0 2
+10 RET 0 0
+
+=== Program Output ===
 42
+
+Execution completed successfully.
+\end{verbatim}
+
+\textbf{Analisis:} Ini adalah kasus uji paling kritis karena menguji parameter passing. Parameter \texttt{n} diakses menggunakan alamat negatif \texttt{-1} (\texttt{LOD 1 -1}) karena argumen \texttt{x} sudah berada di stack sebelum \texttt{CAL}. Frame prosedur dialokasikan dengan \texttt{INT 1 4} (hanya untuk variabel lokal, tanpa parameter). Instruksi \texttt{JMP 0 6} di awal memastikan eksekusi tidak jatuh ke tubuh prosedur.
+
+\subsubsection{Kasus Uji 9: Negatif -- Division by Zero}
+
+\textbf{Berkas:} \texttt{neg\_div\_zero.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program DivZero;
+var x: integer;
+begin
+    x := 10;
+    x := x div 0;
+    writeln(x);
+end.
 \end{lstlisting}
 
-\newpage
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+Runtime error: Division by zero
+\end{verbatim}
+
+\textbf{Analisis:} Interpreter mendeteksi pembagian dengan nol pada saat eksekusi \texttt{OPR 0 5} (DIV) dan melempar \texttt{RuntimeError}. Error ini tertangkap oleh \texttt{driver\_m4.cpp} dan ditampilkan ke pengguna. Deteksi runtime diperlukan karena nilai pembagi tidak dapat diprediksi pada saat kompilasi.
+
+\subsubsection{Kasus Uji 10: Negatif -- Integer Overflow}
+
+\textbf{Berkas:} \texttt{neg\_overflow.txt}
+
+\textbf{Masukan:}
+\begin{lstlisting}
+program Overflow;
+var x: integer;
+begin
+    x := 2147483647;
+    x := x + 1;
+    writeln(x);
+end.
+\end{lstlisting}
+
+\textbf{Keluaran yang diharapkan:}
+\begin{verbatim}
+Runtime error: Integer overflow in addition
+\end{verbatim}
+
+\textbf{Analisis:} Interpreter mendeteksi overflow aritmatika pada operasi \texttt{OPR 0 2} (ADD). Nilai maksimum \texttt{integer} (32-bit signed) adalah \texttt{2147483647}; penambahan 1 akan menyebabkan overflow. Deteksi ini mencegah perilaku undefined yang dapat merusak hasil komputasi selanjutnya.
+
+
+\section{Fitur Tambahan}
+
+Berikut fitur-fitur tambahan yang berhasil diimplementasikan di luar spesifikasi dasar:
+
+\begin{enumerate}
+    \item \textbf{ini nanti}: ini nanti
+\end{enumerate}
+
+
+
 \section{Kesimpulan}
 
-Milestone 4 berhasil mengimplementasikan seluruh rantai kompilasi dari analisis leksikal hingga eksekusi kode perantara. Pemecahan masalah parameter passing menjadi hasil penting: dengan menggunakan alamat negatif untuk parameter (karena argumen sudah berada di stack sebelum \texttt{CAL}) dan memancarkan \texttt{INT} hanya untuk variabel lokal, pemanggilan prosedur dan fungsi dapat berjalan dengan benar. Semua lima kasus uji wajib serta kasus tambahan berhasil dilalui tanpa regresi pada fitur-fitur sebelumnya.
+belum
+
+
+\addcontentsline{toc}{section}{Appendix}
+\section*{Appendix}
+
+\begin{table}[H]
+  \centering
+  \begin{small}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{11.7cm}}
+    \toprule
+    \textbf{Sumber Daya} & \textbf{Tautan} \\
+    \midrule
+    Repository GitHub & \url{\RepoURL} \\
+    \bottomrule
+  \end{tabular}
+  \end{small}
+  \caption{Tautan repository, deployment, dan diagram}
+\end{table}
+
+\addcontentsline{toc}{section}{Pembagian Tugas}
+\section*{Pembagian Tugas}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{>{\raggedright\arraybackslash}p{7.6cm}cc}
+    \toprule
+    \textbf{Nama} & \textbf{NIM} & \textbf{Kontribusi} \\
+    \midrule
+    Nathanael Imandatua Manurung & 13524021 & 25\% \\
+    Nicholas Wise Saragih Sumbayak & 13524037 & 25\% \\
+    Kurt Mikhael Purba & 13524065 & 25\% \\
+    Rava Khoman Tuah Saragih & 13524107 & 25\% \\
+    \bottomrule
+  \end{tabular}
+  \caption{Pembagian kontribusi anggota kelompok}
+\end{table}
 
 \end{document}
